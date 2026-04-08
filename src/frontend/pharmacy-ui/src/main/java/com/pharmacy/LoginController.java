@@ -16,6 +16,7 @@ public class LoginController {
     @FXML private PasswordField txtPassword;
     @FXML private Button btnLogin;
     @FXML private Label lblError;
+    
     @FXML
     void initialize() {
         btnTheme.setText("");
