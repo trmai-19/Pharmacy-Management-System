@@ -1,5 +1,11 @@
 package com.pharmacy;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -40,22 +46,44 @@ public class LoginController {
         String pass = txtPassword.getText();
 
         if (user.isEmpty() || pass.isEmpty()) {
-            lblError.setText("Vui lòng nhập đầy đủ tài khoản và mật khẩu!");
+            lblError.setText("Vui lòng nhập đầy đủ số điện thoại và mật khẩu!");
             lblError.setStyle("-fx-text-fill: red; -fx-font-style: italic; -fx-font-size: 13px;");
         } else {
             lblError.setText("");
             
-            // Đoạn này sau Database để check tài khoản thật
-            System.out.println("Tài khoản: " + user + " | Mật khẩu: " + pass);
-            
-            // Test
-            if (user.equals("admin") && pass.equals("123456")) {
-                lblError.setText("Đăng nhập thành công!");
-                lblError.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
-            } else {
-                lblError.setText("Sai tài khoản hoặc mật khẩu rồi ông giáo ạ!");
-                lblError.setStyle("-fx-text-fill: red; -fx-font-style: italic;");
-            }
+            // sdt + password -> JSON
+            String jsonPayload = String.format("{\"sdt\":\"%s\",\"password\":\"%s\"}", user, pass);
+
+            // Gửi thư lên Backend
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/login"))
+                    .header("Content-Type", "application/json") 
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .build();
+
+            // Gửi bất đồng bộ
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        Platform.runLater(() -> {
+                            if (response.statusCode() == 200) {
+                                // Thành công
+                                lblError.setText(response.body()); 
+                                lblError.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+                            } else {
+                                // Sai thông tin (401)
+                                lblError.setText(response.body()); 
+                                lblError.setStyle("-fx-text-fill: red; -fx-font-style: italic;");
+                            }
+                        });
+                    })
+                    .exceptionally(e -> {
+                        Platform.runLater(() -> {
+                            lblError.setText("Error: Không thể kết nối đến Server Backend!");
+                            lblError.setStyle("-fx-text-fill: red; -fx-font-style: italic; font-weight: bold;");
+                        });
+                        return null;
+                    });
         }
     }
 

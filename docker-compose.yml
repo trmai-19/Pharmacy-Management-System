@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    container_name: oracle_nhathuoc
+    environment:
+      - ORACLE_PASSWORD=123456 
+      - APP_USER=nha_thuoc
+      - APP_USER_PASSWORD=123456
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+
+volumes:
+  oracle_data:
