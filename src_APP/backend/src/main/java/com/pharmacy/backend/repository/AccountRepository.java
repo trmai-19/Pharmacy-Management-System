@@ -10,6 +10,6 @@ import com.pharmacy.backend.model.Account;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
     
-    // Tìm tài khoản khớp Số điện thoại và Mật khẩu
-    Optional<Account> findBySdtAndPassword(String sdt, String password);
+    // Tìm tài khoản khớp Số điện thoại
+    Optional<Account> findBySdt(String sdtString);
 }

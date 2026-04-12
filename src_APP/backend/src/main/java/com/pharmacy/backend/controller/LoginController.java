@@ -1,8 +1,5 @@
 package com.pharmacy.backend.controller;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pharmacy.backend.dto.LoginRequest;
+import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.service.AccountService;
 
 @RestController
@@ -17,25 +16,29 @@ import com.pharmacy.backend.service.AccountService;
 @CrossOrigin(origins = "*") 
 public class LoginController {
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
+
+    public LoginController(AccountService accountService)
+    {
+        this.accountService = accountService;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         
-        String sdt = request.get("sdt");
-        String password = request.get("password");
+        String sdt = loginRequest.getSdt();
+        String password = loginRequest.getPassword();
 
         // --- test ---
         System.out.println("SĐT -> Frontend: [" + sdt + "]");
         System.out.println("Pass -> Frontend: [" + password + "]");
 
-        String ketQua = accountService.kiemTraDangNhap(sdt, password);
+        LoginResponse response = accountService.checkLogin(sdt, password);
 
-        if (ketQua.startsWith("Success")) {
-            return ResponseEntity.ok(ketQua); 
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response); 
         } else {
-            return ResponseEntity.status(401).body(ketQua); 
+            return ResponseEntity.status(401).body(response); 
         }
     }
 }
