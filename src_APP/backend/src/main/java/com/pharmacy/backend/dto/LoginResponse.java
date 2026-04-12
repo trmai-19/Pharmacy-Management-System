@@ -4,13 +4,15 @@ public class LoginResponse {
     private boolean success;
     private String message;
     private String vaitro;
+    private String token;
 
     public LoginResponse() {};
 
-    public LoginResponse(boolean success, String message, String vaitro) {
+    public LoginResponse(boolean success, String message, String vaitro, String token) {
         this.success = success;
         this.message = message;
         this.vaitro = vaitro;
+        this.token = token;
     }
 
     public boolean isSuccess() {
@@ -35,5 +37,12 @@ public class LoginResponse {
 
     public void setVaitro(String vaitro) {
         this.vaitro = vaitro;
+    }
+
+    public String getToken() { 
+        return token;
+    }
+    public void setToken(String token) { 
+        this.token = token; 
     }
 }
