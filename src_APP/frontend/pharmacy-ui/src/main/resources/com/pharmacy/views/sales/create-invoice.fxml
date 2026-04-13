@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="950" style="-fx-padding: 30;">
+    <VBox spacing="20">
+        <Label text="🧾 Lập hóa đơn bán hàng" style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+        <HBox spacing="15">
+            <Button text="+ Thêm sản phẩm vào hóa đơn" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 12 25;"/>
+            <Button text="Xóa dòng" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-padding: 12 25;"/>
+        </HBox>
+        <Label text="Chi tiết hóa đơn sẽ hiển thị ở đây..." style="-fx-font-size: 16px; -fx-text-fill: gray;"/>
+        <!-- Sau này thêm TableView + tổng tiền -->
+    </VBox>
+</AnchorPane>

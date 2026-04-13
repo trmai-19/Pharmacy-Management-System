@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="900" style="-fx-padding: 30;">
+    <VBox spacing="15">
+        <Label text="👥 Quản lý nhân viên" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+        <Button text="+ Thêm nhân viên mới" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
+        <!-- Sau này thêm TableView -->
+        <Label text="Danh sách nhân viên sẽ hiển thị ở đây..." style="-fx-font-size: 16px; -fx-text-fill: #7f8c8d;"/>
+    </VBox>
+</AnchorPane>

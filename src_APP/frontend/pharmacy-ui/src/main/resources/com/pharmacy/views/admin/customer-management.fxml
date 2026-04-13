@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="900" style="-fx-padding: 30;">
+    <VBox spacing="15">
+        <Label text="👤 Quản lý khách hàng" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+        <Button text="+ Thêm khách hàng mới" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-padding: 10 20;"/>
+    </VBox>
+</AnchorPane>

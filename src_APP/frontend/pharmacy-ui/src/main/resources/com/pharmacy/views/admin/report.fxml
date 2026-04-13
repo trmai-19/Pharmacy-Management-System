@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="900" style="-fx-padding: 30;">
+    <VBox spacing="20">
+        <Label text="📊 Báo cáo thống kê tổng quan" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+        <Label text="• Doanh thu hôm nay: 12.450.000 VNĐ" style="-fx-font-size: 18px;"/>
+        <Label text="• Số hóa đơn hôm nay: 87" style="-fx-font-size: 18px;"/>
+        <Label text="• Sản phẩm sắp hết hạn: 23" style="-fx-font-size: 18px;"/>
+        <Label text="• Tồn kho thấp: 14 sản phẩm" style="-fx-font-size: 18px;"/>
+        <!-- Sau này thay bằng Chart -->
+    </VBox>
+</AnchorPane>

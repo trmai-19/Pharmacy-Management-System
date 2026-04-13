@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" prefHeight="700" prefWidth="1150"
+            xmlns="http://javafx.com/javafx/21" 
+            xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.pharmacy.LoginController">
+
+    <children>
+
+        <!-- Left Side - Branding -->
+        <VBox fx:id="leftPane" alignment="CENTER" prefWidth="540" 
+              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+            <padding>
+                <Insets bottom="60" left="60" right="60" top="80"/>
+            </padding>
+
+            <children>
+                <Label text="💊" style="-fx-font-size: 160px; -fx-text-fill: #00ff9d; -fx-padding: 0 0 20 0;"/>
+
+                <Label text="PHARMACY" 
+                       style="-fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white; -fx-letter-spacing: 4px;"/>
+
+                <Label text="QUẢN LÝ NHÀ THUỐC" 
+                       style="-fx-font-size: 20px; -fx-text-fill: #00ff9d; -fx-font-weight: 500; -fx-padding: 10 0 30 0;"/>
+
+                <Label text="HIỆN ĐẠI - HIỆU QUẢ - DỄ SỬ DỤNG" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-letter-spacing: 2.5px; 
+                              -fx-text-fill: #00ff9d; -fx-background-color: rgba(0,255,157,0.15); 
+                              -fx-padding: 10 30; -fx-background-radius: 30;"/>
+            </children>
+        </VBox>
+
+        <!-- Right Side - Login Form -->
+        <VBox fx:id="rightPane" alignment="CENTER" layoutX="550" prefWidth="600" spacing="28"
+              AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+            <padding>
+                <Insets bottom="80" left="90" right="90" top="100"/>
+            </padding>
+
+            <children>
+
+                <Label text="ĐĂNG NHẬP" 
+                       style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white; 
+                              -fx-alignment: center; -fx-text-alignment: center;"/>
+
+                <Label text="Hệ thống quản lý nhà thuốc" 
+                       style="-fx-font-size: 15px; -fx-text-fill: #aaaaaa; -fx-padding: -8 0 30 0; 
+                              -fx-alignment: center; -fx-text-alignment: center;"/>
+
+                <VBox spacing="8">
+                    <Label text="Tên đăng nhập / Số điện thoại" 
+                           style="-fx-font-size: 15px; -fx-text-fill: #cccccc;"/>
+                    <TextField fx:id="txtUsername" prefHeight="54" promptText="Nhập tên đăng nhập..." 
+                               style="-fx-background-color: #1f1f2e; -fx-text-fill: white; 
+                                      -fx-prompt-text-fill: #777777; -fx-background-radius: 12; 
+                                      -fx-border-radius: 12; -fx-border-color: #333344; -fx-font-size: 16.5px;"/>
+                </VBox>
+
+                <VBox spacing="8">
+                    <Label text="Mật khẩu" 
+                           style="-fx-font-size: 15px; -fx-text-fill: #cccccc;"/>
+                    <PasswordField fx:id="txtPassword" prefHeight="54" promptText="Nhập mật khẩu..." 
+                                    style="-fx-background-color: #1f1f2e; -fx-text-fill: white; 
+                                           -fx-prompt-text-fill: #777777; -fx-background-radius: 12; 
+                                           -fx-border-radius: 12; -fx-border-color: #333344; -fx-font-size: 16.5px;"/>
+                </VBox>
+
+                <Label fx:id="lblError" style="-fx-text-fill: #ff6b6b; -fx-font-size: 14px; -fx-font-style: italic; -fx-padding: 5 0;"/>
+
+                <Button fx:id="btnLogin" text="ĐĂNG NHẬP" prefHeight="58" prefWidth="360"
+                        style="-fx-background-color: linear-gradient(to right, #00ff9d, #00cc7a); 
+                               -fx-text-fill: #0f0f0f; -fx-font-size: 18px; -fx-font-weight: bold; 
+                               -fx-background-radius: 12; -fx-cursor: hand;"
+                        onAction="#handleLogin"/>
+
+                <Button fx:id="btnTheme" text="☀️" prefHeight="45" prefWidth="45"
+                        style="-fx-background-color: transparent; -fx-text-fill: #aaaaaa; -fx-font-size: 26px; -fx-cursor: hand;"
+                        onAction="#switchTheme"
+                        AnchorPane.rightAnchor="50" AnchorPane.topAnchor="40"/>
+
+            </children>
+        </VBox>
+
+    </children>
+</AnchorPane>

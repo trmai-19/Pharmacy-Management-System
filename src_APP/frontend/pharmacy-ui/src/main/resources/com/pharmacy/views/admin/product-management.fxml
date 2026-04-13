@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="900" style="-fx-padding: 30;">
+    <VBox spacing="15">
+        <Label text="📦 Quản lý sản phẩm" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+        <Button text="+ Thêm sản phẩm mới" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 10 20;"/>
+        <!-- TableView sản phẩm sẽ đặt ở đây sau -->
+    </VBox>
+</AnchorPane>

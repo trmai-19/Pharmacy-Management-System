@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="950" style="-fx-padding: 30;">
+    <VBox spacing="20">
+        <Label text="📥 Quản lý nhập kho" style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+        <HBox spacing="15">
+            <Button text="+ Tạo phiếu nhập kho mới" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 12 25;"/>
+            <Button text="Xem danh sách phiếu nhập" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-padding: 12 25;"/>
+        </HBox>
+        <Label text="Thông tin nhập kho sẽ hiển thị ở đây..." style="-fx-font-size: 16px; -fx-text-fill: gray;"/>
+    </VBox>
+</AnchorPane>
