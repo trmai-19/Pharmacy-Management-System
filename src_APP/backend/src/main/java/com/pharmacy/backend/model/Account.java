@@ -27,6 +27,10 @@ public class Account {
     @Column(name = "NGAYTAO")
     private Date ngaytao;
 
+    @Column(name = "IS_FIRST_LOGIN")
+    private boolean isFirstLogin = true;
+
+
     // --- Getters và Setters ---
     public String getMatk() { return matk; }
     public void setMatk(String matk) { this.matk = matk; }
@@ -42,4 +46,7 @@ public class Account {
 
     public Date getNgaytao() { return ngaytao; }
     public void setNgaytao(Date ngaytao) { this.ngaytao = ngaytao; }
+
+    public boolean isFirstLogin() { return isFirstLogin; }
+    public void setFirstLogin(boolean firstLogin) { isFirstLogin = firstLogin; }
 }

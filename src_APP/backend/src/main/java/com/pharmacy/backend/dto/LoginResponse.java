@@ -5,6 +5,7 @@ public class LoginResponse {
     private String message;
     private String vaitro;
     private String token;
+    private boolean firstLogin;
 
     public LoginResponse() {};
 
@@ -13,6 +14,14 @@ public class LoginResponse {
         this.message = message;
         this.vaitro = vaitro;
         this.token = token;
+    }
+    
+    public LoginResponse(boolean success, String message, String vaitro, String token, boolean firstLogin) {
+        this.success = success;
+        this.message = message;
+        this.vaitro = vaitro;
+        this.token = token;
+        this.firstLogin = firstLogin;
     }
 
     public boolean isSuccess() {
@@ -44,5 +53,12 @@ public class LoginResponse {
     }
     public void setToken(String token) { 
         this.token = token; 
+    }
+
+    public boolean isFirstLogin() { 
+        return firstLogin; 
+    }
+    public void setFirstLogin(boolean firstLogin) { 
+        this.firstLogin = firstLogin; 
     }
 }
