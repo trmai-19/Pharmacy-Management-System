@@ -33,13 +33,15 @@ public class AccountServiceImpl implements AccountService {
 
             if(isPasswordMatch) {
                 String generatedToken = jwtUtils.generateToken(acc.getSdt(), acc.getVaitro());
-                return new LoginResponse(true, "Success", acc.getVaitro(), generatedToken);
+                LoginResponse res = new LoginResponse(true, "Success", acc.getVaitro(), generatedToken);
+                res.setFirstLogin(acc.isFirstLogin());
+                return res;
             } else {
-                return new LoginResponse(false, "Error: Mật khẩu không chính xác!", null, null);
+                return new LoginResponse(false, "Error: Mật khẩu không chính xác!", null, null, true);
             }
         }
         else {
-            return new LoginResponse(false, "Error: Số điện thoại chưa được đăng ký!", null, null);
+            return new LoginResponse(false, "Error: Số điện thoại chưa được đăng ký!", null, null, true);
         }
     }
 
@@ -53,6 +55,7 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setMatk(generatedMATK);
         newAccount.setSdt(sdt);
         newAccount.setVaitro(vaitro);
+        newAccount.setFirstLogin(true);
 
         String hashedPassword = passwordEncoder.encode(rawPassword);
         newAccount.setPassword(hashedPassword);
@@ -64,4 +67,21 @@ public class AccountServiceImpl implements AccountService {
         return true;
 
     }
+
+    @Override
+    public boolean changePassword(String sdt, String newPassword) {
+        Optional<Account> accOpt = accountRepo.findBySdt(sdt);
+        if(accOpt.isPresent()) {
+            Account acc = accOpt.get();
+            if (!acc.isFirstLogin()) {
+                return false; 
+            }
+            acc.setPassword(passwordEncoder.encode(newPassword));
+            acc.setFirstLogin(false);
+            accountRepo.save(acc);
+            return true;
+        }
+        return false;
+    }
+
 }

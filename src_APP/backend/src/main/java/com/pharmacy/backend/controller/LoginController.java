@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pharmacy.backend.dto.LoginRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.service.AccountService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.pharmacy.backend.dto.ChangePasswordRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -40,5 +42,13 @@ public class LoginController {
         } else {
             return ResponseEntity.status(401).body(response); 
         }
+    }
+    @PostMapping("/login/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        boolean success = accountService.changePassword(currentSdt, request.getNewPassword());
+        if(success) return ResponseEntity.ok("Đổi mật khẩu thành công!");
+        return ResponseEntity.badRequest().body("Lỗi khi đổi mật khẩu!");
     }
 }
