@@ -12,6 +12,7 @@ import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.service.AccountService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.pharmacy.backend.dto.ChangePasswordRequest;
+import com.pharmacy.backend.dto.ForgotPasswordRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -43,6 +44,7 @@ public class LoginController {
             return ResponseEntity.status(401).body(response); 
         }
     }
+
     @PostMapping("/login/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -50,5 +52,14 @@ public class LoginController {
         boolean success = accountService.changePassword(currentSdt, request.getNewPassword());
         if(success) return ResponseEntity.ok("Đổi mật khẩu thành công!");
         return ResponseEntity.badRequest().body("Lỗi khi đổi mật khẩu!");
+    }
+
+    @PostMapping("login/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        boolean success = accountService.resetPassword(request.getSdt(), request.getEmail());
+        if(success) {
+            return ResponseEntity.ok("Mật khẩu tạm thời đã được gửi vào email của bạn!");
+        }
+        return ResponseEntity.badRequest().body("Số điện thoại hoặc Email không chính xác!");
     }
 }
