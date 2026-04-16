@@ -21,16 +21,14 @@ public class AdminController {
     @PostMapping("/create-account")
     public ResponseEntity<String> createAccount(@RequestBody CreateUserRequest request) {
         
-        System.out.println(">>> THUNDER CLIENT GỬI LÊN: SĐT=" + request.getSdt() + " | Pass=" + request.getPassword() + " | VaiTro=" + request.getVaitro());
-        
-        boolean isSuccess = accountService.createStaffAccount (
+        boolean isSuccess = accountService.createAccount (
             request.getSdt(),
-            request.getPassword(),
+            request.getEmail(),
             request.getVaitro()
         );
 
         if(isSuccess) {
-            return ResponseEntity.ok("Tạo tài khoản thành công!");
+            return ResponseEntity.ok("Tạo tài khoản thành công! Vui lòng kiểm tra email để nhận thông tin đăng nhập lần đầu!");
         } else {
             return ResponseEntity.badRequest().body("Tài khoản đã tồn tại!");
         }
