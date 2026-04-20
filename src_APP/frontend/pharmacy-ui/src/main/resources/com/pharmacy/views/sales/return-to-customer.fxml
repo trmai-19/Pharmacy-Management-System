@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<AnchorPane xmlns="http://javafx.com/javafx/21" prefHeight="600" prefWidth="950" style="-fx-padding: 30;">
-    <VBox spacing="20">
-        <Label text="🔄 Đổi trả hàng cho khách hàng" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
-        <Label text="Nhập mã hóa đơn hoặc số điện thoại khách hàng để tìm..." style="-fx-font-size: 16px;"/>
-        <!-- Sau này thêm form tìm kiếm + danh sách sản phẩm trả -->
-    </VBox>
-</AnchorPane>

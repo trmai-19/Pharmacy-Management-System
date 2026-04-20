@@ -1,6 +1,5 @@
 package com.pharmacy.util;
 
-import com.pharmacy.ThemeService;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -27,29 +26,48 @@ public class SceneManager {
         }
 
         Parent root = loader.load();
-        System.out.println("✅ Load FXML thành công: " + fxmlPath);
+        
+        // 1. Ép root (nội dung FXML) phải giãn nở hết cỡ trong cửa sổ
+        if (root instanceof AnchorPane) {
+            AnchorPane.setTopAnchor(root, 0.0);
+            AnchorPane.setBottomAnchor(root, 0.0);
+            AnchorPane.setLeftAnchor(root, 0.0);
+            AnchorPane.setRightAnchor(root, 0.0);
+        }
 
-        AnchorPane wrapper = new AnchorPane(root);
-        ThemeService.applyTheme(wrapper);
-
-        Scene scene = new Scene(wrapper);
+        Scene scene = new Scene(root); // Không cần wrapper AnchorPane nữa để tránh rắc rối layout
         primaryStage.setScene(scene);
+
+        // 2. Ép cửa sổ luôn mở to nhất (Maximize) để tránh bị nhỏ theo Scene trước
+        primaryStage.setMaximized(true); 
+        
+        // 3. Đảm bảo cửa sổ có thể co giãn mượt mà
+        primaryStage.setResizable(true);
+
         primaryStage.show();
+        System.out.println("✅ Chuyển scene thành công: " + fxmlPath);
     }
 
     public static void loadContent(AnchorPane contentPane, String fxmlPath) {
-    try {
-        FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
-        Parent content = loader.load();
+        try {
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
+            Parent content = loader.load();
 
-        // Xóa hết nội dung cũ trước khi thêm mới
-        contentPane.getChildren().clear();
-        contentPane.getChildren().add(content);
+            // Ép nội dung mới phải phủ kín cái ContentPane (Dashboard)
+            if (content instanceof AnchorPane) {
+                AnchorPane.setTopAnchor(content, 0.0);
+                AnchorPane.setBottomAnchor(content, 0.0);
+                AnchorPane.setLeftAnchor(content, 0.0);
+                AnchorPane.setRightAnchor(content, 0.0);
+            }
 
-        System.out.println("✅ Đã load nội dung: " + fxmlPath);
-    } catch (IOException e) {
-        System.err.println("❌ Không load được file: " + fxmlPath);
-        e.printStackTrace();
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(content);
+
+            System.out.println("✅ Đã load nội dung vào Pane: " + fxmlPath);
+        } catch (IOException e) {
+            System.err.println("❌ Không load được nội dung: " + fxmlPath);
+            e.printStackTrace();
+        }
     }
-}
 }

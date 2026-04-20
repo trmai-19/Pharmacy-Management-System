@@ -1,99 +1,40 @@
-/* ====================== MAIN CSS - PHARMACY APP ====================== */
-
-/* Root & General */
-.root {
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+/* Giao diện chung */
+.root-container {
+    -fx-background-image: url('https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=2070');
+    -fx-background-size: cover;
 }
 
-/* Dashboard Common Styles */
-AnchorPane {
-    -fx-background-color: #f8f9fa;
-}
-
-/* Header */
-HBox {
-    -fx-background-color: #2c3e50;
-}
-
-/* Sidebar */
-VBox#sidebarMenu {
-    -fx-background-color: #34495e;
-}
-
-/* Menu Buttons */
-Button {
+/* Phần bên trái - LUÔN GIỮ NGUYÊN để đẹp */
+#leftPane {
     -fx-background-color: transparent;
-    -fx-text-fill: #ecf0f1;
-    -fx-font-size: 14.5px;
-    -fx-padding: 12 20;
-    -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
-    -fx-background-radius: 8;
+}
+.brand-pill {
+    -fx-text-fill: #00ff9d;
+    -fx-background-color: rgba(0,255,157,0.15);
+    -fx-padding: 8 25;
+    -fx-background-radius: 25;
 }
 
-Button:hover {
-    -fx-background-color: #3d566e;
+/* CHẾ ĐỘ TỐI (Mặc định) */
+.dark-mode #rightPane {
+    -fx-background-color: rgba(15, 23, 42, 0.7);
+    -fx-border-color: rgba(255,255,255,0.1);
+}
+.dark-mode .label { -fx-text-fill: white; }
+.dark-mode .text-field { 
+    -fx-background-color: rgba(0,0,0,0.3); 
     -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+    -fx-border-color: #334155;
 }
 
-/* Login Form Specific */
-TextField, PasswordField {
-    -fx-background-color: #f8f9fa;
-    -fx-border-color: #dcdcdc;
-    -fx-border-width: 1.5;
-    -fx-border-radius: 12;
-    -fx-background-radius: 12;
-    -fx-padding: 0 15;
-    -fx-font-size: 16px;
+/* CHẾ ĐỘ SÁNG - Chỉ đổi phần bên phải */
+.light-mode #rightPane {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-border-color: #cbd5e1;
 }
-
-TextField:focused, PasswordField:focused {
-    -fx-border-color: #0575E6;
-    -fx-border-width: 2.5;
-    -fx-effect: dropshadow(gaussian, rgba(5, 117, 230, 0.3), 10, 0, 0, 0);
-}
-
-/* Login Button */
-Button#btnLogin {
-    -fx-background-color: linear-gradient(to right, #0575E6, #00F260);
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 18px;
-    -fx-background-radius: 12;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0, 0, 4);
-}
-
-Button#btnLogin:hover {
-    -fx-background-color: linear-gradient(to right, #0463c7, #00d65c);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 15, 0, 0, 6);
-}
-
-/* Error Label */
-Label#lblError {
-    -fx-text-fill: #e74c3c;
-    -fx-font-size: 14px;
-    -fx-font-style: italic;
-}
-
-/* User Info Label in Header */
-Label#lblUserInfo {
-    -fx-text-fill: white;
-    -fx-font-size: 16.5px;
-    -fx-font-weight: bold;
-}
-
-/* ScrollPane & TableView (sau này sẽ dùng) */
-.table-view {
-    -fx-background-color: white;
-    -fx-border-color: #e0e0e0;
-}
-
-.table-view .column-header-background {
-    -fx-background-color: #34495e;
-}
-
-.table-view .column-header .label {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
+.light-mode #rightPane .label { -fx-text-fill: #1e293b; }
+.light-mode .text-field { 
+    -fx-background-color: white; 
+    -fx-text-fill: #1e293b;
+    -fx-border-color: #cbd5e1;
 }

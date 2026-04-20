@@ -1,0 +1,67 @@
+/* TỔNG THỂ */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-teal-primary: #0b5d77;
+    -fx-bg-light: #f4f7f8;
+    -fx-text-dark: #1e293b;
+    -fx-font-smoothing-type: lcd; /* Làm nét chữ */
+}
+
+/* SIDEBAR */
+.sidebar {
+    -fx-background-color: -fx-teal-primary;
+    -fx-padding: 40 20 20 20;
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(255,255,255,0.8);
+    -fx-background-radius: 10;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 12 15;
+    -fx-alignment: center-left;
+}
+
+.nav-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+}
+
+.nav-btn-active {
+    -fx-background-color: #d17a58;
+    -fx-text-fill: white;
+}
+
+/* MAIN CONTENT */
+.content-container {
+    -fx-background-color: white;
+    -fx-background-radius: 0 0 0 0; 
+}
+
+/* THẺ THỐNG KÊ (CARDS) */
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 25;
+    -fx-border-color: #f1f5f9;
+    -fx-border-radius: 15;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.04), 20, 0, 0, 10);
+}
+
+.card-title {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-color: #f8fafc;
+    -fx-padding: 5 10;
+    -fx-background-radius: 5;
+}
+
+/* THANH TÌM KIẾM */
+.search-bar-container {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 20;
+    -fx-padding: 5 15;
+    -fx-max-height: 40; 
+}

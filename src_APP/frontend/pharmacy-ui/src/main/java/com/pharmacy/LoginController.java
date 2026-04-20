@@ -8,59 +8,71 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import javafx.scene.layout.VBox;
 
 public class LoginController {
 
     @FXML private AnchorPane rootPane;
+    @FXML private VBox leftPane;     
+    @FXML private VBox rightPane; 
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
     @FXML private Button btnLogin;
     @FXML private Label lblError;
-    @FXML private Button btnTheme;
 
     @FXML
     void initialize() {
-        ThemeService.applyTheme(rootPane);
-        setupHoverEffects();
+        // --- 1. SỬA LỖI KHÔNG FULL MÀN HÌNH ---
+        // Ràng buộc chiều rộng theo tỷ lệ cửa sổ (Left 45%, Right 55%)
+        leftPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.45));
+        rightPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.55));
+
+        applyStaticStyle();
+        
         clearError();
-        Platform.runLater(() -> txtUsername.requestFocus());
+        
+        Platform.runLater(() -> btnLogin.requestFocus());
     }
 
-    private void setupHoverEffects() {
-        addFieldHoverEffect(txtUsername);
-        addFieldHoverEffect(txtPassword);
+    private void applyStaticStyle() {
+        // Style cho TextField & PasswordField (Glassmorphism)
+        String inputStyle = "-fx-background-color: rgba(15, 23, 42, 0.6); " +
+                            "-fx-text-fill: white; " +
+                            "-fx-background-radius: 8; " +
+                            "-fx-border-color: #334155; " +
+                            "-fx-border-radius: 8; " +
+                            "-fx-prompt-text-fill: #777777; " +
+                            "-fx-font-size: 15px;";
+        
+        txtUsername.setStyle(inputStyle);
+        txtPassword.setStyle(inputStyle);
 
-        String defaultBtn = "-fx-background-color: linear-gradient(to right, #0575E6, #00F260); " +
-                            "-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; " +
-                            "-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 10, 0, 0, 4);";
+        // Hiệu ứng Focus
+        setupInputFocus(txtUsername, inputStyle);
+        setupInputFocus(txtPassword, inputStyle);
 
-        String hoverBtn = "-fx-background-color: linear-gradient(to right, #0463c7, #00d65c); " +
-                          "-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; " +
-                          "-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 15, 0, 0, 6);";
-
-        btnLogin.setStyle(defaultBtn);
-        btnLogin.setOnMouseEntered(e -> btnLogin.setStyle(hoverBtn));
-        btnLogin.setOnMouseExited(e -> btnLogin.setStyle(defaultBtn));
+        // Style cho Nút đăng nhập
+        String btnStyle = "-fx-background-color: linear-gradient(to right, #00ff9d, #059669); " +
+                          "-fx-text-fill: #064e3b; " +
+                          "-fx-font-weight: 800; " +
+                          "-fx-background-radius: 8; " +
+                          "-fx-cursor: hand; " +
+                          "-fx-font-size: 18px;";
+        btnLogin.setStyle(btnStyle);
+        
+        // Hiệu ứng Hover nút
+        btnLogin.setOnMouseEntered(e -> btnLogin.setStyle(btnStyle + "-fx-translate-y: -2; -fx-effect: dropshadow(three-pass-box, rgba(0,255,157,0.4), 15, 0, 0, 0);"));
+        btnLogin.setOnMouseExited(e -> btnLogin.setStyle(btnStyle));
     }
 
-    private void addFieldHoverEffect(TextInputControl field) {
+    private void setupInputFocus(TextInputControl field, String baseStyle) {
         field.focusedProperty().addListener((obs, old, newVal) -> {
             if (newVal) {
-                field.setStyle("-fx-background-color: white; -fx-border-color: #0575E6; -fx-border-width: 2.5;");
+                field.setStyle(baseStyle + "-fx-border-color: #00ff9d; -fx-border-width: 2;");
             } else {
-                field.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dcdcdc;");
+                field.setStyle(baseStyle);
             }
         });
-    }
-
-    @FXML
-    void switchTheme(ActionEvent event) {
-        ThemeService.toggleTheme(rootPane);
     }
 
     @FXML
@@ -68,125 +80,63 @@ public class LoginController {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            showError("Vui lòng nhập tên đăng nhập và mật khẩu!");
+        if(username.isEmpty() && password.isEmpty()) {
+            showError("Vui lòng nhập thông tin đăng nhập!");
+            return;
+        }
+        if (username.isEmpty() ) {
+            showError("Vui lòng nhập tài khoản!");
+            return;
+        }
+        if (password.isEmpty()) {
+            showError("Vui lòng nhập mật khẩu!");
             return;
         }
 
         clearError();
         btnLogin.setDisable(true);
-        btnLogin.setText("Đang đăng nhập...");
+        btnLogin.setText("ĐANG XỬ LÝ...");
 
-        // === HARD CODE ĐỂ TEST FRONTEND (không cần Backend) ===
-        User user = authenticateHardcode(username, password);
-
-        Platform.runLater(() -> {
+        // Giả lập logic đăng nhập
+        if ("1".equals(username.toLowerCase()) && "1".equals(password)) {
+            navigateToDashboard("ADMIN");
+        } else {
+            showError("Tài khoản hoặc mật khẩu không đúng!");
             btnLogin.setDisable(false);
-            btnLogin.setText("ĐĂNG NHẬP");
-
-            if (user != null) {
-                Session.setCurrentUser(user);
-                navigateToDashboard(user.getRole());
-            } else {
-                showError("Tên đăng nhập hoặc mật khẩu không đúng!");
-            }
-        });
+            btnLogin.setText("VÀO HỆ THỐNG");
+        }
     }
 
-    // 3 tài khoản test (Hardcode)
-    private User authenticateHardcode(String username, String password) {
-        String userLower = username.toLowerCase();
+    private void navigateToDashboard(String role) {
+    String path = "";
+    String roleLower = role.toLowerCase();
 
-        if ("admin".equals(userLower) && "admin".equals(password)) {
-            return new User("admin", "Nguyễn Văn A", "ADMIN");
-        }
-        if ("sales".equals(userLower) && "sales".equals(password)) {
-            return new User("sales", "Trần Thị B", "SALES");
-        }
-        if ("warehouse".equals(userLower) && "warehouse".equals(password)) {
-            return new User("warehouse", "Lê Văn K", "WAREHOUSE");
-        }
-        return null;
-    }
-
-    // ==================== SỬA LỖI SWITCH Ở ĐÂY ====================
-   private void navigateToDashboard(String role) {
-    String dashboardPath;
-
-    switch (role) {
-        case "ADMIN":
-            dashboardPath = "/com/pharmacy/views/admin/dashboard.fxml";
+    // Xác định đúng file FXML tổng (Main Dashboard) của từng bộ phận
+    switch (roleLower) {
+        case "admin":
+            // Theo ảnh thư mục của bạn: resources/com/pharmacy/views/admin/admin-main.fxml
+            path = "/com/pharmacy/views/admin/admin-main.fxml"; 
             break;
-        case "SALES":
-            dashboardPath = "/com/pharmacy/views/sales/dashboard.fxml";
+        case "sales":
+            path = "/com/pharmacy/views/sales/dashboard.fxml";
             break;
-        case "WAREHOUSE":
-            dashboardPath = "/com/pharmacy/views/warehouse/dashboard.fxml";
+        case "warehouse":
+            path = "/com/pharmacy/views/warehouse/dashboard.fxml";
             break;
         default:
-            dashboardPath = "/com/pharmacy/views/sales/dashboard.fxml";
-            break;
+            path = "/com/pharmacy/views/login.fxml";
     }
-
-    System.out.println("🔄 Đang chuyển đến role: " + role);
-    System.out.println("📁 Đường dẫn FXML: " + dashboardPath);
 
     try {
-        SceneManager.switchScene(dashboardPath);
-        System.out.println("✅ Chuyển scene thành công cho role: " + role);
+        System.out.println("🚀 Đang chuyển đến: " + path);
+        SceneManager.switchScene(path);
     } catch (Exception e) {
-        System.err.println("❌ LỖI chuyển scene cho role: " + role);
-        System.err.println("Đường dẫn bị lỗi: " + dashboardPath);
+        System.err.println("❌ Lỗi chuyển trang cho role: " + role);
         e.printStackTrace();
-        showError("Không thể chuyển đến trang chính của " + role + "!");
+        showError("Không tìm thấy giao diện cho quyền: " + role);
     }
 }
-    // Phần này giữ nguyên để sau này dễ chuyển sang dùng API
-    private void handleSuccessfulLogin(String responseBody) {
-        try {
-            String role = extractRole(responseBody);
-            String fullName = extractFullName(responseBody, txtUsername.getText());
 
-            User user = new User(txtUsername.getText(), fullName, role);
-            Session.setCurrentUser(user);
-
-            String dashboardPath = getDashboardPath(role);
-
-            SceneManager.switchScene(dashboardPath);
-
-        } catch (Exception e) {
-            showError("Đăng nhập thành công nhưng không chuyển được trang!");
-            e.printStackTrace();
-        }
-    }
-
-    private String getDashboardPath(String role) {
-        if ("ADMIN".equals(role)) {
-            return "/com/pharmacy/views/admin/dashboard.fxml";
-        } else if ("WAREHOUSE".equals(role)) {
-            return "/com/pharmacy/views/warehouse/dashboard.fxml";
-        } else {
-            return "/com/pharmacy/views/sales/dashboard.fxml";
-        }
-    }
-
-    private String extractRole(String json) {
-        if (json == null) return "SALES";
-        String upper = json.toUpperCase();
-        if (upper.contains("ADMIN")) return "ADMIN";
-        if (upper.contains("WAREHOUSE")) return "WAREHOUSE";
-        return "SALES";
-    }
-
-    private String extractFullName(String json, String fallback) {
-        return fallback;
-    }
-
-    private void showError(String message) {
-        lblError.setText(message);
-    }
-
-    private void clearError() {
-        lblError.setText("");
-    }
+    private void showError(String message) { lblError.setText(message); }
+    private void clearError() { lblError.setText(""); }
 }
