@@ -5,7 +5,7 @@ import { authService } from '../services/api'
 export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    tenKH: '', sdt: '', password: '', gioiTinh: 'Nam'
+    tenKH: '', sdt: '', email: '', password: '', confirmPassword: '', gioiTinh: 'Nam'
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,10 +16,15 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (form.password !== form.confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp!')
+      return
+    }
     setLoading(true)
     setError('')
     try {
-      await authService.register(form)
+      const { confirmPassword, ...payload } = form
+      await authService.register(payload)
       navigate('/login')
     } catch (err) {
       setError(err.response?.data || 'Đăng ký thất bại!')
@@ -45,9 +50,7 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Họ tên
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Họ tên</label>
             <input
               type="text"
               name="tenKH"
@@ -60,9 +63,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Số điện thoại
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
             <input
               type="text"
               name="sdt"
@@ -75,9 +76,21 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mật khẩu
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="example@email.com"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <p className="text-xs text-gray-400 mt-1">Dùng để khôi phục mật khẩu khi cần</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
             <input
               type="password"
               name="password"
@@ -90,9 +103,20 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Giới tính
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
             <select
               name="gioiTinh"
               value={form.gioiTinh}

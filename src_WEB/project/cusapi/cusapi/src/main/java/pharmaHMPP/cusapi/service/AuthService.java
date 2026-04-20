@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class AuthService {
     private final DiemTLRepository diemTLRepo;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional
     public String register(RegisterRequest req) {
@@ -41,7 +43,7 @@ public class AuthService {
                 .build();
         diemTLRepo.save(diemTL);
 
-        // 2. Tao TAIKHOAN
+        // 2. Tao TAIKHOAN (luu them email)
         TaiKhoan taiKhoan = TaiKhoan.builder()
                 .maTK(maTK)
                 .vaiTro("KHACH_HANG")
@@ -49,6 +51,7 @@ public class AuthService {
                 .sdt(req.getSdt())
                 .ngayTao(LocalDate.now())
                 .isFirstLogin(false)
+                .email(req.getEmail())
                 .build();
         taiKhoanRepo.save(taiKhoan);
 
@@ -83,6 +86,42 @@ public class AuthService {
         // Tao JWT token
         String token = jwtService.generateToken(taiKhoan.getMaTK());
 
-        return new LoginResponse(token, khachHang.getMaKH(), khachHang.getTenKH(), khachHang.getSdt(), taiKhoan.getVaiTro());
+        // Tra ve isFirstLogin de frontend redirect neu can
+        return new LoginResponse(
+                token,
+                khachHang.getMaKH(),
+                khachHang.getTenKH(),
+                khachHang.getSdt(),
+                taiKhoan.getVaiTro(),
+                taiKhoan.isFirstLogin()
+        );
+    }
+
+    @Transactional
+    public void forgotPassword(String sdt, String email) {
+        // Xac minh SDT va email khop voi tai khoan
+        TaiKhoan taiKhoan = taiKhoanRepo.findBySdtAndEmail(sdt, email)
+                .orElseThrow(() -> new RuntimeException("Số điện thoại hoặc email không chính xác!"));
+
+        // Tao mat khau tam thoi (8 ky tu ngau nhien)
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+
+        // Cap nhat DB
+        taiKhoan.setPassword(passwordEncoder.encode(tempPassword));
+        taiKhoan.setFirstLogin(true);
+        taiKhoanRepo.save(taiKhoan);
+
+        // Gui email khoi phuc
+        emailService.sendTempPassword(email, tempPassword);
+    }
+
+    @Transactional
+    public void changePassword(String maTK, String newPassword) {
+        TaiKhoan taiKhoan = taiKhoanRepo.findById(maTK)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại!"));
+
+        taiKhoan.setPassword(passwordEncoder.encode(newPassword));
+        taiKhoan.setFirstLogin(false);
+        taiKhoanRepo.save(taiKhoan);
     }
 }
