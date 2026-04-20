@@ -5,5 +5,9 @@ public interface AccountService {
     
     LoginResponse checkLogin(String sdt, String password);
 
-    boolean createStaffAccount(String sdt, String rawPassword, String vaitro);
+    boolean createAccount(String sdt, String email, String vaitro);
+
+    boolean changePassword(String sdt, String newPassword);
+
+    boolean resetPassword(String sdt, String email);
 }

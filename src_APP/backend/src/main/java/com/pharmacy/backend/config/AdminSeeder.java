@@ -35,7 +35,8 @@ public class AdminSeeder implements CommandLineRunner {
             rootAdmin.setSdt(rootAdminSdt);
             rootAdmin.setVaitro("ADMIN");
             rootAdmin.setNgaytao(new Date());
-
+            rootAdmin.setFirstLogin(false);
+            
             String hashedPassword = passwordEncoder.encode("admin123");
             rootAdmin.setPassword(hashedPassword);
 

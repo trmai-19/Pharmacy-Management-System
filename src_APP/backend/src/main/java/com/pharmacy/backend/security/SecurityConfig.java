@@ -27,7 +27,8 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login").permitAll()
+                .requestMatchers("/api/test-mail").permitAll()
+                .requestMatchers("/api/login", "/api/login/forgot-password").permitAll()
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/warehouse/**").hasAnyAuthority("ADMIN", "WAREHOUSE_STAFF")
                 .requestMatchers("/api/sales/**").hasAnyAuthority("ADMIN", "SALES_STAFF")
