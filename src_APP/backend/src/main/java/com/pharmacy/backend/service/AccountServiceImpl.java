@@ -109,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
             customerRepo.save(newCustomer);
         }
 
-        // 3. GỬI EMAIL THÔNG BÁO
+        // GỬI EMAIL THÔNG BÁO
         Map<String, Object> mailData = new HashMap<>();
         mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
         mailData.put("subtitle", "Thông báo cấp tài khoản mới");
