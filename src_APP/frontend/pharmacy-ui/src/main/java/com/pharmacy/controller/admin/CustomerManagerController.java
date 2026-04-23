@@ -29,7 +29,7 @@ public class CustomerManagerController {
     @FXML private TableColumn<Customer, String> colPoints;
     @FXML private TableColumn<Customer, String> colTotalSpent;
     @FXML private TableColumn<Customer, String> colLastVisit;
-    @FXML private TableColumn<Customer, String> colMedicalNotes;
+    
 
     private ObservableList<Customer> customerList;
     private FilteredList<Customer> filteredData;
@@ -46,7 +46,7 @@ public class CustomerManagerController {
         colPoints.setCellValueFactory(cellData -> cellData.getValue().pointsProperty());
         colTotalSpent.setCellValueFactory(cellData -> cellData.getValue().totalSpentProperty());
         colLastVisit.setCellValueFactory(cellData -> cellData.getValue().lastVisitProperty());
-        colMedicalNotes.setCellValueFactory(cellData -> cellData.getValue().medicalNotesProperty());
+        
 
         // 2. Khởi tạo Dropdown Lọc Hạng Thành Viên
         cbTier.setItems(FXCollections.observableArrayList(
@@ -63,11 +63,11 @@ public class CustomerManagerController {
 
     private void loadMockData() {
         customerList = FXCollections.observableArrayList(
-                new Customer("KH001", "Nguyễn Thu Hà", "0988123456", "Vàng", "1,250", "12,500,000", "15/04/2026", "Dị ứng Penicillin"),
-                new Customer("KH002", "Trần Văn Luân", "0905999888", "Thành viên", "120", "1,200,000", "02/04/2026", "Không"),
-                new Customer("KH003", "Lê Thị Lan Anh", "0912333444", "Kim Cương", "5,400", "54,000,000", "18/04/2026", "Huyết áp cao, Đái tháo đường Tuýp 2"),
-                new Customer("KH004", "Phạm Trọng Đạt", "0944555777", "Bạc", "650", "6,500,000", "10/03/2026", "Không"),
-                new Customer("KH005", "Hoàng Kim Liên", "0977888111", "Vàng", "2,100", "21,000,000", "17/04/2026", "Viêm loét dạ dày (Tránh NSAIDs)")
+                new Customer("KH001", "Nguyễn Thu Hà", "0988123456", "Vàng", "1,250", "12,500,000", "15/04/2026"),
+                new Customer("KH002", "Trần Văn Luân", "0905999888", "Thành viên", "120", "1,200,000", "02/04/2026"),
+                new Customer("KH003", "Lê Thị Lan Anh", "0912333444", "Kim Cương", "5,400", "54,000,000", "18/04/2026"),
+                new Customer("KH004", "Phạm Trọng Đạt", "0944555777", "Bạc", "650", "6,500,000", "10/03/2026"),
+                new Customer("KH005", "Hoàng Kim Liên", "0977888111", "Vàng", "2,100", "21,000,000", "17/04/2026")
         );
         tableCustomer.setItems(customerList);
     }

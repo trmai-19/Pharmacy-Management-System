@@ -6,15 +6,21 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+
+import java.util.Optional;
 
 public class AccountManagerController {
 
     // --- TAB 1: NHÂN VIÊN ---
     @FXML private TextField txtSearchEmp;
+    @FXML private Button btnResetPwdEmp;
+    @FXML private Button btnLockEmp;
     @FXML private TableView<Account> tableEmployeeAcc;
     @FXML private TableColumn<Account, String> colEmpUser;
     @FXML private TableColumn<Account, String> colEmpName;
@@ -24,6 +30,8 @@ public class AccountManagerController {
 
     // --- TAB 2: KHÁCH HÀNG WEB ---
     @FXML private TextField txtSearchCust;
+    @FXML private Button btnResetPwdCust;
+    @FXML private Button btnLockCust;
     @FXML private TableView<Account> tableCustomerAcc;
     @FXML private TableColumn<Account, String> colCustUser;
     @FXML private TableColumn<Account, String> colCustName;
@@ -41,6 +49,10 @@ public class AccountManagerController {
         setupColumns();
         loadMockData();
         setupSearchFilters();
+        
+        // Cài đặt sự kiện cho các nút bấm
+        setupEmployeeActions();
+        setupCustomerActions();
     }
 
     private void setupColumns() {
@@ -108,5 +120,123 @@ public class AccountManagerController {
         SortedList<Account> sortedCustData = new SortedList<>(searchCustData);
         sortedCustData.comparatorProperty().bind(tableCustomerAcc.comparatorProperty());
         tableCustomerAcc.setItems(sortedCustData);
+    }
+
+    // ==========================================
+    // CÁC HÀM XỬ LÝ SỰ KIỆN CHO NÚT BẤM (MỚI THÊM)
+    // ==========================================
+
+    private void setupEmployeeActions() {
+        // Nút Cấp lại mật khẩu - NHÂN VIÊN
+        btnResetPwdEmp.setOnAction(event -> {
+            Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
+            
+            if (selectedAcc == null) {
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để cấp lại mật khẩu!");
+                return;
+            }
+
+            boolean isConfirm = showConfirmationDialog(
+                    "Xác nhận", 
+                    "Bạn đồng ý cấp lại mật khẩu cho nhân viên [" + selectedAcc.getOwnerName() + "] chứ?"
+            );
+            
+            if (isConfirm) {
+                System.out.println("Đã cấp lại mật khẩu cho NV: " + selectedAcc.getUsername());
+                // TODO: Gọi API hoặc cập nhật database tại đây
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công!");
+            }
+        });
+
+        // Nút Khóa tài khoản - NHÂN VIÊN
+        btnLockEmp.setOnAction(event -> {
+            Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
+            
+            if (selectedAcc == null) {
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để khóa tài khoản!");
+                return;
+            }
+
+            boolean isConfirm = showConfirmationDialog(
+                    "Xác nhận khóa", 
+                    "Bạn có chắc chắn muốn khóa tài khoản nhân viên [" + selectedAcc.getOwnerName() + "] không?"
+            );
+            if (isConfirm) {
+                System.out.println("Đã khóa tài khoản NV: " + selectedAcc.getUsername());
+                // TODO: Gọi API khóa tài khoản, cập nhật trạng thái
+                    selectedAcc.statusProperty().set("Đã khóa");                
+                    tableEmployeeAcc.refresh(); // Cập nhật lại UI bảng
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã khóa tài khoản nhân viên thành công!");
+            }
+        });
+    }
+
+    private void setupCustomerActions() {
+        // Nút Cấp lại mật khẩu - KHÁCH HÀNG
+        btnResetPwdCust.setOnAction(event -> {
+            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
+            
+            if (selectedAcc == null) {
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để cấp lại mật khẩu!");
+                return;
+            }
+
+            boolean isConfirm = showConfirmationDialog(
+                    "Xác nhận", 
+                    "Bạn đồng ý cấp lại mật khẩu cho khách hàng [" + selectedAcc.getOwnerName() + "] chứ?"
+            );
+            
+            if (isConfirm) {
+                System.out.println("Đã cấp lại mật khẩu cho KH: " + selectedAcc.getUsername());
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công và gửi thông báo cho khách hàng!");
+            }
+        });
+
+        // Nút Khóa tài khoản - KHÁCH HÀNG
+        btnLockCust.setOnAction(event -> {
+            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
+            
+            if (selectedAcc == null) {
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để đình chỉ truy cập!");
+                return;
+            }
+
+            boolean isConfirm = showConfirmationDialog(
+                    "Xác nhận đình chỉ", 
+                    "Bạn có chắc chắn muốn đình chỉ truy cập web của khách hàng [" + selectedAcc.getOwnerName() + "]?"
+            );
+            if (isConfirm) {
+                System.out.println("Đã đình chỉ KH: " + selectedAcc.getUsername());
+                selectedAcc.statusProperty().set("Đình chỉ truy cập");              
+                tableCustomerAcc.refresh();
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đình chỉ truy cập khách hàng thành công!");
+            }
+        });
+    }
+
+    // --- CÁC HÀM TIỆN ÍCH DÙNG CHUNG ---
+
+    /**
+     * Hiển thị hộp thoại Xác nhận (Yes/No)
+     */
+    private boolean showConfirmationDialog(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    /**
+     * Hiển thị hộp thoại Thông báo (Lỗi, Cảnh báo, Thành công)
+     */
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

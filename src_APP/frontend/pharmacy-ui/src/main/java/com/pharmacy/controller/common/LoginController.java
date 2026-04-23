@@ -1,4 +1,6 @@
-package com.pharmacy;
+package com.pharmacy.controller.common;
+
+import java.io.IOException;
 
 import com.pharmacy.model.User;
 import com.pharmacy.util.SceneManager;
@@ -76,6 +78,18 @@ public class LoginController {
     }
 
     @FXML
+    void handleGoToForgotPass(ActionEvent event) {
+        try {
+            // Chỉ truyền đúng tên file FXML, không cần truyền Stage nữa
+            // SỬA ĐÚNG TÊN FILE VÀO ĐÂY NHÉ:
+            SceneManager.switchScene("/com/pharmacy/views/ForgotPassword.fxml");
+        } catch (IOException e) {
+            // In ra lỗi nếu không tìm thấy file để dễ gỡ rối
+            System.err.println("Lỗi khi chuyển sang màn hình Quên mật khẩu!");
+            e.printStackTrace();
+        }
+    }
+    @FXML
     void handleLogin(ActionEvent event) {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
@@ -108,33 +122,33 @@ public class LoginController {
     }
 
     private void navigateToDashboard(String role) {
-    String path = "";
-    String roleLower = role.toLowerCase();
+        String path = "";
+        String roleLower = role.toLowerCase();
 
-    // Xác định đúng file FXML tổng (Main Dashboard) của từng bộ phận
-    switch (roleLower) {
-        case "admin":
-            // Theo ảnh thư mục của bạn: resources/com/pharmacy/views/admin/admin-main.fxml
-            path = "/com/pharmacy/views/admin/admin-main.fxml"; 
-            break;
-        case "sales":
-            path = "/com/pharmacy/views/sales/dashboard.fxml";
-            break;
-        case "warehouse":
-            path = "/com/pharmacy/views/warehouse/dashboard.fxml";
-            break;
-        default:
-            path = "/com/pharmacy/views/login.fxml";
-    }
+        // Xác định đúng file FXML tổng (Main Dashboard) của từng bộ phận
+        switch (roleLower) {
+            case "admin":
+                // Theo ảnh thư mục của bạn: resources/com/pharmacy/views/admin/admin-main.fxml
+                path = "/com/pharmacy/views/admin/admin-main.fxml"; 
+                break;
+            case "sales":
+                path = "/com/pharmacy/views/sales/dashboard.fxml";
+                break;
+            case "warehouse":
+                path = "/com/pharmacy/views/warehouse/dashboard.fxml";
+                break;
+            default:
+                path = "/com/pharmacy/views/login.fxml";
+        }
 
-    try {
-        System.out.println("🚀 Đang chuyển đến: " + path);
-        SceneManager.switchScene(path);
-    } catch (Exception e) {
-        System.err.println("❌ Lỗi chuyển trang cho role: " + role);
-        e.printStackTrace();
-        showError("Không tìm thấy giao diện cho quyền: " + role);
-    }
+        try {
+            System.out.println("🚀 Đang chuyển đến: " + path);
+            SceneManager.switchScene(path);
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi chuyển trang cho role: " + role);
+            e.printStackTrace();
+            showError("Không tìm thấy giao diện cho quyền: " + role);
+        }
 }
 
     private void showError(String message) { lblError.setText(message); }

@@ -10,10 +10,9 @@ public class Customer {
     private final StringProperty tier;          // Hạng: Thành viên, Bạc, Vàng, Kim Cương
     private final StringProperty points;        // Điểm tích lũy
     private final StringProperty totalSpent;    // Tổng chi tiêu
-    private final StringProperty lastVisit;     // Lần mua gần nhất
-    private final StringProperty medicalNotes;  // GHI CHÚ Y TẾ (Cực kỳ quan trọng: Dị ứng, bệnh nền...)
+    private final StringProperty lastVisit;     // Lần mua gần nhất // GHI CHÚ Y TẾ (Cực kỳ quan trọng: Dị ứng, bệnh nền...)
 
-    public Customer(String id, String name, String phone, String tier, String points, String totalSpent, String lastVisit, String medicalNotes) {
+    public Customer(String id, String name, String phone, String tier, String points, String totalSpent, String lastVisit) {
         this.id = new SimpleStringProperty(id);
         this.name = new SimpleStringProperty(name);
         this.phone = new SimpleStringProperty(phone);
@@ -21,7 +20,6 @@ public class Customer {
         this.points = new SimpleStringProperty(points);
         this.totalSpent = new SimpleStringProperty(totalSpent);
         this.lastVisit = new SimpleStringProperty(lastVisit);
-        this.medicalNotes = new SimpleStringProperty(medicalNotes);
     }
 
     // Getters
@@ -32,7 +30,6 @@ public class Customer {
     public String getPoints() { return points.get(); }
     public String getTotalSpent() { return totalSpent.get(); }
     public String getLastVisit() { return lastVisit.get(); }
-    public String getMedicalNotes() { return medicalNotes.get(); }
 
     // Property getters (Dùng cho TableView)
     public StringProperty idProperty() { return id; }
@@ -42,5 +39,4 @@ public class Customer {
     public StringProperty pointsProperty() { return points; }
     public StringProperty totalSpentProperty() { return totalSpent; }
     public StringProperty lastVisitProperty() { return lastVisit; }
-    public StringProperty medicalNotesProperty() { return medicalNotes; }
 }

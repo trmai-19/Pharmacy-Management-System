@@ -58,10 +58,3 @@
     -fx-background-radius: 5;
 }
 
-/* THANH TÌM KIẾM */
-.search-bar-container {
-    -fx-background-color: #f1f5f9;
-    -fx-background-radius: 20;
-    -fx-padding: 5 15;
-    -fx-max-height: 40; 
-}

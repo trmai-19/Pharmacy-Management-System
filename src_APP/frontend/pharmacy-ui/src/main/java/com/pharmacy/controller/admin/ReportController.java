@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class ReportController {
 
     // --- BỘ LỌC CHUNG ---
-    @FXML private ComboBox<String> cbTimeFilter;
+    // @FXML private ComboBox<String> cbTimeFilter;
     @FXML private DatePicker dpStartDate;
     @FXML private DatePicker dpEndDate;
 
@@ -41,8 +41,8 @@ public class ReportController {
         System.out.println("📊 Nạp giao diện Báo Cáo có 3 Tab Con...");
 
         // Khởi tạo bộ lọc thời gian
-        cbTimeFilter.setItems(FXCollections.observableArrayList("Theo Ngày", "Theo Tuần", "Theo Tháng", "Tùy Chỉnh"));
-        cbTimeFilter.getSelectionModel().select("Theo Tuần");
+        // cbTimeFilter.setItems(FXCollections.observableArrayList("Theo Ngày", "Theo Tuần", "Theo Tháng", "Tùy Chỉnh"));
+        // cbTimeFilter.getSelectionModel().select("Theo Tuần");
         dpStartDate.setValue(LocalDate.now().minusDays(7));
         dpEndDate.setValue(LocalDate.now());
 
