@@ -8,10 +8,10 @@
 @constraints.sql;
 
 -- 3. Chạy file tạo các Trigger
-@triggers.sql;
+-- @triggers.sql;
 
 -- 4. Chạy file tạo các thủ tục/hàm
-@procedures.sql;
+-- @procedures.sql;
 
 -- Xác nhận lưu toàn bộ thay đổi vào database
 COMMIT;

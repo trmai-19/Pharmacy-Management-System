@@ -1,5 +1,7 @@
 package com.pharmacy.backend.service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
@@ -10,7 +12,11 @@ import org.springframework.stereotype.Service;
 
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.model.Account;
+import com.pharmacy.backend.model.Customer;
+import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
+import com.pharmacy.backend.repository.CustomerRepository;
+import com.pharmacy.backend.repository.EmployeeRepository;
 
 import com.pharmacy.backend.security.JwtUtils;
 
@@ -18,12 +24,16 @@ import com.pharmacy.backend.security.JwtUtils;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepo;
+    private final EmployeeRepository employeeRepo;
+    private final CustomerRepository customerRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final EmailService emailService;
 
-    public AccountServiceImpl(AccountRepository accountRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
+    public AccountServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo, CustomerRepository customerRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
         this.accountRepo = accountRepo;
+        this.customerRepo = customerRepo;
+        this.employeeRepo = employeeRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.emailService = emailService;
@@ -55,11 +65,13 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional // rollback nếu lỗi
     public boolean createAccount(String sdt, String email, String vaitro) {
         if(accountRepo.findBySdt(sdt).isPresent()) return false;
 
         Account newAccount = new Account();
-        String generatedMATK = "TK" + sdt;
+        long ts = System.currentTimeMillis() % 100000;
+        String generatedMATK = "TK" + ts;
 
         newAccount.setMatk(generatedMATK);
         newAccount.setSdt(sdt);
@@ -69,11 +81,35 @@ public class AccountServiceImpl implements AccountService {
 
         String rawPassword = generateRandomPassword();
         newAccount.setPassword(passwordEncoder.encode(rawPassword));
-
         newAccount.setNgaytao(new java.util.Date());
 
         accountRepo.save(newAccount);
 
+        long tsProfile = (System.currentTimeMillis() + 1) % 100000;
+
+        if ("SALES_STAFF".equalsIgnoreCase(vaitro) || "WAREHOUSE_STAFF".equalsIgnoreCase(vaitro) || "ADMIN".equalsIgnoreCase(vaitro)) {
+            Employee newEmployee = new Employee();
+            newEmployee.setManv("NV" + tsProfile);
+            newEmployee.setMatk(generatedMATK);
+            newEmployee.setSdt(sdt);
+            newEmployee.setChucvu(vaitro); 
+            // Các thông tin khác như tên, giới tính... user sẽ tự update sau khi login
+            
+            employeeRepo.save(newEmployee);
+            
+        } else if ("KHACHHANG".equalsIgnoreCase(vaitro)) {
+            Customer newCustomer = new Customer();
+            newCustomer.setMakh("KH" + tsProfile);
+            newCustomer.setMatk(generatedMATK);
+            newCustomer.setSdt(sdt);
+            newCustomer.setHangtv("THANH VIEN");
+            newCustomer.setTongdoanhthu(0.0);
+            // Các thông tin khác user sẽ tự update
+            
+            customerRepo.save(newCustomer);
+        }
+
+        // GỬI EMAIL THÔNG BÁO
         Map<String, Object> mailData = new HashMap<>();
         mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
         mailData.put("subtitle", "Thông báo cấp tài khoản mới");
@@ -82,8 +118,8 @@ public class AccountServiceImpl implements AccountService {
         mailData.put("password", rawPassword);
 
         emailService.sendEmail(email, "[Pharmacy] Thông tin tài khoản", "email-template", mailData);
+        
         return true;
-
     }
 
     @Override
