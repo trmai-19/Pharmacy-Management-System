@@ -4,7 +4,6 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ForgotPasswordRequest {
-    private String sdt;
-    private String email;
+public class FirstLoginChangePasswordRequest {
+    private String newPassword;
 }

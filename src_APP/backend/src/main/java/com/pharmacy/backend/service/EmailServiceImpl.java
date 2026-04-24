@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -39,5 +40,29 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendAccountCreationEmail(String email, String sdt, String password) {
+        Map<String, Object> mailData = new HashMap<>();
+        mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
+        mailData.put("subtitle", "Thông báo cấp tài khoản mới");
+        mailData.put("message", "Quản trị viên vừa cấp cho bạn một tài khoản mới:");
+        mailData.put("sdt", sdt);
+        mailData.put("password", password);
+
+        sendEmail(email, "[Pharmacy] Thông tin tài khoản", "email-template", mailData);
+    }
+
+    @Override
+    public void sendPasswordResetEmail(String email, String sdt, String tempPassword) {
+        Map<String, Object> mailData = new HashMap<>();
+        mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
+        mailData.put("subtitle", "Yêu cầu khôi phục mật khẩu");
+        mailData.put("message", "Hệ thống vừa nhận được yêu cầu cấp lại mật khẩu của bạn. Mật khẩu tạm thời là:");
+        mailData.put("sdt", sdt);
+        mailData.put("password", tempPassword);
+
+        sendEmail(email, "[Pharmacy] Yêu cầu khôi phục mật khẩu", "email-template", mailData);
     }
 }

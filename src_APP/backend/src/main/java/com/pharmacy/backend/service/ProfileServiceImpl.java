@@ -5,10 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 import com.pharmacy.backend.model.Account;
-import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
-import com.pharmacy.backend.repository.CustomerRepository;
 import com.pharmacy.backend.repository.EmployeeRepository;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 
@@ -17,12 +15,10 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final AccountRepository accountRepo;
     private final EmployeeRepository employeeRepo;
-    private final CustomerRepository customerRepo;
 
-    public ProfileServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo, CustomerRepository customerRepo) {
+    public ProfileServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo) {
         this.accountRepo = accountRepo;
         this.employeeRepo = employeeRepo;
-        this.customerRepo = customerRepo;
     }
 
     @Override
@@ -36,21 +32,14 @@ public class ProfileServiceImpl implements ProfileService {
         Account acc = accountOpt.get();
         String vaitro = acc.getVaitro();
 
-        if ("KHACHHANG".equalsIgnoreCase(vaitro)) {
-            Optional<Customer> customerOpt = customerRepo.findBySdt(sdt); 
-            if (customerOpt.isPresent()) {
-                Customer customer = customerOpt.get();
-                customer.setTenkh(request.getFullName());
-                customer.setGioitinh(request.getGender());
-                customerRepo.save(customer);
-                return true;
-            }
-        } else {
+        if ("STAFF".equalsIgnoreCase(vaitro)) {
+
             Optional<Employee> employeeOpt = employeeRepo.findBySdt(sdt);
             if (employeeOpt.isPresent()) {
                 Employee employee = employeeOpt.get();
-                employee.setTennv(request.getFullName());
-                employee.setGioitinh(request.getGender());
+                employee.setTennv(request.getHoten());
+                employee.setGioitinh(request.getGioitinh());
+                employee.setNgaysinh(request.getNgaysinh());
                 employeeRepo.save(employee);
                 return true;
             }

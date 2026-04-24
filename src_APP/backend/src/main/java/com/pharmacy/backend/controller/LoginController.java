@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.LoginRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.service.AccountService;
@@ -24,21 +25,19 @@ public class LoginController {
     }
 
     @PostMapping
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
         
         String sdt = loginRequest.getSdt();
         String password = loginRequest.getPassword();
 
-        // --- test ---
-        System.out.println("SĐT -> Frontend: [" + sdt + "]");
-        System.out.println("Pass -> Frontend: [" + password + "]");
-
         LoginResponse response = accountService.checkLogin(sdt, password);
-
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response); 
+        
+        if (response != null) {
+            ApiResponse<LoginResponse> res = new ApiResponse<>(200, "Đăng nhập thành công", response);
+            return ResponseEntity.ok(res); 
         } else {
-            return ResponseEntity.status(401).body(response); 
+            ApiResponse<LoginResponse> res = new ApiResponse<>(401, "Sai số điện thoại hoặc mật khẩu", null);
+            return ResponseEntity.status(401).body(res); 
         }
     }
 }
