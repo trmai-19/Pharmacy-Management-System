@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.DashboardController">
+    <content>
+        <VBox spacing="30.0">
+            <padding>
+                <Insets bottom="40.0" left="40.0" right="40.0" top="30.0" />
+            </padding>
+            <children>
+                
+                <VBox spacing="5.0">
+                    <Label fx:id="lblGreeting" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0b5d77;" text="Chào mừng quay trở lại, Admin! 👋" />
+                    <Label style="-fx-font-size: 15px; -fx-text-fill: #64748b;" text="Dưới đây là tình hình tổng quan kinh doanh của nhà thuốc hôm nay." />
+                </VBox>
+
+                <HBox spacing="25.0">
+                    <children>
+                        <VBox prefWidth="350.0" style="-fx-background-color: linear-gradient(to bottom right, #0f766e, #14b8a6); -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(20,184,166,0.3), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 15px; -fx-font-weight: bold;" text="💰 TỔNG DOANH THU THÁNG NÀY" />
+                                <Region prefHeight="15.0" />
+                                <HBox alignment="BOTTOM_LEFT" spacing="15.0">
+                                    <Label fx:id="lblMonthlyRevenue" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: white;" text="145.500.000đ" />
+                                </HBox>
+                                <Region prefHeight="8.0" />
+                                <Label style="-fx-text-fill: #a7f3d0; -fx-font-size: 14px; -fx-font-weight: bold;" text="↑ Tăng 12% so với tháng trước" />
+                            </children>
+                        </VBox>
+
+                        <VBox prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label style="-fx-text-fill: #64748b; -fx-font-size: 15px; -fx-font-weight: bold;" text="🌐 TÀI KHOẢN KHÁCH HÀNG (ACTIVE)" />
+                                <Region prefHeight="15.0" />
+                                <Label fx:id="lblActiveAccounts" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #0ea5e9;" text="2,184" />
+                                <Region prefHeight="8.0" />
+                                <Label style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" text="Đăng ký mới trong tuần: +45" />
+                            </children>
+                        </VBox>
+
+                        <VBox prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label style="-fx-text-fill: #64748b; -fx-font-size: 15px; -fx-font-weight: bold;" text="🛒 SỐ ĐƠN HÀNG TRONG THÁNG" />
+                                <Region prefHeight="15.0" />
+                                <Label fx:id="lblMonthlyOrders" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #f59e0b;" text="842" />
+                                <Region prefHeight="8.0" />
+                                <Label style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" text="Tỉ lệ hoàn thành: 98.5%" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <HBox spacing="25.0">
+                    <children>
+                        <VBox prefWidth="600.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="📉 Xu Hướng Doanh Thu (7 Ngày Qua)" />
+                                <Region prefHeight="10.0" />
+                                <LineChart fx:id="revenueChart" prefHeight="350.0" style="-fx-font-size: 13px;">
+                                  <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                  </xAxis>
+                                  <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                  </yAxis>
+                                </LineChart>
+                            </children>
+                        </VBox>
+
+                        <VBox prefWidth="450.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="📊 Top 5 Thuốc Bán Chạy Tháng Này" />
+                                <Region prefHeight="10.0" />
+                                <BarChart fx:id="topProductsChart" prefHeight="350.0" legendVisible="false" style="-fx-font-size: 13px;">
+                                  <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                  </xAxis>
+                                  <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                  </yAxis>
+                                </BarChart>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>
