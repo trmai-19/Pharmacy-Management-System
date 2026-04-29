@@ -25,38 +25,28 @@ public class PasswordController {
     public ResponseEntity<ApiResponse<Void>> changeFirstLoginPassword(@RequestBody FirstLoginChangePasswordRequest request) {
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
         
-        boolean success = accountService.changePasswordFirstLogin(currentSdt, request.getNewPassword());
-        if (success) {
-            return ResponseEntity.ok(new ApiResponse<>(200, "Đổi mật khẩu thành công!", null));
-        }
-        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Lỗi khi đổi mật khẩu!", null));
+        accountService.changePasswordFirstLogin(currentSdt, request.getNewPassword());
+        
+        return ResponseEntity.ok(new ApiResponse<>(200, "Đổi mật khẩu thành công!", null));
     }
 
     @PostMapping("/setting-change")
     public ResponseEntity<ApiResponse<Void>> changeSettingPassword(@RequestBody SettingChangePasswordRequest request) {
-    
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        boolean success = accountService.changePasswordSetting(
+        accountService.changePasswordSetting(
                 currentSdt, 
                 request.getOldPassword(), 
                 request.getNewPassword()
         );
 
-        if (success) {
-            return ResponseEntity.ok(new ApiResponse<>(200, "Đổi mật khẩu thành công!", null));
-        }
-        
-        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Mật khẩu cũ không chính xác hoặc không đủ điều kiện đổi!", null));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Đổi mật khẩu thành công!", null));
     }
-
 
     @PostMapping("/forgot")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        boolean success = accountService.resetPassword(request.getSdt(), request.getEmail());
-        if (success) {
-            return ResponseEntity.ok(new ApiResponse<>(200, "Mật khẩu tạm thời đã được gửi vào email của bạn!", null));
-        }
-        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Số điện thoại hoặc Email không chính xác!", null));
+        accountService.resetPassword(request.getSdt(), request.getEmail());
+        
+        return ResponseEntity.ok(new ApiResponse<>(200, "Mật khẩu tạm thời đã được gửi vào email của bạn!", null));
     }
 }

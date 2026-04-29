@@ -5,11 +5,13 @@ public interface AccountService {
     
     LoginResponse checkLogin(String sdt, String password);
 
-    boolean createAccount(String sdt, String email, String vaitro);
+    void createAccount(String sdt, String email, String vaitro);
 
-    boolean changePasswordFirstLogin(String sdt, String newPassword);
+    void toggleAccountStatus(String id);
 
-    boolean changePasswordSetting(String sdt, String oldPassword, String newPassword);
+    void changePasswordFirstLogin(String sdt, String newPassword);
 
-    boolean resetPassword(String sdt, String email);
+    void changePasswordSetting(String sdt, String oldPassword, String newPassword);
+
+    void resetPassword(String sdt, String email);
 }

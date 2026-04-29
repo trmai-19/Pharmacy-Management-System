@@ -5,7 +5,7 @@
 @database.sql;
 
 -- 2. Chạy file tạo các ràng buộc (Khóa ngoại, Check, Default...)
-@constraints.sql;
+-- @constraints.sql;
 
 -- 3. Chạy file tạo các Trigger
 -- @triggers.sql;

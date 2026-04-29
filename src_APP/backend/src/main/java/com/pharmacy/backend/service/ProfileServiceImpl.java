@@ -2,7 +2,6 @@ package com.pharmacy.backend.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
 
 import com.pharmacy.backend.model.Account;
 import com.pharmacy.backend.model.Employee;
@@ -23,28 +22,22 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public boolean updateProfile(String sdt, UpdateProfileRequest request) {
-        Optional<Account> accountOpt = accountRepo.findBySdt(sdt);
-        if (accountOpt.isEmpty()) {
-            return false;
-        }
+    public void updateProfile(String sdt, UpdateProfileRequest request) {
+        Account acc = accountRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
 
-        Account acc = accountOpt.get();
         String vaitro = acc.getVaitro();
 
-        if ("STAFF".equalsIgnoreCase(vaitro)) {
-
-            Optional<Employee> employeeOpt = employeeRepo.findBySdt(sdt);
-            if (employeeOpt.isPresent()) {
-                Employee employee = employeeOpt.get();
-                employee.setTennv(request.getHoten());
-                employee.setGioitinh(request.getGioitinh());
-                employee.setNgaysinh(request.getNgaysinh());
-                employeeRepo.save(employee);
-                return true;
-            }
+        if (!"STAFF".equalsIgnoreCase(vaitro)) {
+            throw new RuntimeException("Loại tài khoản này không được phép cập nhật hồ sơ!");
         }
-        
-        return false;
+
+        Employee employee = employeeRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ nhân viên!"));
+            
+        employee.setTennv(request.getHoten());
+        employee.setGioitinh(request.getGioitinh());
+        employee.setNgaysinh(request.getNgaysinh());
+        employeeRepo.save(employee);
     }
 }

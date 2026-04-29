@@ -23,11 +23,8 @@ public class ProfileController {
     public ResponseEntity<ApiResponse<Void>> updateProfile(@RequestBody UpdateProfileRequest request) {
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        boolean success = profileService.updateProfile(currentSdt, request);
+        profileService.updateProfile(currentSdt, request);
 
-        if (success) {
-            return ResponseEntity.ok(new ApiResponse<>(200, "Cập nhật thông tin thành công!", null));
-        }
-        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Lỗi khi cập nhật thông tin!", null));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Cập nhật thông tin thành công!", null));
     }
 }

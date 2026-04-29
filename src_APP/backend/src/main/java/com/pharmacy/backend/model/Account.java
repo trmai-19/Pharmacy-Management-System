@@ -31,4 +31,7 @@ public class Account {
 
     @Column(name = "EMAIL")
     private String email;
+
+    @Column(name = "TRANGTHAI")
+    private String trangthai;
 }

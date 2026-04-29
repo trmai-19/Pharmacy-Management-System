@@ -31,4 +31,7 @@ public class Employee {
 
     @Column(name = "CHUCVU")
     private String chucvu;
+
+    @Column(name = "TRANGTHAI")
+    private String trangthai;
 }
