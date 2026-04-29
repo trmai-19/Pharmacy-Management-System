@@ -7,7 +7,9 @@ public interface AccountService {
 
     boolean createAccount(String sdt, String email, String vaitro);
 
-    boolean changePassword(String sdt, String newPassword);
+    boolean changePasswordFirstLogin(String sdt, String newPassword);
+
+    boolean changePasswordSetting(String sdt, String oldPassword, String newPassword);
 
     boolean resetPassword(String sdt, String email);
 }

@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 import com.pharmacy.backend.service.ProfileService;
 
@@ -19,15 +20,14 @@ public class ProfileController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateProfile(@RequestBody UpdateProfileRequest request) {
-        // Trích xuất SĐT từ token đang đăng nhập để tránh user tự ý sửa thông tin người khác
+    public ResponseEntity<ApiResponse<Void>> updateProfile(@RequestBody UpdateProfileRequest request) {
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
 
         boolean success = profileService.updateProfile(currentSdt, request);
 
         if (success) {
-            return ResponseEntity.ok("Cập nhật thông tin thành công!");
+            return ResponseEntity.ok(new ApiResponse<>(200, "Cập nhật thông tin thành công!", null));
         }
-        return ResponseEntity.badRequest().body("Lỗi khi cập nhật thông tin!");
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Lỗi khi cập nhật thông tin!", null));
     }
 }

@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, String> {
     Optional<Employee> findBySdt(String sdt);
+    Optional<Employee> findByMatk(String matk);
 }

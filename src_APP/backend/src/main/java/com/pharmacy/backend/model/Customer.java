@@ -1,5 +1,6 @@
 package com.pharmacy.backend.model;
 
+import java.util.Date;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,9 @@ public class Customer {
     @Column(name = "GIOITINH")
     private String gioitinh;
 
+    @Column(name = "NGAYSINH")
+    private Date ngaysinh;
+    
     @Column(name = "SDT")
     private String sdt;
 

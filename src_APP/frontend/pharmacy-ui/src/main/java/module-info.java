@@ -1,8 +1,9 @@
 module com.pharmacy {
-    requires javafx.controls;
+    requires transitive javafx.controls;
     requires javafx.fxml;
-    requires javafx.graphics;
+    requires transitive javafx.graphics;
     requires java.net.http;
+    requires transitive javafx.base;
 
     // Mở tất cả package chứa Controller cho JavaFX FXMLLoader
     opens com.pharmacy.controller.admin to javafx.fxml;
