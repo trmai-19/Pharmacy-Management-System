@@ -13,7 +13,7 @@ import java.util.List;
 public interface CustomerRepository extends JpaRepository<Customer, String> {
 
     Optional<Customer> findBySdt(String sdt);
-   @Query("SELECT c FROM Customer c WHERE " +
+    @Query("SELECT c FROM Customer c WHERE " +
            "(:keyword IS NULL OR :keyword = '' OR LOWER(c.tenkh) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR c.sdt LIKE CONCAT('%', :keyword, '%'))")
     List<Customer> searchByTenkhOrSdt(@Param("keyword") String keyword);

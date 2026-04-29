@@ -170,8 +170,8 @@ Dành cho các thao tác tra cứu cơ bản, yêu cầu đăng nhập nhưng kh
 
 **Quản lý Danh mục & Sản phẩm (Thuốc)**
 * `GET /api/categories`: Lấy danh sách toàn bộ danh mục thuốc.
-* `GET /api/medicines`: Tra cứu danh sách thuốc (Hỗ trợ query params để tìm kiếm theo tên, hoạt chất, công dụng phục vụ Autocomplete).
-* `GET /api/medicines/{id}`: Xem thông tin chi tiết một loại thuốc (tên, công dụng, thành phần, giá bán niêm yết).
+* `GET /api/products`: Tra cứu danh sách sản phẩm (Hỗ trợ query params để tìm kiếm theo tên, hoạt chất, công dụng phục vụ Autocomplete).
+* `GET /api/products/{id}`: Xem thông tin chi tiết một sản phẩm (tên, công dụng, thành phần, giá bán niêm yết).
 
 ### 5.2. Nhóm API Bán Hàng (Sales)
 Phục vụ trực tiếp nghiệp vụ tại quầy. Prefix bắt buộc: `/api/sales/...`
@@ -212,16 +212,18 @@ Dành cho nhân viên kho thực hiện nhập, xuất, kiểm kê. Prefix bắt
 Chỉ Admin mới được phép thao tác. Prefix bắt buộc: `/api/admin/...`
 
 **Quản trị tài khoản hệ thống**
-* Xóa/sửa/tài khoản.
+* `PUT /api/admin/acounts/{id}/status`: Khóa / mở khóa tài khoản.
+* `POST /api/admin/acounts/create`: Tạo tài khoản cho nhân viên mới (cấp quyền Sales hoặc Warehouse).
 
 **Quản trị Dữ liệu Lõi**
 * `POST /api/admin/categories` | `PUT /api/admin/categories/{id}` | `DELETE /api/admin/categories/{id}`: Quản lý thêm/sửa/xóa danh mục.
-* `POST /api/admin/medicines` | `PUT /api/admin/medicines/{id}` | `DELETE /api/admin/medicines/{id}`: Quản lý thêm/sửa/xóa thông tin gốc của thuốc.
+* `POST /api/admin/products` | `PUT /api/admin/products/{id}` | `DELETE /api/admin/products/{id}`: Quản lý thêm/sửa/xóa thông tin gốc của sản phẩm.
 
 **Quản lý Nhân sự**
 * `GET /api/admin/employees`: Lấy danh sách nhân viên.
-* `POST /api/admin/create-account`: Tạo tài khoản cho nhân viên mới (cấp quyền Sales hoặc Warehouse).
-* `PUT /api/admin/employees/{id}`: Cập nhật hồ sơ nhân viên (sdt, email)
+* `PUT /api/admin/employees/{id}`: Cập nhật hồ sơ nhân viên
+* `DELETE /api/admin/employees/{id}` : Xóa nhân viên (update thành đã nghỉ).
+
 
 **Báo cáo & Thống kê (Dashboard)**
 * `GET /api/admin/reports/revenue`: Thống kê doanh thu bán hàng (lọc theo ngày, tháng, năm).

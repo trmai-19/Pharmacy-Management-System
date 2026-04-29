@@ -2,11 +2,11 @@ package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.CategoryRequest;
 import com.pharmacy.backend.dto.CategoryResponse;
+import com.pharmacy.backend.mapper.CategoryMapper;
 import com.pharmacy.backend.model.Category;
 import com.pharmacy.backend.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,38 +20,19 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        List<CategoryResponse> responses = new ArrayList<>();
-        
-        for (Category category : categories) {
-            CategoryResponse response = new CategoryResponse();
-            response.setMadm(category.getMadm());
-            response.setTendm(category.getTendm());
-            response.setMota(category.getMota());
-            response.setTyleloinhuan(category.getTyleloinhuan());
-            responses.add(response);
-        }
-        
-        return responses;
+        return categoryRepository.findAll().stream()
+                .map(CategoryMapper::toResponse)
+                .toList(); 
     }
 
     @Override
     public CategoryResponse createCategory(CategoryRequest request) {
         Category category = new Category();
         
-        category.setTendm(request.getTendm());
-        category.setMota(request.getMota());
-        category.setTyleloinhuan(request.getTyleloinhuan());
+        CategoryMapper.updateCategoryFromRequest(category, request);
         
         Category savedCategory = categoryRepository.save(category);
-        
-        CategoryResponse response = new CategoryResponse();
-        response.setMadm(savedCategory.getMadm());
-        response.setTendm(savedCategory.getTendm());
-        response.setMota(savedCategory.getMota());
-        response.setTyleloinhuan(savedCategory.getTyleloinhuan());
-        
-        return response;
+        return CategoryMapper.toResponse(savedCategory);
     }
 
     @Override
@@ -59,19 +40,11 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với mã: " + id));
             
-        category.setTendm(request.getTendm());
-        category.setMota(request.getMota());
-        category.setTyleloinhuan(request.getTyleloinhuan());
+
+        CategoryMapper.updateCategoryFromRequest(category, request);
         
         Category updatedCategory = categoryRepository.save(category);
-        
-        CategoryResponse response = new CategoryResponse();
-        response.setMadm(updatedCategory.getMadm());
-        response.setTendm(updatedCategory.getTendm());
-        response.setMota(updatedCategory.getMota());
-        response.setTyleloinhuan(updatedCategory.getTyleloinhuan());
-        
-        return response;
+        return CategoryMapper.toResponse(updatedCategory);
     }
 
     @Override

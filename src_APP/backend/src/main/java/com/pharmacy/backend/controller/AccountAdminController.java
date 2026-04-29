@@ -23,11 +23,7 @@ public class AccountAdminController {
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<Void>> createAccount(@RequestBody CreateUserRequest request) {
-        accountService.createAccount (
-            request.getSdt(),
-            request.getEmail(),
-            request.getVaitro()
-        );
+        accountService.createAccount(request);
 
         ApiResponse<Void> res = new ApiResponse<>(200, "Tạo tài khoản thành công! Vui lòng kiểm tra email để nhận thông tin đăng nhập lần đầu!", null);
         return ResponseEntity.ok(res);

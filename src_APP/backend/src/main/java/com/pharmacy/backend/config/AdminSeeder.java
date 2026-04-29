@@ -33,16 +33,11 @@ public class AdminSeeder implements CommandLineRunner {
         if(!adminOpt.isPresent()) {
             Account rootAdmin = new Account();
 
-
-            long ts = System.currentTimeMillis() % 100000;
-            String MATK = "TK" + ts;
-            String MANV = "NV" + ts;
-
-            rootAdmin.setMatk(MATK);
             rootAdmin.setSdt(rootAdminSdt);
             rootAdmin.setVaitro("STAFF");
             rootAdmin.setNgaytao(new Date());
             rootAdmin.setFirstLogin(false);
+            rootAdmin.setTrangthai("ACTIVE");
             
             String hashedPassword = passwordEncoder.encode("admin123");
             rootAdmin.setPassword(hashedPassword);
@@ -50,8 +45,7 @@ public class AdminSeeder implements CommandLineRunner {
             accountRepo.save(rootAdmin);
 
             Employee newEmployee = new Employee();
-            newEmployee.setManv(MANV);
-            newEmployee.setMatk(MATK);
+            newEmployee.setMatk(rootAdmin.getMatk());
             newEmployee.setSdt(rootAdminSdt);
             newEmployee.setChucvu("ADMIN");
             newEmployee.setTrangthai("WORKING"); 

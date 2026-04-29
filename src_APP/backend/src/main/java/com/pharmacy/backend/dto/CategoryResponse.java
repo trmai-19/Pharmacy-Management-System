@@ -2,6 +2,7 @@ package com.pharmacy.backend.dto;
 import lombok.*;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 

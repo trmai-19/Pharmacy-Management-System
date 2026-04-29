@@ -11,6 +11,7 @@ import lombok.*;
 @Table(name = "PHIEUNHAP")
 public class ImportReceipt {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAPN")
     private String mapn;
 

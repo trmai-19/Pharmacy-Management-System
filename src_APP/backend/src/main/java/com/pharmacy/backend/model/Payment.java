@@ -10,6 +10,7 @@ import lombok.*;
 @Table(name = "THANHTOAN")
 public class Payment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MATT")
     private String matt;
 

@@ -5,7 +5,9 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
+import com.pharmacy.backend.mapper.AccountMapper;
 import com.pharmacy.backend.model.Account;
 import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
@@ -55,32 +57,19 @@ public class AccountServiceImpl implements AccountService {
 
         String generatedToken = jwtUtils.generateToken(emp.getSdt(), emp.getChucvu());
 
-        LoginResponse res = new LoginResponse();
-        res.setToken(generatedToken);
-        res.setVaitro(emp.getChucvu());
-        res.setFirstLogin(acc.isFirstLogin());
-        res.setHoten(emp.getTennv());
-        
-        return res;
+        return AccountMapper.toLoginResponse(acc, emp, generatedToken);
     }
 
     @Override
     @Transactional
-    public void createAccount(String sdt, String email, String vaitro) {
-        if(accountRepo.findBySdt(sdt).isPresent()) {
+    public void createAccount(CreateUserRequest request) {
+        if(accountRepo.findBySdt(request.getSdt()).isPresent()) {
             throw new RuntimeException("Tài khoản với số điện thoại này đã tồn tại trong hệ thống!");
         }
-        long ts = System.currentTimeMillis() % 100000;
-        String MATK = "TK" + ts;
-        String MANV = "NV" + ts;
+        
         Account newAccount = new Account();
-        newAccount.setMatk(MATK);
-        newAccount.setSdt(sdt);
-        newAccount.setVaitro("STAFF");
-        newAccount.setEmail(email);
-        newAccount.setFirstLogin(true);
-        newAccount.setTrangthai("ACTIVE");
-
+        AccountMapper.updateNewAccountFromRequest(newAccount, request);
+        
         String rawPassword = generateRandomPassword();
         newAccount.setPassword(passwordEncoder.encode(rawPassword));
         newAccount.setNgaytao(new java.util.Date());
@@ -88,15 +77,11 @@ public class AccountServiceImpl implements AccountService {
         accountRepo.save(newAccount);
 
         Employee newEmployee = new Employee();
-        newEmployee.setManv(MANV);
-        newEmployee.setMatk(MATK);
-        newEmployee.setSdt(sdt);
-        newEmployee.setChucvu(vaitro);
-        newEmployee.setTrangthai("WORKING"); 
+        AccountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
             
         employeeRepo.save(newEmployee);
 
-        emailService.sendAccountCreationEmail(email, sdt, rawPassword);
+        emailService.sendAccountCreationEmail(request.getEmail(), request.getSdt(), rawPassword);
     }
 
     @Override

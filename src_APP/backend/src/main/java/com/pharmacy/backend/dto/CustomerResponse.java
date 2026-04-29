@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor // Thêm cái này
-@AllArgsConstructor // Thêm cái này
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerResponse {
     private String makh;          
     private String tenkh;         

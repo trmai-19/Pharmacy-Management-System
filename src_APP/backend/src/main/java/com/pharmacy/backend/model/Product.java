@@ -10,6 +10,7 @@ import lombok.*;
 @Table(name = "SANPHAM")
 public class Product {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MASP")
     private String masp;
 

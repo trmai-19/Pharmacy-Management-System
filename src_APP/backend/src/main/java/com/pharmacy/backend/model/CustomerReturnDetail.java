@@ -10,12 +10,10 @@ import lombok.*;
 @Table(name = "CTPT_KH")
 public class CustomerReturnDetail {
     @Id
-    @Column(name = "MACTPT_KH")
-    private String mactptKh;
-
     @Column(name = "MAPT_KH")
     private String maptKh;
 
+    @Id
     @Column(name = "MALO")
     private String malo;
 
