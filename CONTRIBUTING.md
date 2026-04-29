@@ -286,6 +286,45 @@ public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
 }
 ```
 
-> **TỔNG KẾT:** 
+> **TÓM LẠI:** 
 > * **Tầng Service:** Có lỗi là `throw new RuntimeException("Lý do lỗi");`
 > * **Tầng Controller:** Chỉ gọi Service và `return ResponseEntity.ok(...)`. Tuyệt đối không `try-catch`, không `if-else`.
+
+## 7. Quy ước sử dụng Mapper (DTO & Entity)
+
+Để giữ cho tầng **Service** luôn sạch sẽ (chuẩn Clean Architecture) và chỉ tập trung vào xử lý logic nghiệp vụ, toàn bộ các thao tác chuyển đổi/gán dữ liệu giữa `Model (Entity)` và `DTO` BẮT BUỘC phải được tách ra các class `Mapper`.
+
+### Quy tắc chung
+* **Vị trí lưu trữ:** Đặt tại package `mapper` (VD: `src/main/java/com/pharmacy/backend/mapper/`).
+* **Naming convention:** Tên file có hậu tố `Mapper` (VD: `ProductMapper`, `CustomerMapper`).
+* **Hàm tĩnh:** Các hàm bên trong Mapper phải là `public static` để Service có thể gọi trực tiếp mà không cần khởi tạo (`new`).
+* **Không chứa Business Logic:** Tuyệt đối không gọi `Repository` hay viết code xử lý logic (tính toán phức tạp, check tồn tại...) trong Mapper. Mapper chỉ làm đúng 1 việc duy nhất: **"Chuyển đổi và Gán dữ liệu"**.
+
+### Chiều trả dữ liệu: Entity -> Response DTO
+* **Mục đích:** Lấy dữ liệu từ DB (Entity) đóng gói thành DTO để trả về cho Frontend.
+* **Quy tắc:** Bắt buộc gắn annotation `@Builder` vào các class `Response` DTO. Trong Mapper, dùng hàm `builder()` để khởi tạo và trả về cho code gọn gàng, an toàn.
+* **Code mẫu:**
+```java
+public static CategoryResponse toResponse(Category category) {
+    return CategoryResponse.builder()
+            .madm(category.getMadm())
+            .tendm(category.getTendm())
+            .build();
+}
+```
+
+### Chiều nhận dữ liệu: Request DTO -> Entity
+* **Mục đích:** Nhận dữ liệu từ Frontend (Request) đổ vào một Entity để lưu xuống Database (dùng chung cho cả Thêm mới và Cập nhật).
+* **Quy tắc:** Truyền Entity cần thay đổi vào làm tham số. Bắt buộc dùng các hàm `set()` truyền thống để thay đổi giá trị (Tuyệt đối KHÔNG dùng Builder cho việc update đối tượng đã tồn tại).
+* **Code mẫu:**
+```java
+public static void updateCategoryFromRequest(Category category, CategoryRequest request) {
+    category.setTendm(request.getTendm());
+    category.setMota(request.getMota());
+}
+```
+
+### Các trường hợp ngoại lệ (Không dùng Mapper)
+* **Action Payload:** Không viết Mapper cho các Request chỉ mang tính chất truyền tham số hành động như `LoginRequest`, `ForgotPasswordRequest`, `ChangePasswordRequest`. Các request này được bóc tách trực tiếp tại Controller và ném các biến `String` xuống Service.
+* **Seeder/Config:** Không dùng Mapper trong các file cấu hình hoặc tạo dữ liệu mẫu ngầm định (VD: `AdminSeeder`), vì các data này dùng để khởi tạo hệ thống chứ không đến từ Frontend Request.
+```
