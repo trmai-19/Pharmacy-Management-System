@@ -3,38 +3,48 @@ CREATE OR REPLACE TRIGGER TRG_CAPNHAT_GIABAN
 AFTER INSERT OR UPDATE OF GIANHAP ON CTPN
 FOR EACH ROW
 DECLARE
-    v_masp VARCHAR2(20);
-    v_madm VARCHAR2(20);
-    v_tyle NUMBER;
+    v_masp      VARCHAR2(20);
+    v_madm      VARCHAR2(20);
+    v_tyle      NUMBER;
     v_is_manual NUMBER;
     v_new_price NUMBER;
 BEGIN
-    -- Lấy mã SP từ bảng LOSANPHAM
-    SELECT MASP INTO v_masp FROM LOSANPHAM WHERE MALO = :NEW.MALO;
+    BEGIN
+        SELECT MASP, MADM INTO v_masp, v_madm 
+        FROM LOSANPHAM 
+        WHERE MALO = :NEW.MALO;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN RETURN; 
+    END;
 
-    -- Lấy mã danh mục và cờ nhập giá tay từ SANPHAM
-    SELECT MADM, IS_MANUAL_PRICE INTO v_madm, v_is_manual FROM SANPHAM WHERE MASP = v_masp;
+    SELECT IS_MANUAL_PRICE INTO v_is_manual 
+    FROM SANPHAM 
+    WHERE MASP = v_masp;
 
-    -- Nếu sản phẩm không phải nhập tay (Mục 3: Auto set)
+
     IF v_is_manual = 0 THEN
-        -- Lấy tỷ lệ lợi nhuận của danh mục
-        SELECT TYLELOINHUAN INTO v_tyle FROM DANHMUC WHERE MADM = v_madm;
+        SELECT TYLELOINHUAN INTO v_tyle 
+        FROM DANHMUC 
+        WHERE MADM = v_madm;
 
-        IF v_tyle IS NOT NULL THEN
-            v_new_price := :NEW.GIANHAP * v_tyle;
+        IF v_tyle IS NOT NULL AND v_tyle > 0 THEN
+            v_new_price := :NEW.GIANHAP * (1 + v_tyle / 100);
         ELSE
-            v_new_price := :NEW.GIANHAP; -- Nếu không có tỷ lệ, set theo giá nhập
+            v_new_price := :NEW.GIANHAP;
         END IF;
 
-        -- Mục 1: Kiểm tra không cho giá bán NULL
-        IF v_new_price IS NULL THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Lỗi: Giá bán tính toán bị NULL!');
+        v_new_price := ROUND(v_new_price, 0);
+
+        IF v_new_price <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Lỗi: Giá bán tính toán phải lớn hơn 0!');
         END IF;
 
-        -- Cập nhật giá bán mới vào bảng SANPHAM
-        UPDATE SANPHAM SET GIABAN = v_new_price WHERE MASP = v_masp;
+        UPDATE SANPHAM 
+        SET GIABAN = v_new_price 
+        WHERE MASP = v_masp;
     END IF;
 END;
+/
 
 -- TRIGGER Không cho xóa khách hàng đã có giao dịch
 CREATE OR REPLACE TRIGGER TRG_KHONGXOA_KHACHHANG
@@ -258,53 +268,54 @@ END;
 /
 
 
---TRIGGER LOG CTPN
-CREATE OR REPLACE TRIGGER TRG_LOG_CTPN
-AFTER INSERT OR UPDATE OR DELETE ON CTPN
-FOR EACH ROW
-DECLARE
-    v_action VARCHAR2(50);
-    v_details VARCHAR2(1000);
-BEGIN
-    IF INSERTING THEN
-        v_action := 'INSERT';
-        v_details := 'Nhập mới lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Giá ' || :NEW.GIANHAP;
-    ELSIF UPDATING THEN
-        v_action := 'UPDATE';
-        v_details := 'Sửa lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> mới ' || :NEW.SL;
-    ELSE
-        v_action := 'DELETE';
-        v_details := 'Xóa dòng nhập lô ' || :OLD.MALO || ' khỏi phiếu ' || :OLD.MAPN;
-    END IF;
+-- 2 BẢNG NÀY CHƯA LÀM ĐƯỢC LOG NÊN KHÔNG CHẠY TRIGGER được 
+-- --TRIGGER LOG CTPN
+-- CREATE OR REPLACE TRIGGER TRG_LOG_CTPN
+-- AFTER INSERT OR UPDATE OR DELETE ON CTPN
+-- FOR EACH ROW
+-- DECLARE
+--     v_action VARCHAR2(50);
+--     v_details VARCHAR2(1000);
+-- BEGIN
+--     IF INSERTING THEN
+--         v_action := 'INSERT';
+--         v_details := 'Nhập mới lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Giá ' || :NEW.GIANHAP;
+--     ELSIF UPDATING THEN
+--         v_action := 'UPDATE';
+--         v_details := 'Sửa lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> mới ' || :NEW.SL;
+--     ELSE
+--         v_action := 'DELETE';
+--         v_details := 'Xóa dòng nhập lô ' || :OLD.MALO || ' khỏi phiếu ' || :OLD.MAPN;
+--     END IF;
 
-    INSERT INTO LOG_NHAP_HANG (MAPN, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
-    VALUES (NVL(:NEW.MAPN, :OLD.MAPN), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
-END;
-/
+--     INSERT INTO LOG_NHAP_HANG (MAPN, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
+--     VALUES (NVL(:NEW.MAPN, :OLD.MAPN), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
+-- END;
+-- /
 
---TRIGGER LOG CTHD
-CREATE OR REPLACE TRIGGER TRG_LOG_CTHD
-AFTER INSERT OR UPDATE OR DELETE ON CTHD
-FOR EACH ROW
-DECLARE
-    v_action VARCHAR2(50);
-    v_details VARCHAR2(1000);
-BEGIN
-    IF INSERTING THEN
-        v_action := 'INSERT';
-        v_details := 'Bán lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Đơn giá ' || :NEW.DONGIA;
-    ELSIF UPDATING THEN
-        v_action := 'UPDATE';
-        v_details := 'Sửa bán lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> ' || :NEW.SL;
-    ELSE
-        v_action := 'DELETE';
-        v_details := 'Hủy bán lô ' || :OLD.MALO || ' (Hoàn kho)';
-    END IF;
+-- --TRIGGER LOG CTHD
+-- CREATE OR REPLACE TRIGGER TRG_LOG_CTHD
+-- AFTER INSERT OR UPDATE OR DELETE ON CTHD
+-- FOR EACH ROW
+-- DECLARE
+--     v_action VARCHAR2(50);
+--     v_details VARCHAR2(1000);
+-- BEGIN
+--     IF INSERTING THEN
+--         v_action := 'INSERT';
+--         v_details := 'Bán lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Đơn giá ' || :NEW.DONGIA;
+--     ELSIF UPDATING THEN
+--         v_action := 'UPDATE';
+--         v_details := 'Sửa bán lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> ' || :NEW.SL;
+--     ELSE
+--         v_action := 'DELETE';
+--         v_details := 'Hủy bán lô ' || :OLD.MALO || ' (Hoàn kho)';
+--     END IF;
 
-    INSERT INTO LOG_BAN_HANG (MAHD, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
-    VALUES (NVL(:NEW.MAHD, :OLD.MAHD), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
-END;
-/
+--     INSERT INTO LOG_BAN_HANG (MAHD, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
+--     VALUES (NVL(:NEW.MAHD, :OLD.MAHD), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
+-- END;
+-- /
 
 
 -- TRIGGER trả hàng cho nhà cung cấp 
@@ -317,21 +328,21 @@ BEGIN
     :NEW.THANHTIEN := NVL(:NEW.SL, 0) * NVL(:NEW.DONGIATRA, 0);
 END;
 /
-
 CREATE OR REPLACE TRIGGER TRG_CTPT_NCC_SUBTRACT_STOCK
 AFTER INSERT ON CTPT_NCC
 FOR EACH ROW
 DECLARE
     v_ton_kho NUMBER;
+    v_masp VARCHAR2(20);
 BEGIN
-
-    SELECT SLSP INTO v_ton_kho 
+    SELECT SLSP, MASP INTO v_ton_kho, v_masp
     FROM LOSANPHAM 
     WHERE MALO = :NEW.MALO;
 
     IF v_ton_kho < :NEW.SL THEN
         RAISE_APPLICATION_ERROR(-20060, 
-            'Lỗi: Lô hàng ' || :NEW.MALO || ' chỉ còn ' || v_ton_kho || ' sản phẩm. Không đủ để trả số lượng ' || :NEW.SL);
+            'Lỗi: Lô hàng ' || :NEW.MALO || ' chỉ còn ' || v_ton_kho || 
+            ' sản phẩm. Không đủ để trả số lượng ' || :NEW.SL);
     END IF;
 
     UPDATE LOSANPHAM 
@@ -341,10 +352,6 @@ BEGIN
     UPDATE KHO 
     SET SLTON = SLTON - :NEW.SL 
     WHERE MALO = :NEW.MALO;
-
-    INSERT INTO LOG_NHAP_HANG (MAPN, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
-    VALUES (:NEW.MAPN, :NEW.MALO, 'RETURN_TO_NCC', USER, 
-            'Xuất trả NCC: SP ' || :NEW.MASP || ', SL: ' || :NEW.SL);
 END;
 /
 
@@ -658,3 +665,12 @@ BEGIN
     END IF;
 END;
 /
+
+
+
+
+
+
+
+
+
