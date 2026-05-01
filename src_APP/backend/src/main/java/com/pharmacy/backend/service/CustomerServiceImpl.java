@@ -57,7 +57,6 @@ public class CustomerServiceImpl implements CustomerService {
         String rawPassword = UUID.randomUUID().toString().substring(0, 8);
 
         Account account = new Account();
-        account.setMatk("TK" + customer.getSdt()); 
         account.setSdt(customer.getSdt());
         account.setPassword(passwordEncoder.encode(rawPassword)); 
         account.setVaitro("CUSTOMER");
