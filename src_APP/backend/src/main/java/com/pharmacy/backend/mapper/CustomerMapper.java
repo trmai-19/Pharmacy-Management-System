@@ -13,6 +13,7 @@ public class CustomerMapper {
                 .gioitinh(customer.getGioitinh())
                 .sdt(customer.getSdt())
                 .tongdoanhthu(customer.getTongdoanhthu())
+                .diemtichluy(customer.getDiemtichluy())
                 .hangtv(customer.getHangtv())
                 .build();
     }

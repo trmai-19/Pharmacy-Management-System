@@ -15,5 +15,6 @@ public class CustomerResponse {
     private String gioitinh;      
     private String sdt;           
     private Double tongdoanhthu;
+    private double diemtichluy;
     private String hangtv;        
 }

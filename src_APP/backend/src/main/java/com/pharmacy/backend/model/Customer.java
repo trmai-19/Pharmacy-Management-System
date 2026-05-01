@@ -33,6 +33,9 @@ public class Customer {
     @Column(name = "SDT")
     private String sdt;
 
+    @Column(name = "DIEMTICHLUY")
+    private Double diemtichluy = 0.0;
+
     @Column(name = "TONGDOANHTHU")
     private Double tongdoanhthu = 0.0;
 
