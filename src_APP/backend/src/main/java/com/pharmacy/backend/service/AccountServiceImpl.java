@@ -1,29 +1,31 @@
 package com.pharmacy.backend.service;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
+import com.pharmacy.backend.mapper.AccountMapper;
 import com.pharmacy.backend.model.Account;
+import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
-
+import com.pharmacy.backend.repository.EmployeeRepository;
 import com.pharmacy.backend.security.JwtUtils;
 
 @Service
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepo;
+    private final EmployeeRepository employeeRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final EmailService emailService;
 
-    public AccountServiceImpl(AccountRepository accountRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
+    public AccountServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
         this.accountRepo = accountRepo;
+        this.employeeRepo = employeeRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.emailService = emailService;
@@ -35,97 +37,131 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public LoginResponse checkLogin(String sdt, String password) {
-        Optional<Account> accountOpt = accountRepo.findBySdt(sdt);
-        if(accountOpt.isPresent()) {
-            Account acc = accountOpt.get();
-            boolean isPasswordMatch = passwordEncoder.matches(password, acc.getPassword());
+        Account acc = accountRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!"));
 
-            if(isPasswordMatch) {
-                String generatedToken = jwtUtils.generateToken(acc.getSdt(), acc.getVaitro());
-                LoginResponse res = new LoginResponse(true, "Success", acc.getVaitro(), generatedToken);
-                res.setFirstLogin(acc.isFirstLogin());
-                return res;
-            } else {
-                return new LoginResponse(false, "Error: Mật khẩu không chính xác!", null, null, true);
-            }
+        if (!passwordEncoder.matches(password, acc.getPassword())) {
+            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
         }
-        else {
-            return new LoginResponse(false, "Error: Số điện thoại chưa được đăng ký!", null, null, true);
+
+        if ("LOCKED".equals(acc.getTrangthai())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
         }
+
+        if (!"STAFF".equals(acc.getVaitro())) {
+            throw new RuntimeException("Tài khoản không có quyền truy cập vào hệ thống này!");
+        }
+
+        Employee emp = employeeRepo.findByMatk(acc.getMatk())
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
+
+        String generatedToken = jwtUtils.generateToken(emp.getSdt(), emp.getChucvu());
+
+        return AccountMapper.toLoginResponse(acc, emp, generatedToken);
     }
 
     @Override
-    public boolean createAccount(String sdt, String email, String vaitro) {
-        if(accountRepo.findBySdt(sdt).isPresent()) return false;
-
+    @Transactional
+    public void createAccount(CreateUserRequest request) {
+        if(accountRepo.findBySdt(request.getSdt()).isPresent()) {
+            throw new RuntimeException("Tài khoản với số điện thoại này đã tồn tại trong hệ thống!");
+        }
+        
         Account newAccount = new Account();
-        String generatedMATK = "TK" + sdt;
-
-        newAccount.setMatk(generatedMATK);
-        newAccount.setSdt(sdt);
-        newAccount.setVaitro(vaitro);
-        newAccount.setEmail(email);
-        newAccount.setFirstLogin(true);
-
+        AccountMapper.updateNewAccountFromRequest(newAccount, request);
+        
         String rawPassword = generateRandomPassword();
         newAccount.setPassword(passwordEncoder.encode(rawPassword));
-
         newAccount.setNgaytao(new java.util.Date());
 
         accountRepo.save(newAccount);
 
-        Map<String, Object> mailData = new HashMap<>();
-        mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
-        mailData.put("subtitle", "Thông báo cấp tài khoản mới");
-        mailData.put("message", "Quản trị viên vừa cấp cho bạn một tài khoản mới:");
-        mailData.put("sdt", sdt);
-        mailData.put("password", rawPassword);
+        Employee newEmployee = new Employee();
+        AccountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
+            
+        employeeRepo.save(newEmployee);
 
-        emailService.sendEmail(email, "[Pharmacy] Thông tin tài khoản", "email-template", mailData);
-        return true;
-
+        emailService.sendAccountCreationEmail(request.getEmail(), request.getSdt(), rawPassword);
     }
 
     @Override
-    public boolean resetPassword(String sdt, String email) {
-        Optional<Account> accOpt = accountRepo.findBySdt(sdt);
-        if(accOpt.isPresent()) {
-            Account acc = accOpt.get();
-            if(acc.getEmail() != null && acc.getEmail().equals(email) ) {
-                String tempPassword = generateRandomPassword();
-                acc.setPassword(passwordEncoder.encode(tempPassword));
-                acc.setFirstLogin(true);
-                accountRepo.save(acc);
+    public void toggleAccountStatus(String id) {
+        Account acc = accountRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với mã: " + id));
 
-                Map<String, Object> mailData = new HashMap<>();
-                mailData.put("title", "HỆ THỐNG NHÀ THUỐC");
-                mailData.put("subtitle", "Yêu cầu khôi phục mật khẩu");
-                mailData.put("message", "Hệ thống vừa nhận được yêu cầu cấp lại mật khẩu của bạn. Mật khẩu tạm thời là:");
-                mailData.put("sdt", sdt);
-                mailData.put("password", tempPassword);
+        if ("ACTIVE".equalsIgnoreCase(acc.getTrangthai())) {
+            
+            if ("STAFF".equalsIgnoreCase(acc.getVaitro())) {
+                Employee emp = employeeRepo.findByMatk(acc.getMatk())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
-                emailService.sendEmail(email, "[Pharmacy] Thông tin tài khoản", "email-template", mailData);
-
-                return true;
+                if (!"RESIGNED".equalsIgnoreCase(emp.getTrangthai())) {
+                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đã nghỉ trước.");
+                }
             }
+            acc.setTrangthai("LOCKED");
+            
+        } else {
+
+            if ("STAFF".equalsIgnoreCase(acc.getVaitro())) {
+                Employee emp = employeeRepo.findByMatk(acc.getMatk())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
+
+                if (!"WORKING".equalsIgnoreCase(emp.getTrangthai())) {
+                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đang làm trước.");
+                }
+            }
+            acc.setTrangthai("ACTIVE");
         }
-        return false;
+        
+        accountRepo.save(acc);
     }
 
     @Override
-    public boolean changePassword(String sdt, String newPassword) {
-        Optional<Account> accOpt = accountRepo.findBySdt(sdt);
-        if(accOpt.isPresent()) {
-            Account acc = accOpt.get();
-            if (!acc.isFirstLogin()) {
-                return false; 
-            }
-            acc.setPassword(passwordEncoder.encode(newPassword));
-            acc.setFirstLogin(false);
-            accountRepo.save(acc);
-            return true;
+    public void resetPassword(String sdt, String email) {
+        Account acc = accountRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với số điện thoại này!"));
+            
+        if(acc.getEmail() == null || !acc.getEmail().equals(email)) {
+            throw new RuntimeException("Email cung cấp không khớp với thông tin tài khoản!");
         }
-        return false;
+
+        String tempPassword = generateRandomPassword();
+        acc.setPassword(passwordEncoder.encode(tempPassword));
+        acc.setFirstLogin(true);
+        accountRepo.save(acc);
+
+        emailService.sendPasswordResetEmail(email, sdt, tempPassword);
     }
 
+    @Override
+    public void changePasswordFirstLogin(String sdt, String newPassword) {
+        Account acc = accountRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+            
+        if (!acc.isFirstLogin()) {
+            throw new RuntimeException("Tài khoản đã thực hiện đổi mật khẩu lần đầu rồi!"); 
+        }
+        
+        acc.setPassword(passwordEncoder.encode(newPassword));
+        acc.setFirstLogin(false);
+        accountRepo.save(acc);
+    }
+
+    @Override
+    public void changePasswordSetting(String sdt, String oldPassword, String newPassword) {
+        Account acc = accountRepo.findBySdt(sdt)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+            
+        if (acc.isFirstLogin()) {
+            throw new RuntimeException("Vui lòng thực hiện đổi mật khẩu lần đầu tiên trước khi dùng chức năng này!"); 
+        }
+
+        if (!passwordEncoder.matches(oldPassword, acc.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không chính xác!");
+        }
+        
+        acc.setPassword(passwordEncoder.encode(newPassword));
+        accountRepo.save(acc);
+    }
 }

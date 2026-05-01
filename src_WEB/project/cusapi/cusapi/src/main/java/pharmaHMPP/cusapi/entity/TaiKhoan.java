@@ -29,6 +29,7 @@ public class TaiKhoan {
     private LocalDate ngayTao;
 
     @Column(name = "IS_FIRST_LOGIN")
+    @Builder.Default
     private boolean isFirstLogin = true;
 
     @Column(name = "EMAIL", length = 100)

@@ -8,16 +8,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.pharmacy.backend.model.Account;
+import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
+import com.pharmacy.backend.repository.EmployeeRepository;
 
 @Component
 public class AdminSeeder implements CommandLineRunner {
     private final AccountRepository accountRepo;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeRepository employeeRepo;
 
-    public AdminSeeder(AccountRepository accountRepo, PasswordEncoder passwordEncoder) {
+    public AdminSeeder(AccountRepository accountRepo, PasswordEncoder passwordEncoder, EmployeeRepository employeeRepo) {
         this.accountRepo = accountRepo;
         this.passwordEncoder = passwordEncoder;
+        this.employeeRepo = employeeRepo;
     }
 
     @Override
@@ -29,18 +33,24 @@ public class AdminSeeder implements CommandLineRunner {
         if(!adminOpt.isPresent()) {
             Account rootAdmin = new Account();
 
-            String MATK = "TK0000";
-
-            rootAdmin.setMatk(MATK);
             rootAdmin.setSdt(rootAdminSdt);
-            rootAdmin.setVaitro("ADMIN");
+            rootAdmin.setVaitro("STAFF");
             rootAdmin.setNgaytao(new Date());
             rootAdmin.setFirstLogin(false);
+            rootAdmin.setTrangthai("ACTIVE");
             
             String hashedPassword = passwordEncoder.encode("admin123");
             rootAdmin.setPassword(hashedPassword);
 
             accountRepo.save(rootAdmin);
+
+            Employee newEmployee = new Employee();
+            newEmployee.setMatk(rootAdmin.getMatk());
+            newEmployee.setSdt(rootAdminSdt);
+            newEmployee.setChucvu("ADMIN");
+            newEmployee.setTrangthai("WORKING"); 
+                
+            employeeRepo.save(newEmployee);
 
             //test
             System.out.println("==================================================");

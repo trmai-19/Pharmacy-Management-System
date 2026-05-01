@@ -1,0 +1,40 @@
+/* Giao diện chung */
+.root-container {
+    -fx-background-image: url('https://images.unsplash.com/photo-1586015555751-63bb77f4322a?q=80&w=2070');
+    -fx-background-size: cover;
+}
+
+/* Phần bên trái - LUÔN GIỮ NGUYÊN để đẹp */
+#leftPane {
+    -fx-background-color: transparent;
+}
+.brand-pill {
+    -fx-text-fill: #00ff9d;
+    -fx-background-color: rgba(0,255,157,0.15);
+    -fx-padding: 8 25;
+    -fx-background-radius: 25;
+}
+
+/* CHẾ ĐỘ TỐI (Mặc định) */
+.dark-mode #rightPane {
+    -fx-background-color: rgba(15, 23, 42, 0.7);
+    -fx-border-color: rgba(255,255,255,0.1);
+}
+.dark-mode .label { -fx-text-fill: white; }
+.dark-mode .text-field { 
+    -fx-background-color: rgba(0,0,0,0.3); 
+    -fx-text-fill: white;
+    -fx-border-color: #334155;
+}
+
+/* CHẾ ĐỘ SÁNG - Chỉ đổi phần bên phải */
+.light-mode #rightPane {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-border-color: #cbd5e1;
+}
+.light-mode #rightPane .label { -fx-text-fill: #1e293b; }
+.light-mode .text-field { 
+    -fx-background-color: white; 
+    -fx-text-fill: #1e293b;
+    -fx-border-color: #cbd5e1;
+}
