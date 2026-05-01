@@ -9,15 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateCustomerRequest {
-    
-    
+public class QuickCreateCustomerRequest {
     @NotBlank(message = "Tên khách hàng không được để trống")
     private String tenkh;
-    
-    private String gioitinh;
-    
+
     @NotBlank(message = "Số điện thoại không được để trống")
-    @Size(max = 10, message = "Số điện thoại tối đa 10 ký tự")
+    @Size(max = 10, message = "SĐT tối đa 10 số")
     private String sdt;
+
+    private String gioitinh;
 }

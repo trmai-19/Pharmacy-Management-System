@@ -2,9 +2,11 @@ package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
-import java.util.List;
+import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
+import com.pharmacy.backend.dto.UpgradeAccountRequest;
 public interface CustomerService {
-    // Tìm 1 khách hàng bằng SĐT
-    List<CustomerResponse> searchCustomers(String keyword);
+    CustomerResponse findBySdt(String sdt);
     CustomerResponse createCustomer(CreateCustomerRequest request);
+    CustomerResponse quickCreate(QuickCreateCustomerRequest request);
+    void upgradeToAccount(String makh, UpgradeAccountRequest request);
 }
