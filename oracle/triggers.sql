@@ -91,19 +91,15 @@ DECLARE
     v_tong_doanhthu NUMBER;
     v_hang_moi VARCHAR2(50);
 BEGIN
-    -- Chỉ thực thi nếu hóa đơn này có định danh khách hàng
     IF :NEW.MAKH IS NOT NULL THEN
-        -- 1. Lấy mức doanh thu hiện tại của khách hàng
         SELECT NVL(TONGDOANHTHU, 0) INTO v_doanhthu_cu FROM KHACHHANG WHERE MAKH = :NEW.MAKH;
 
-        -- 2. Tính toán tổng doanh thu mới sau khi mua hàng
         IF INSERTING THEN
             v_tong_doanhthu := v_doanhthu_cu + NVL(:NEW.TIENTHANHTOAN, 0);
         ELSIF UPDATING THEN
             v_tong_doanhthu := v_doanhthu_cu - NVL(:OLD.TIENTHANHTOAN, 0) + NVL(:NEW.TIENTHANHTOAN, 0);
         END IF;
 
-        -- 3. Xét hạng thành viên dựa trên mốc doanh thu
         IF v_tong_doanhthu < 10000000 THEN
             v_hang_moi := 'Bạc';
         ELSIF v_tong_doanhthu >= 10000000 AND v_tong_doanhthu < 50000000 THEN
@@ -112,7 +108,6 @@ BEGIN
             v_hang_moi := 'Kim Cương';
         END IF;
 
-        -- 4. Cập nhật lại 2 thuộc tính cùng 1 lúc vào bảng Khách Hàng
         UPDATE KHACHHANG 
         SET TONGDOANHTHU = v_tong_doanhthu, 
             HANGTV = v_hang_moi 
@@ -257,13 +252,49 @@ END;
 /
 
 -- DIEMTL.SL = DIEMTL.SL + 1%*HD.TONGTIEN - HD.DIEMSUDUNG
-CREATE OR REPLACE TRIGGER TRG_HOADON_UPDATE_DIEM_SAU_BAN
-AFTER INSERT OR UPDATE ON HOADON
+CREATE OR REPLACE TRIGGER TRG_HOADON_AUTO_LOG_DIEM
+AFTER INSERT ON HOADON
+FOR EACH ROW
+DECLARE
+    v_diem_tich_luy NUMBER;
+BEGIN
+    v_diem_tich_luy := FLOOR(NVL(:NEW.TONGTIEN, 0) * 0.01);
+    
+    IF v_diem_tich_luy > 0 THEN
+        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, diemthaydoi, ngaygd, ghichu)
+        VALUES (
+            :NEW.MAKH,
+            :NEW.MAHD,
+            'CONG_DIEM',
+            v_diem_tich_luy,
+            SYSDATE,
+            'Tích điểm 1% từ hóa đơn ' || :NEW.MAHD
+        );
+    END IF;
+
+    IF NVL(:NEW.DIEMSUDUNG, 0) > 0 THEN
+        -- KHÔNG CẦN CHÈN MADTL
+        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, diemthaydoi, ngaygd, ghichu)
+        VALUES (
+            :NEW.MAKH,
+            :NEW.MAHD,
+            'TRU_DIEM',
+            -(:NEW.DIEMSUDUNG), 
+            SYSDATE,
+            'Sử dụng điểm giảm giá cho đơn ' || :NEW.MAHD
+        );
+    END IF;
+END;
+/
+
+-- TRIGGER Cập nhật điểm tích lũy cho khách hàng sau khi có giao dịch mới
+CREATE OR REPLACE TRIGGER TRG_DIEMTL_UPDATE_KHACHHANG
+AFTER INSERT ON DIEMTL
 FOR EACH ROW
 BEGIN
-    UPDATE DIEMTL
-    SET SL = SL + (NVL(:NEW.TONGTIEN, 0) * 0.01) - NVL(:NEW.DIEMSUDUNG, 0)
-    WHERE MADTL = (SELECT MADTL FROM KHACHHANG WHERE MAKH = :NEW.MAKH);
+    UPDATE KHACHHANG
+    SET diemtichluy = NVL(diemtichluy, 0) + :NEW.diemthaydoi
+    WHERE MAKH = :NEW.MAKH;
 END;
 /
 
