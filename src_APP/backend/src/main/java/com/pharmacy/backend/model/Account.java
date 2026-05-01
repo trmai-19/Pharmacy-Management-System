@@ -1,7 +1,7 @@
 package com.pharmacy.backend.model;
 
 import java.util.Date;
-import org.hibernate.annotations.DynamicInsert;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +12,7 @@ import lombok.*;
 @Table(name = "TAIKHOAN")
 public class Account {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MATK")
     private String matk;
 

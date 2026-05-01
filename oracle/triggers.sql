@@ -595,7 +595,7 @@ DECLARE
 BEGIN
     IF :NEW.MATK IS NULL THEN
         v_seq_val := SEQ_TAIKHOAN.NEXTVAL;
-        IF UPPER(:NEW.VAITRO) = 'KHACHHANG' THEN
+        IF UPPER(TRIM(:NEW.VAITRO)) = 'CUSTOMER' THEN
             :NEW.MATK := 'TKKH' || TO_CHAR(SYSDATE, 'YY') || LPAD(v_seq_val, 5, '0');
         ELSE
             :NEW.MATK := 'TKNV' || TO_CHAR(SYSDATE, 'YY') || LPAD(v_seq_val, 4, '0');
@@ -665,12 +665,4 @@ BEGIN
     END IF;
 END;
 /
-
-
-
-
-
-
-
-
 
