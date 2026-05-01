@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateCustomerRequest {
     
-    
     private String tenkh;
 
-  
     private String gioitinh;
 
     private String sdt;

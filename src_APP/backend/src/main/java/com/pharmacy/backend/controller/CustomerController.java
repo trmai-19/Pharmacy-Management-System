@@ -4,7 +4,7 @@ import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.service.CustomerService;
-import jakarta.validation.Valid; // Thư viện cho @Valid
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/sales/customers") // Đúng Prefix [cite: 45]
+@RequestMapping("/api/sales/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -24,7 +24,6 @@ public class CustomerController {
         
         List<CustomerResponse> data = customerService.searchCustomers(keyword);
 
-        // Bọc dữ liệu vào ApiResponse theo đúng quy tắc [cite: 19, 32]
         ApiResponse<List<CustomerResponse>> response = ApiResponse.<List<CustomerResponse>>builder()
                 .status(200) 
                 .message("Tra cứu danh sách khách hàng thành công")
@@ -36,7 +35,7 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CustomerResponse>> createCustomer(
-            @Valid @RequestBody CreateCustomerRequest request) { // Sử dụng @Valid để lọc dữ liệu rác [cite: 111, 447]
+            @Valid @RequestBody CreateCustomerRequest request) {
         
         CustomerResponse data = customerService.createCustomer(request);
 
