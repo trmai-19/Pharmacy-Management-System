@@ -1,7 +1,7 @@
 package com.pharmacy.backend.model;
 
 import java.util.Date;
-import org.hibernate.annotations.DynamicInsert; // dòng này tối ưu câu lệnh insert trong sql 
+
 import jakarta.persistence.*;
 import lombok.*;
 
