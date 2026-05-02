@@ -1,20 +1,29 @@
 package com.pharmacy.backend.service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
+import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import com.pharmacy.backend.mapper.CustomerMapper;
+import com.pharmacy.backend.mapper.InvoiceMapper;
 import com.pharmacy.backend.model.Account;
 import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.CustomerRepository;
+import com.pharmacy.backend.repository.InvoiceRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import java.util.Date;
-import java.util.UUID;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final AccountRepository accountRepository; 
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final InvoiceRepository invoiceRepository;
 
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
@@ -87,5 +97,19 @@ public class CustomerServiceImpl implements CustomerService {
         Customer newCustomer = new Customer();
         CustomerMapper.updateCustomerFromRequest(newCustomer, request);
         return CustomerMapper.toResponse(customerRepository.save(newCustomer));
+    }
+
+    @Override
+    public List<InvoiceResponse> getPurchaseHistory(String makh) {
+        if (!customerRepository.existsById(makh)) {
+            throw new RuntimeException("Không tìm thấy khách hàng với mã: " + makh);
+        }
+        
+        LocalDateTime twoYearsAgo = LocalDateTime.now().minusYears(2);
+        
+        return invoiceRepository.findPurchaseHistory(makh, twoYearsAgo)
+                .stream()
+                .map(InvoiceMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }

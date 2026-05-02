@@ -233,20 +233,18 @@ DECLARE
 BEGIN
     IF NVL(:NEW.DIEMSUDUNG, 0) > (NVL(:NEW.TONGTIEN, 0) * 0.5) THEN
         RAISE_APPLICATION_ERROR(-20020, 
-            'Lỗi: Điểm sử dụng (' || :NEW.DIEMSUDUNG || ') không được vượt quá 50% tổng tiền (' || (:NEW.TONGTIEN * 0.5) || ')');
+            'Lỗi: Điểm sử dụng (' || :NEW.DIEMSUDUNG || ') không được vượt quá 50% tổng tiền (' || (NVL(:NEW.TONGTIEN, 0) * 0.5) || ')');
     END IF;
 
-    SELECT d.SL INTO v_diem_hien_co
-    FROM DIEMTL d
-    JOIN KHACHHANG k ON d.MADTL = k.MADTL
-    WHERE k.MAKH = :NEW.MAKH;
+    SELECT NVL(diemtichluy, 0) INTO v_diem_hien_co
+    FROM KHACHHANG
+    WHERE MAKH = :NEW.MAKH;
 
     IF NVL(:NEW.DIEMSUDUNG, 0) > v_diem_hien_co THEN
         RAISE_APPLICATION_ERROR(-20021, 
             'Lỗi: Khách hàng không đủ điểm. Hiện có: ' || v_diem_hien_co || ', yêu cầu dùng: ' || :NEW.DIEMSUDUNG);
     END IF;
 
-    
     :NEW.TIENTHANHTOAN := NVL(:NEW.TONGTIEN, 0) - NVL(:NEW.DIEMSUDUNG, 0);
 END;
 /

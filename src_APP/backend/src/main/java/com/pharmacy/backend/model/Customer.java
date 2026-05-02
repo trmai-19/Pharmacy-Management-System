@@ -18,9 +18,6 @@ public class Customer {
     @Column(name = "MATK")
     private String matk;
 
-    @Column(name = "MADTL")
-    private String madtl;
-
     @Column(name = "TENKH")
     private String tenkh;
 

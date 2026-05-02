@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
+import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import com.pharmacy.backend.service.CustomerService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sales/customers") 
@@ -50,5 +52,18 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<Void>> upgrade(@PathVariable String makh, @Valid @RequestBody UpgradeAccountRequest request) {
         customerService.upgradeToAccount(makh, request);
         return ResponseEntity.ok(new ApiResponse<>(200, "Cấp tài khoản thành công! Mật khẩu đã gửi về email khách hàng", null));
+    }
+
+    @GetMapping("/{makh}/invoices")
+    public ResponseEntity<ApiResponse<List<InvoiceResponse>>> getHistory(@PathVariable String makh) {
+        List<InvoiceResponse> data = customerService.getPurchaseHistory(makh);
+        
+        ApiResponse<List<InvoiceResponse>> response = ApiResponse.<List<InvoiceResponse>>builder()
+                .status(200)
+                .message("Lấy lịch sử mua hàng thành công")
+                .data(data)
+                .build();
+                
+        return ResponseEntity.ok(response);
     }
 }
