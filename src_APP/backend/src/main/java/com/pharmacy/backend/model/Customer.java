@@ -11,14 +11,12 @@ import lombok.*;
 @Table(name = "KHACHHANG")
 public class Customer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAKH")
     private String makh;
 
     @Column(name = "MATK")
     private String matk;
-
-    @Column(name = "MADTL")
-    private String madtl;
 
     @Column(name = "TENKH")
     private String tenkh;
@@ -31,6 +29,9 @@ public class Customer {
     
     @Column(name = "SDT")
     private String sdt;
+
+    @Column(name = "DIEMTICHLUY")
+    private Double diemtichluy = 0.0;
 
     @Column(name = "TONGDOANHTHU")
     private Double tongdoanhthu = 0.0;

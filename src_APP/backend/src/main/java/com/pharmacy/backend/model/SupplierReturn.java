@@ -11,6 +11,7 @@ import lombok.*;
 @Table(name = "PHIEUTRA_NCC")
 public class SupplierReturn {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAPT_NCC")
     private String maptNcc;
 

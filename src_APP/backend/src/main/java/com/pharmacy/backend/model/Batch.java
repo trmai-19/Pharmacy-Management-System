@@ -11,6 +11,7 @@ import lombok.*;
 @Table(name = "LOSANPHAM")
 public class Batch {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MALO")
     private String malo;
 

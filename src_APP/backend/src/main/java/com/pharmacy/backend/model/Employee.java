@@ -11,6 +11,7 @@ import lombok.*;
 @Table(name = "NHANVIEN")
 public class Employee {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MANV")
     private String manv;
 
@@ -31,4 +32,7 @@ public class Employee {
 
     @Column(name = "CHUCVU")
     private String chucvu;
+
+    @Column(name = "TRANGTHAI")
+    private String trangthai;
 }

@@ -30,9 +30,6 @@ public class InvoiceDetail {
     @Column(name = "SL")
     private Integer sl;
 
-    @Column(name = "MAHD_CT")
-    private String mahdCt;
-
     @Column(name = "DONGIA")
     private Double dongia;
 

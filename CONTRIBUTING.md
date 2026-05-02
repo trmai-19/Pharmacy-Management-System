@@ -170,8 +170,8 @@ Dành cho các thao tác tra cứu cơ bản, yêu cầu đăng nhập nhưng kh
 
 **Quản lý Danh mục & Sản phẩm (Thuốc)**
 * `GET /api/categories`: Lấy danh sách toàn bộ danh mục thuốc.
-* `GET /api/medicines`: Tra cứu danh sách thuốc (Hỗ trợ query params để tìm kiếm theo tên, hoạt chất, công dụng phục vụ Autocomplete).
-* `GET /api/medicines/{id}`: Xem thông tin chi tiết một loại thuốc (tên, công dụng, thành phần, giá bán niêm yết).
+* `GET /api/products`: Tra cứu danh sách sản phẩm (Hỗ trợ query params để tìm kiếm theo tên, hoạt chất, công dụng phục vụ Autocomplete).
+* `GET /api/products/{id}`: Xem thông tin chi tiết một sản phẩm (tên, công dụng, thành phần, giá bán niêm yết).
 
 ### 5.2. Nhóm API Bán Hàng (Sales)
 Phục vụ trực tiếp nghiệp vụ tại quầy. Prefix bắt buộc: `/api/sales/...`
@@ -211,18 +211,120 @@ Dành cho nhân viên kho thực hiện nhập, xuất, kiểm kê. Prefix bắt
 ### 5.4. Nhóm API Quản trị Hệ Thống (Admin)
 Chỉ Admin mới được phép thao tác. Prefix bắt buộc: `/api/admin/...`
 
+**Quản trị tài khoản hệ thống**
+* `PUT /api/admin/acounts/{id}/status`: Khóa / mở khóa tài khoản.
+* `POST /api/admin/acounts/create`: Tạo tài khoản cho nhân viên mới (cấp quyền Sales hoặc Warehouse).
+
 **Quản trị Dữ liệu Lõi**
 * `POST /api/admin/categories` | `PUT /api/admin/categories/{id}` | `DELETE /api/admin/categories/{id}`: Quản lý thêm/sửa/xóa danh mục.
-* `POST /api/admin/medicines` | `PUT /api/admin/medicines/{id}` | `DELETE /api/admin/medicines/{id}`: Quản lý thêm/sửa/xóa thông tin gốc của thuốc.
+* `POST /api/admin/products` | `PUT /api/admin/products/{id}` | `DELETE /api/admin/products/{id}`: Quản lý thêm/sửa/xóa thông tin gốc của sản phẩm.
 
 **Quản lý Nhân sự**
 * `GET /api/admin/employees`: Lấy danh sách nhân viên.
-* `POST /api/admin/create-account`: Tạo tài khoản cho nhân viên mới (cấp quyền Sales hoặc Warehouse).
-* `PUT /api/admin/employees/{id}`: Cập nhật hồ sơ nhân viên (sdt, email)
-* `PUT /api/admin/employees/{id}/status`: Khóa/Mở khóa tài khoản nhân viên.
+* `PUT /api/admin/employees/{id}`: Cập nhật hồ sơ nhân viên
+* `DELETE /api/admin/employees/{id}` : Xóa nhân viên (update thành đã nghỉ).
+
 
 **Báo cáo & Thống kê (Dashboard)**
 * `GET /api/admin/reports/revenue`: Thống kê doanh thu bán hàng (lọc theo ngày, tháng, năm).
 * `GET /api/admin/reports/inventory-movements`: Báo cáo tình hình xuất/nhập kho.
 * Sau này sẽ thêm các API khác về Dashboard.
 ---
+
+**đây là quy tắc được thêm vào sau khi refactor**
+## 6. Quy Tắc Xử Lý Lỗi (Exception Handling) & GlobalExceptionHandler
+
+Để giữ cho tầng Controller mỏng nhẹ và code dễ bảo trì, dự án **nghiêm cấm** việc sử dụng `boolean` (`true`/`false`) hoặc trả về `null` từ tầng Service để kiểm tra lỗi nghiệp vụ (VD: không tìm thấy dữ liệu, sai mật khẩu, tài khoản đã bị khóa...). 
+
+Tất cả các logic lỗi bắt buộc phải ném ra một **`RuntimeException`** kèm theo câu thông báo lỗi cụ thể.
+
+### Cơ Chế Hoạt Động Của `GlobalExceptionHandler` // file này nằm trong folder config
+Hệ thống đã được cấu hình sẵn một "Trạm thu phí" bắt lỗi mang tên `GlobalExceptionHandler` (nằm trong thư mục `exception`). 
+* **Bắt lỗi tự động:** Bất cứ khi nào tầng `Service` ném ra một `RuntimeException`, luồng chạy sẽ lập tức dừng lại và `GlobalExceptionHandler` sẽ tự động "tóm" lấy cái lỗi đó.
+* **Chuẩn hóa Response:** Nó sẽ lấy câu thông báo lỗi (message) và tự động đóng gói thành một file JSON chuẩn `ApiResponse` (Status 400 - Bad Request) để trả về cho Frontend.
+
+### Ví dụ Thực Tế
+
+**SAI (Cấm dùng): Trả về boolean / if-else**
+```java
+// Trong Service
+public boolean deleteEmployee(String id) {
+    Optional<Employee> empOpt = repo.findById(id);
+    if (empOpt.isEmpty()) {
+        return false; // Trả về false không rõ lý do lỗi
+    }
+    // ... logic xóa
+    return true;
+}
+
+// Trong Controller (Code bị phức tạp vì phải check if-else)
+@DeleteMapping("/{id}")
+public ResponseEntity<?> delete(@PathVariable String id) {
+    if (service.deleteEmployee(id)) {
+        return ResponseEntity.ok(new ApiResponse<>(200, "Thành công", null));
+    } else {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Lỗi xóa", null));
+    }
+}
+```
+
+**CHUẨN: Quăng Exception & Bỏ qua if-else ở Controller**
+```java
+// Trong Service: Tận dụng orElseThrow của JPA để code ngắn gọn
+public void deleteEmployee(String id) {
+    Employee emp = repo.findById(id)
+        .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với mã: " + id));
+        
+    // ... logic xóa
+}
+
+// Trong Controller: Mặc định luôn là thành công (Vì nếu lỗi, Exception Handler sẽ bắt)
+@DeleteMapping("/{id}")
+public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+    service.deleteEmployee(id); // Gọi hàm, bỏ qua if-else
+    return ResponseEntity.ok(new ApiResponse<>(200, "Đã xóa nhân viên thành công", null));
+}
+```
+
+> **TÓM LẠI:** 
+> * **Tầng Service:** Có lỗi là `throw new RuntimeException("Lý do lỗi");`
+> * **Tầng Controller:** Chỉ gọi Service và `return ResponseEntity.ok(...)`. Tuyệt đối không `try-catch`, không `if-else`.
+
+## 7. Quy ước sử dụng Mapper (DTO & Entity)
+
+Để giữ cho tầng **Service** luôn sạch sẽ (chuẩn Clean Architecture) và chỉ tập trung vào xử lý logic nghiệp vụ, toàn bộ các thao tác chuyển đổi/gán dữ liệu giữa `Model (Entity)` và `DTO` BẮT BUỘC phải được tách ra các class `Mapper`.
+
+### Quy tắc chung
+* **Vị trí lưu trữ:** Đặt tại package `mapper` (VD: `src/main/java/com/pharmacy/backend/mapper/`).
+* **Naming convention:** Tên file có hậu tố `Mapper` (VD: `ProductMapper`, `CustomerMapper`).
+* **Hàm tĩnh:** Các hàm bên trong Mapper phải là `public static` để Service có thể gọi trực tiếp mà không cần khởi tạo (`new`).
+* **Không chứa Business Logic:** Tuyệt đối không gọi `Repository` hay viết code xử lý logic (tính toán phức tạp, check tồn tại...) trong Mapper. Mapper chỉ làm đúng 1 việc duy nhất: **"Chuyển đổi và Gán dữ liệu"**.
+
+### Chiều trả dữ liệu: Entity -> Response DTO
+* **Mục đích:** Lấy dữ liệu từ DB (Entity) đóng gói thành DTO để trả về cho Frontend.
+* **Quy tắc:** Bắt buộc gắn annotation `@Builder` vào các class `Response` DTO. Trong Mapper, dùng hàm `builder()` để khởi tạo và trả về cho code gọn gàng, an toàn.
+* **Code mẫu:**
+```java
+public static CategoryResponse toResponse(Category category) {
+    return CategoryResponse.builder()
+            .madm(category.getMadm())
+            .tendm(category.getTendm())
+            .build();
+}
+```
+
+### Chiều nhận dữ liệu: Request DTO -> Entity
+* **Mục đích:** Nhận dữ liệu từ Frontend (Request) đổ vào một Entity để lưu xuống Database (dùng chung cho cả Thêm mới và Cập nhật).
+* **Quy tắc:** Truyền Entity cần thay đổi vào làm tham số. Bắt buộc dùng các hàm `set()` truyền thống để thay đổi giá trị (Tuyệt đối KHÔNG dùng Builder cho việc update đối tượng đã tồn tại).
+* **Code mẫu:**
+```java
+public static void updateCategoryFromRequest(Category category, CategoryRequest request) {
+    category.setTendm(request.getTendm());
+    category.setMota(request.getMota());
+}
+```
+
+### Các trường hợp ngoại lệ (Không dùng Mapper)
+* **Action Payload:** Không viết Mapper cho các Request chỉ mang tính chất truyền tham số hành động như `LoginRequest`, `ForgotPasswordRequest`, `ChangePasswordRequest`. Các request này được bóc tách trực tiếp tại Controller và ném các biến `String` xuống Service.
+* **Seeder/Config:** Không dùng Mapper trong các file cấu hình hoặc tạo dữ liệu mẫu ngầm định (VD: `AdminSeeder`), vì các data này dùng để khởi tạo hệ thống chứ không đến từ Frontend Request.
+```

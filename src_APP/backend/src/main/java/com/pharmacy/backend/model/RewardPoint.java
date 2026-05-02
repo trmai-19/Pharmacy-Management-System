@@ -10,6 +10,7 @@ import lombok.*;
 @Table(name = "DIEMTL")
 public class RewardPoint {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MADTL")
     private String madtl;
 
