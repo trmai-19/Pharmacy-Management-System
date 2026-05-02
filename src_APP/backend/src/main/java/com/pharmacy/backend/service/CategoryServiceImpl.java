@@ -2,10 +2,13 @@ package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.CategoryRequest;
 import com.pharmacy.backend.dto.CategoryResponse;
+import com.pharmacy.backend.dto.CategoryResponseStaff;
 import com.pharmacy.backend.mapper.CategoryMapper;
 import com.pharmacy.backend.model.Category;
 import com.pharmacy.backend.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 import java.util.List;
 
@@ -53,5 +56,12 @@ public class CategoryServiceImpl implements CategoryService {
             .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với mã: " + id));
             
         categoryRepository.delete(category);
+    }
+
+    @Override
+    public List<CategoryResponseStaff> getAllCategoriesForStaff() {
+        return categoryRepository.findAll().stream()
+                .map(CategoryMapper::toStaffResponse)
+                .toList();
     }
 }
