@@ -33,7 +33,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/warehouse/**").hasAnyAuthority("ADMIN", "WAREHOUSE_STAFF")
                 .requestMatchers("/api/sales/**").hasAnyAuthority("ADMIN", "SALES_STAFF")
-                .requestMatchers("/api/categories/**").hasAnyAuthority("ADMIN", "SALES_STAFF", "WAREHOUSE_STAFF")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -8,8 +8,6 @@ import com.pharmacy.backend.model.Category;
 import com.pharmacy.backend.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 import java.util.List;
 
 @Service

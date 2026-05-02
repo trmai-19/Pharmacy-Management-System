@@ -71,6 +71,7 @@ public class CustomerServiceImpl implements CustomerService {
         account.setPassword(passwordEncoder.encode(rawPassword)); 
         account.setVaitro("CUSTOMER");
         account.setEmail(request.getEmail());
+        account.setTrangthai("ACTIVE");
         account.setNgaytao(new Date());
         accountRepository.save(account);
 

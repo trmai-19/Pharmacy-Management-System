@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medicines") 
+@RequestMapping("/api/products") 
 @RequiredArgsConstructor 
 public class MedicineController {
 
@@ -22,7 +22,7 @@ public class MedicineController {
         
         List<MedicineResponse> data = medicineService.searchMedicines(search);
         
-        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh mục thuốc thành công", data));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách thuốc thành công", data));
     }
 
     @GetMapping("/{id}")

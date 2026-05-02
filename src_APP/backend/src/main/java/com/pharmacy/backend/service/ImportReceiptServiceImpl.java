@@ -55,7 +55,7 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
         receipt.setManv(request.getManv());
         receipt.setMancc(request.getMancc());
         receipt.setNgaynhap(new Date());
-        receipt.setTrangthai("KHOI TAO");
+        receipt.setTrangthai("KHOI_TAO");
         
         ImportReceipt savedReceipt = importReceiptRepository.save(receipt);
         String finalMapn = savedReceipt.getMapn();
