@@ -25,7 +25,6 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     public List<InventoryResponse> getLowStockAlerts() {
-        // Lấy danh sách tồn kho < 10 (Khớp với Trigger TRG_KHO_WARNING)
         return warehouseRepository.findBySltonLessThan(10).stream()
                 .map(WarehouseMapper::toInventoryResponse)
                 .toList();

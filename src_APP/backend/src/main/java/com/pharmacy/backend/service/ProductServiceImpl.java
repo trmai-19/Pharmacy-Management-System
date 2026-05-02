@@ -20,7 +20,6 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse createProduct(ProductRequest request) {
         Product product = new Product();
         
-        // Đổ dữ liệu từ Request sang Model
         ProductMapper.updateProductFromRequest(product, request);
         
         Product savedProduct = productRepository.save(product);

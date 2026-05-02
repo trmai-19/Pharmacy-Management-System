@@ -26,7 +26,6 @@ public class BatchServiceImpl implements BatchService {
     }
     @Override
     public List<BatchResponse> getExpiringSoonAlerts() {
-        // Dùng Calendar để tính toán mốc thời gian: Từ hôm nay đến 3 tháng sau
         Calendar cal = Calendar.getInstance();
         Date today = cal.getTime();
         
