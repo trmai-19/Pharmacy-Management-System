@@ -2,10 +2,12 @@ package com.pharmacy.backend.mapper;
 
 import com.pharmacy.backend.dto.*;
 import com.pharmacy.backend.model.*;
+import org.springframework.stereotype.Component;
 
+@Component
 public class WarehouseMapper {
 
-    public static SupplierResponse toSupplierResponse(Supplier supplier) {
+    public SupplierResponse toSupplierResponse(Supplier supplier) {
         return SupplierResponse.builder()
                 .mancc(supplier.getMancc())
                 .tenncc(supplier.getTenncc())
@@ -15,14 +17,14 @@ public class WarehouseMapper {
                 .build();
     }
 
-    public static void updateSupplierFromRequest(Supplier supplier, SupplierRequest request) {
+    public void updateSupplierFromRequest(Supplier supplier, SupplierRequest request) {
         supplier.setTenncc(request.getTenncc());
         supplier.setSdt(request.getSdt());
         supplier.setEmail(request.getEmail());
         supplier.setDiachi(request.getDiachi());
     }
 
-    public static BatchResponse toBatchResponse(Batch batch) {
+    public BatchResponse toBatchResponse(Batch batch) {
         return BatchResponse.builder()
                 .malo(batch.getMalo())
                 .masp(batch.getMasp())
@@ -35,7 +37,7 @@ public class WarehouseMapper {
                 .build();
     }
 
-    public static InventoryResponse toInventoryResponse(Warehouse warehouse) {
+    public InventoryResponse toInventoryResponse(Warehouse warehouse) {
         return InventoryResponse.builder()
                 .makho(warehouse.getMakho())
                 .malo(warehouse.getMalo())
@@ -44,7 +46,7 @@ public class WarehouseMapper {
                 .build();
     }
 
-    public static ImportReceiptResponse toImportReceiptResponse(ImportReceipt receipt) {
+    public ImportReceiptResponse toImportReceiptResponse(ImportReceipt receipt) {
         return ImportReceiptResponse.builder()
                 .mapn(receipt.getMapn())
                 .manv(receipt.getManv())

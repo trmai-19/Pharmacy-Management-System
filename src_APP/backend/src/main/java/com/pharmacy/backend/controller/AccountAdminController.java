@@ -12,14 +12,13 @@ import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.service.AccountService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/admin/accounts")
+@RequiredArgsConstructor
 public class AccountAdminController {
     private final AccountService accountService;
-
-    public AccountAdminController(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<Void>> createAccount(@RequestBody CreateUserRequest request) {

@@ -2,9 +2,11 @@ package com.pharmacy.backend.mapper;
 
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.model.Invoice;
+import org.springframework.stereotype.Component;
 
+@Component
 public class InvoiceMapper {
-    public static InvoiceResponse toResponse(Invoice entity) {
+    public InvoiceResponse toResponse(Invoice entity) {
         if (entity == null) return null;
         return InvoiceResponse.builder()
                 .mahd(entity.getMahd())

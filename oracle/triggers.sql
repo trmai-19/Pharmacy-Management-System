@@ -91,8 +91,13 @@ END;
 CREATE OR REPLACE TRIGGER TRG_KHONGSUA_TONKHO
 BEFORE UPDATE OF SLTON ON KHO
 FOR EACH ROW
+DECLARE
+    v_program VARCHAR2(100);
 BEGIN
-    RAISE_APPLICATION_ERROR(-20004, 'Lỗi: Không được phép sửa số lượng tồn kho trực tiếp!');
+    IF SYS_CONTEXT('USERENV', 'MODULE') NOT IN ('JDBC Thin Client', 'trigger') THEN
+        RAISE_APPLICATION_ERROR(-20004, 
+            'Lỗi: Không được phép sửa số lượng tồn kho trực tiếp!');
+    END IF;
 END;
 /
 
@@ -216,7 +221,8 @@ BEGIN
     BEGIN
         SELECT SLSP, HSD INTO v_ton_kho, v_hsd
         FROM LOSANPHAM 
-        WHERE MALO = :NEW.MALO;
+        WHERE MALO = :NEW.MALO
+        FOR UPDATE;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Mã lô ' || :NEW.MALO || ' không tồn tại!');

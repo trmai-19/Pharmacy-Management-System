@@ -5,25 +5,26 @@ import com.pharmacy.backend.dto.ProductResponse;
 import com.pharmacy.backend.mapper.ProductMapper;
 import com.pharmacy.backend.model.Product;
 import com.pharmacy.backend.repository.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    private final ProductMapper productMapper;
 
     @Override
     public ProductResponse createProduct(ProductRequest request) {
         Product product = new Product();
         
-        ProductMapper.updateProductFromRequest(product, request);
+        productMapper.updateProductFromRequest(product, request);
         
         Product savedProduct = productRepository.save(product);
-        return ProductMapper.toResponse(savedProduct);
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
@@ -31,10 +32,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + id));
             
-        ProductMapper.updateProductFromRequest(product, request);
+        productMapper.updateProductFromRequest(product, request);
         
         Product updatedProduct = productRepository.save(product);
-        return ProductMapper.toResponse(updatedProduct);
+        return productMapper.toResponse(updatedProduct);
     }
 
     @Override

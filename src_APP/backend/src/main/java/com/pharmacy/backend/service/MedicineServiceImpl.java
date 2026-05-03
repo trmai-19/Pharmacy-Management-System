@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 public class MedicineServiceImpl implements MedicineService {
 
     private final ProductRepository productRepository;
-
+    private final MedicineMapper medicineMapper;
     @Override
     public List<MedicineResponse> searchMedicines(String keyword) {
         List<Product> products = productRepository.searchProducts(keyword);
         return products.stream()
-                .map(MedicineMapper::toResponse)
+                .map(medicineMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -29,6 +29,6 @@ public class MedicineServiceImpl implements MedicineService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy loại thuốc với mã: " + id));
         
-        return MedicineMapper.toResponse(product);
+        return medicineMapper.toResponse(product);
     }
 }

@@ -6,23 +6,24 @@ import com.pharmacy.backend.dto.CategoryResponseStaff;
 import com.pharmacy.backend.mapper.CategoryMapper;
 import com.pharmacy.backend.model.Category;
 import com.pharmacy.backend.repository.CategoryRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    private final CategoryMapper categoryMapper;
 
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(CategoryMapper::toResponse)
+                .map(categoryMapper::toResponse)
                 .toList(); 
     }
 
@@ -30,10 +31,10 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse createCategory(CategoryRequest request) {
         Category category = new Category();
         
-        CategoryMapper.updateCategoryFromRequest(category, request);
+        categoryMapper.updateCategoryFromRequest(category, request);
         
         Category savedCategory = categoryRepository.save(category);
-        return CategoryMapper.toResponse(savedCategory);
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override
@@ -42,10 +43,10 @@ public class CategoryServiceImpl implements CategoryService {
             .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với mã: " + id));
             
 
-        CategoryMapper.updateCategoryFromRequest(category, request);
+        categoryMapper.updateCategoryFromRequest(category, request);
         
         Category updatedCategory = categoryRepository.save(category);
-        return CategoryMapper.toResponse(updatedCategory);
+        return categoryMapper.toResponse(updatedCategory);
     }
 
     @Override
@@ -59,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponseStaff> getAllCategoriesForStaff() {
         return categoryRepository.findAll().stream()
-                .map(CategoryMapper::toStaffResponse)
+                .map(categoryMapper::toStaffResponse)
                 .toList();
     }
 }

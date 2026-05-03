@@ -25,6 +25,7 @@ import java.util.List;
 @RequestMapping("/api/sales/customers") 
 @RequiredArgsConstructor
 public class CustomerController {
+
     private final CustomerService customerService;
 
     @GetMapping
@@ -66,4 +67,5 @@ public class CustomerController {
                 
         return ResponseEntity.ok(response);
     }
+
 }

@@ -8,17 +8,16 @@ import com.pharmacy.backend.dto.EmployeeUpdateRequest;
 import com.pharmacy.backend.dto.EmployeeResponse;
 import com.pharmacy.backend.service.EmployeeService;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/employees")
+@RequiredArgsConstructor
 public class EmployeeAdminController {
 
     private final EmployeeService employeeService;
-
-    public EmployeeAdminController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
-    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getAllEmployees() {

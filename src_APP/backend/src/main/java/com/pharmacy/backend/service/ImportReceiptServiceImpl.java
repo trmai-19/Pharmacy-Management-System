@@ -6,6 +6,9 @@ import com.pharmacy.backend.dto.ImportReceiptResponse;
 import com.pharmacy.backend.mapper.WarehouseMapper;
 import com.pharmacy.backend.model.*;
 import com.pharmacy.backend.repository.*;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ImportReceiptServiceImpl implements ImportReceiptService {
 
     private final ImportReceiptRepository importReceiptRepository;
@@ -20,24 +24,11 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     private final BatchRepository batchRepository;
     private final WarehouseRepository warehouseRepository;
     private final SupplierRepository supplierRepository;
-
-    public ImportReceiptServiceImpl(
-            ImportReceiptRepository importReceiptRepository,
-            ImportReceiptDetailRepository importReceiptDetailRepository,
-            BatchRepository batchRepository,
-            WarehouseRepository warehouseRepository,
-            SupplierRepository supplierRepository) {
-        this.importReceiptRepository = importReceiptRepository;
-        this.importReceiptDetailRepository = importReceiptDetailRepository;
-        this.batchRepository = batchRepository;
-        this.warehouseRepository = warehouseRepository;
-        this.supplierRepository = supplierRepository;
-    }
-
+    private final WarehouseMapper warehouseMapper;
     @Override
     public List<ImportReceiptResponse> getAllImportReceipts() {
         return importReceiptRepository.findAll().stream()
-                .map(WarehouseMapper::toImportReceiptResponse)
+                .map(warehouseMapper::toImportReceiptResponse)
                 .toList();
     }
 
@@ -96,6 +87,6 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
 
         ImportReceipt finalReceipt = importReceiptRepository.findById(finalMapn).get();
 
-        return WarehouseMapper.toImportReceiptResponse(finalReceipt);
+        return warehouseMapper.toImportReceiptResponse(finalReceipt);
     }
 }

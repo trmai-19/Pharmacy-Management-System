@@ -33,7 +33,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
-
+    private final CustomerMapper customerMapper;
+    private final InvoiceMapper invoiceMapper;
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
@@ -51,7 +52,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setHangtv("THANH VIEN");
 
         Customer savedCustomer = customerRepository.save(customer);
-        return CustomerMapper.toResponse(savedCustomer);
+        return customerMapper.toResponse(savedCustomer);
     }
 
     @Override
@@ -85,7 +86,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse findBySdt(String sdt) {
         Customer customer = customerRepository.findBySdt(sdt)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với SĐT: " + sdt));
-        return CustomerMapper.toResponse(customer);
+        return customerMapper.toResponse(customer);
     }
 
     @Override
@@ -96,8 +97,8 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         Customer newCustomer = new Customer();
-        CustomerMapper.updateCustomerFromRequest(newCustomer, request);
-        return CustomerMapper.toResponse(customerRepository.save(newCustomer));
+        customerMapper.updateCustomerFromRequest(newCustomer, request);
+        return customerMapper.toResponse(customerRepository.save(newCustomer));
     }
 
     @Override
@@ -110,7 +111,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         return invoiceRepository.findPurchaseHistory(makh, twoYearsAgo)
                 .stream()
-                .map(InvoiceMapper::toResponse)
+                .map(invoiceMapper::toResponse)
                 .collect(Collectors.toList());
     }
 }

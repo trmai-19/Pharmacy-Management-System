@@ -4,9 +4,11 @@ import com.pharmacy.backend.dto.EmployeeResponse;
 import com.pharmacy.backend.dto.EmployeeUpdateRequest;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 import com.pharmacy.backend.model.Employee;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EmployeeMapper {
-    public static EmployeeResponse toResponse(Employee employee) {
+    public EmployeeResponse toResponse(Employee employee) {
         return EmployeeResponse.builder()
                 .manv(employee.getManv())
                 .matk(employee.getMatk())
@@ -19,7 +21,7 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public static void updateEmployeeFromRequest(Employee employee, EmployeeUpdateRequest request) {
+    public void updateEmployeeFromRequest(Employee employee, EmployeeUpdateRequest request) {
         employee.setTennv(request.getTennv());
         employee.setGioitinh(request.getGioitinh());
         employee.setNgaysinh(request.getNgaysinh());
@@ -28,7 +30,7 @@ public class EmployeeMapper {
         employee.setTrangthai(request.getTrangthai());
     }
 
-    public static void updateProfileFromRequest(Employee employee, UpdateProfileRequest request) {
+    public void updateProfileFromRequest(Employee employee, UpdateProfileRequest request) {
         employee.setTennv(request.getHoten());
         employee.setGioitinh(request.getGioitinh());
         employee.setNgaysinh(request.getNgaysinh());
