@@ -8,16 +8,15 @@ import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 import com.pharmacy.backend.service.ProfileService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/profile")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ProfileController {
 
     private final ProfileService profileService;
-
-    public ProfileController(ProfileService profileService) {
-        this.profileService = profileService;
-    }
 
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<Void>> updateProfile(@RequestBody UpdateProfileRequest request) {

@@ -5,23 +5,23 @@ import com.pharmacy.backend.dto.SupplierResponse;
 import com.pharmacy.backend.mapper.WarehouseMapper;
 import com.pharmacy.backend.model.Supplier;
 import com.pharmacy.backend.repository.SupplierRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
-
-    public SupplierServiceImpl(SupplierRepository supplierRepository) {
-        this.supplierRepository = supplierRepository;
-    }
-
+    private final WarehouseMapper warehouseMapper;
     @Override
     public List<SupplierResponse> getAllSuppliers() {
         return supplierRepository.findAll().stream()
-                .map(WarehouseMapper::toSupplierResponse)
+                .map(warehouseMapper::toSupplierResponse)
                 .toList();
     }
 
@@ -36,10 +36,10 @@ public class SupplierServiceImpl implements SupplierService {
         }
 
         Supplier supplier = new Supplier();
-        WarehouseMapper.updateSupplierFromRequest(supplier, request);
+        warehouseMapper.updateSupplierFromRequest(supplier, request);
         
         Supplier savedSupplier = supplierRepository.save(supplier);
-        return WarehouseMapper.toSupplierResponse(savedSupplier);
+        return warehouseMapper.toSupplierResponse(savedSupplier);
     }
 
     @Override
@@ -47,9 +47,9 @@ public class SupplierServiceImpl implements SupplierService {
         Supplier supplier = supplierRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp với mã: " + id));
             
-        WarehouseMapper.updateSupplierFromRequest(supplier, request);
+        warehouseMapper.updateSupplierFromRequest(supplier, request);
         
         Supplier updatedSupplier = supplierRepository.save(supplier);
-        return WarehouseMapper.toSupplierResponse(updatedSupplier);
+        return warehouseMapper.toSupplierResponse(updatedSupplier);
     }
 }

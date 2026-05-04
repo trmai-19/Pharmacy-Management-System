@@ -2,6 +2,9 @@ package com.pharmacy.backend.controller;
 
 import com.pharmacy.backend.dto.*;
 import com.pharmacy.backend.service.SupplierService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,13 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
+@RequiredArgsConstructor
 public class SuppliersWarehouseController {
 
     private final SupplierService supplierService;
 
-    public SuppliersWarehouseController( SupplierService supplierService) {
-        this.supplierService = supplierService;
-    }
 
     @GetMapping("/suppliers")
     public ResponseEntity<ApiResponse<List<SupplierResponse>>> getAllSuppliers() {

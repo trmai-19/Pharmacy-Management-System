@@ -3,6 +3,9 @@ package com.pharmacy.backend.controller;
 import com.pharmacy.backend.dto.*;
 import com.pharmacy.backend.service.BatchService;
 import com.pharmacy.backend.service.WarehouseService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,15 +13,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
+@RequiredArgsConstructor
 public class BatchWarehouseController {
 
     private final BatchService batchService;
     private final WarehouseService warehouseService;
-
-    public BatchWarehouseController( BatchService batchService, WarehouseService warehouseService) {
-        this.batchService = batchService;
-        this.warehouseService = warehouseService;
-    }
 
     @GetMapping("/batches")
     public ResponseEntity<ApiResponse<List<BatchResponse>>> getBatches() {

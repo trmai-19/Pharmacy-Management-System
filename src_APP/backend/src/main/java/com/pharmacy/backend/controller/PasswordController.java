@@ -10,16 +10,15 @@ import com.pharmacy.backend.dto.ForgotPasswordRequest;
 import com.pharmacy.backend.dto.SettingChangePasswordRequest;
 import com.pharmacy.backend.service.AccountService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/password")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class PasswordController {
 
     private final AccountService accountService;
-
-    public PasswordController(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
     @PostMapping("/first-login-change")
     public ResponseEntity<ApiResponse<Void>> changeFirstLoginPassword(@RequestBody FirstLoginChangePasswordRequest request) {

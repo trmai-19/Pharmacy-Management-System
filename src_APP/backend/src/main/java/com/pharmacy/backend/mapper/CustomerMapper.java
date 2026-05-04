@@ -4,9 +4,11 @@ import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 import com.pharmacy.backend.model.Customer;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CustomerMapper {
-    public static CustomerResponse toResponse(Customer customer) {
+    public CustomerResponse toResponse(Customer customer) {
         return CustomerResponse.builder()
                 .makh(customer.getMakh())
                 .tenkh(customer.getTenkh())
@@ -18,13 +20,13 @@ public class CustomerMapper {
                 .build();
     }
 
-    public static void updateCustomerFromRequest(Customer customer, CreateCustomerRequest request) {
+    public void updateCustomerFromRequest(Customer customer, CreateCustomerRequest request) {
         customer.setTenkh(request.getTenkh());
         customer.setGioitinh(request.getGioitinh());
         customer.setSdt(request.getSdt());
     }
 
-    public static void updateProfileFromRequest(Customer customer, UpdateProfileRequest request) {
+    public void updateProfileFromRequest(Customer customer, UpdateProfileRequest request) {
         customer.setTenkh(request.getHoten());
         customer.setGioitinh(request.getGioitinh());
         customer.setNgaysinh(request.getNgaysinh());

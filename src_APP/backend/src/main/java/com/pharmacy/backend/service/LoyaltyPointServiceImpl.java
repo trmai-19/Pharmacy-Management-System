@@ -13,11 +13,11 @@ import java.util.List;
 @RequiredArgsConstructor 
 public class LoyaltyPointServiceImpl implements LoyaltyPointService {
     private final LoyaltyPointRepository loyaltyPointRepository;
-
+    private final LoyaltyPointMapper loyaltyPointMapper;
     @Override
     public List<LoyaltyPointResponse> getHistoryByCustomerId(String customerId) {
         List<LoyaltyPoint> history = loyaltyPointRepository.findByCustomerIdOrderByTransactionDateDesc(customerId);
         
-        return LoyaltyPointMapper.toResponseList(history);
+        return loyaltyPointMapper.toResponseList(history);
     }
 }

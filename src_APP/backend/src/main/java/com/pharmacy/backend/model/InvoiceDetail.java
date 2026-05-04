@@ -1,16 +1,7 @@
 package com.pharmacy.backend.model;
 
-import java.io.Serializable;
 import jakarta.persistence.*;
 import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class InvoiceDetailId implements Serializable {
-    private String mahd;
-    private String malo;
-}
 
 @Data
 @NoArgsConstructor

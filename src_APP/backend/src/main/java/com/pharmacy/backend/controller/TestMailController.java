@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pharmacy.backend.service.EmailService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 public class TestMailController {
     private final EmailService emailService;
 
-    public TestMailController(EmailService emailService) {
-        this.emailService = emailService;
-    }
 
     @GetMapping("/api/test-mail")
     public ResponseEntity<String> testSendMail(@RequestParam String toEmail) {

@@ -14,7 +14,10 @@ import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.EmployeeRepository;
 import com.pharmacy.backend.security.JwtUtils;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepo;
@@ -22,14 +25,7 @@ public class AccountServiceImpl implements AccountService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final EmailService emailService;
-
-    public AccountServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
-        this.accountRepo = accountRepo;
-        this.employeeRepo = employeeRepo;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtils = jwtUtils;
-        this.emailService = emailService;
-    }
+    private final AccountMapper accountMapper;
     
     private String generateRandomPassword() {
         return UUID.randomUUID().toString().substring(0, 8);
@@ -57,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
 
         String generatedToken = jwtUtils.generateToken(emp.getSdt(), emp.getChucvu());
 
-        return AccountMapper.toLoginResponse(acc, emp, generatedToken);
+        return accountMapper.toLoginResponse(acc, emp, generatedToken);
     }
 
     @Override
@@ -68,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
         }
         
         Account newAccount = new Account();
-        AccountMapper.updateNewAccountFromRequest(newAccount, request);
+        accountMapper.updateNewAccountFromRequest(newAccount, request);
         
         String rawPassword = generateRandomPassword();
         newAccount.setPassword(passwordEncoder.encode(rawPassword));
@@ -77,7 +73,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepo.save(newAccount);
 
         Employee newEmployee = new Employee();
-        AccountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
+        accountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
             
         employeeRepo.save(newEmployee);
 

@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/loyalty") 
+@RequestMapping("/api/sales/loyalty") 
 @RequiredArgsConstructor
-@CrossOrigin("*") 
 public class LoyaltyPointController {
 
     private final LoyaltyPointService loyaltyPointService;

@@ -28,6 +28,7 @@ public class LoyaltyPoint {
     @Column(name = "DIEMTHAYDOI") 
     private Integer pointAmount;
 
+    @Builder.Default
     @Column(name = "NGAYGD")
     private LocalDateTime transactionDate = LocalDateTime.now();
 

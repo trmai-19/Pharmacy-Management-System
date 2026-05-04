@@ -5,23 +5,24 @@ import com.pharmacy.backend.dto.EmployeeResponse;
 import com.pharmacy.backend.mapper.EmployeeMapper;
 import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.EmployeeRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
-
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
-    }
+    private final EmployeeMapper employeeMapper;
 
     @Override
     public List<EmployeeResponse> getAllEmployees() {
         return employeeRepository.findAll().stream()
-                .map(EmployeeMapper::toResponse)
+                .map(employeeMapper::toResponse)
                 .toList();
     }
 
@@ -30,10 +31,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với mã: " + id));
             
-        EmployeeMapper.updateEmployeeFromRequest(employee, request);
+        employeeMapper.updateEmployeeFromRequest(employee, request);
         
         Employee updatedEmployee = employeeRepository.save(employee);
-        return EmployeeMapper.toResponse(updatedEmployee);
+        return employeeMapper.toResponse(updatedEmployee);
     }
 
     @Override

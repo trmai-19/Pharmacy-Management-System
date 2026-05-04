@@ -8,7 +8,18 @@ DECLARE
     v_tyle      NUMBER;
     v_is_manual NUMBER;
     v_new_price NUMBER;
+    v_trangthai VARCHAR2(20); 
 BEGIN
+
+    BEGIN
+        SELECT TRANGTHAI INTO v_trangthai
+        FROM PHIEUNHAP WHERE MAPN = :NEW.MAPN;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN RETURN;
+    END;
+
+    IF v_trangthai != 'HOANTAT' THEN RETURN; END IF;
+
     BEGIN
         SELECT MASP, MADM INTO v_masp, v_madm 
         FROM LOSANPHAM 
@@ -59,6 +70,7 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20002, 'Lỗi: Không thể xóa khách hàng đã có lịch sử giao dịch!');
     END IF;
 END;
+/
 
 -- TRIGGER Không cho xóa nhà cung cấp đã từng nhập hàng
 CREATE OR REPLACE TRIGGER TRG_KHONGXOA_NHACUNGCAP
@@ -73,14 +85,21 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20003, 'Lỗi: Không thể xóa nhà cung cấp đã từng nhập hàng!');
     END IF;
 END;
+/
 
 -- TRIGGER Không cho sửa tồn kho
 CREATE OR REPLACE TRIGGER TRG_KHONGSUA_TONKHO
 BEFORE UPDATE OF SLTON ON KHO
 FOR EACH ROW
+DECLARE
+    v_program VARCHAR2(100);
 BEGIN
-    RAISE_APPLICATION_ERROR(-20004, 'Lỗi: Không được phép sửa số lượng tồn kho trực tiếp!');
+    IF SYS_CONTEXT('USERENV', 'MODULE') NOT IN ('JDBC Thin Client', 'trigger') THEN
+        RAISE_APPLICATION_ERROR(-20004, 
+            'Lỗi: Không được phép sửa số lượng tồn kho trực tiếp!');
+    END IF;
 END;
+/
 
 -- TRIGGER Cập nhật tổng doanh thu khách hàng và hạng thành viên
 CREATE OR REPLACE TRIGGER TRG_CAPNHAT_DOANHTHU_HANGTV
@@ -114,7 +133,7 @@ BEGIN
         WHERE MAKH = :NEW.MAKH;
     END IF;
 END;
-
+/
 
 --Thêm xóa sửa cho CTHD -> sửa số lượng tồn kho
 CREATE OR REPLACE TRIGGER TRG_CTHD_SYNC_KHO
@@ -202,7 +221,8 @@ BEGIN
     BEGIN
         SELECT SLSP, HSD INTO v_ton_kho, v_hsd
         FROM LOSANPHAM 
-        WHERE MALO = :NEW.MALO;
+        WHERE MALO = :NEW.MALO
+        FOR UPDATE;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Mã lô ' || :NEW.MALO || ' không tồn tại!');
@@ -695,3 +715,97 @@ BEGIN
 END;
 /
 
+-- 1a. Tự tính THANHTIEN của từng dòng
+CREATE OR REPLACE TRIGGER TRG_CTPT_KH_THANHTIEN
+BEFORE INSERT OR UPDATE ON CTPT_KH
+FOR EACH ROW
+BEGIN
+    :NEW.THANHTIEN := NVL(:NEW.SL, 0) * NVL(:NEW.DONGIAHOAN, 0);
+END;
+/
+
+-- 1b. Cộng lại tồn kho khi khách trả hàng
+CREATE OR REPLACE TRIGGER TRG_CTPT_KH_HOAN_KHO
+AFTER INSERT ON CTPT_KH
+FOR EACH ROW
+DECLARE
+    v_ton NUMBER;
+BEGIN
+    SELECT SLSP INTO v_ton FROM LOSANPHAM WHERE MALO = :NEW.MALO;
+
+    UPDATE LOSANPHAM SET SLSP = SLSP + :NEW.SL WHERE MALO = :NEW.MALO;
+    UPDATE KHO SET SLTON = SLTON + :NEW.SL WHERE MALO = :NEW.MALO;
+END;
+/
+
+-- 1c. Cập nhật TONGTIENHOAN trên phiếu trả
+CREATE OR REPLACE TRIGGER TRG_CTPT_KH_TOTAL_UPDATE
+AFTER INSERT OR UPDATE OR DELETE ON CTPT_KH
+FOR EACH ROW
+BEGIN
+    UPDATE PHIEUTRA_KH
+    SET TONGTIENHOAN = (
+        SELECT NVL(SUM(THANHTIEN), 0) FROM CTPT_KH
+        WHERE MAPT_KH = NVL(:NEW.MAPT_KH, :OLD.MAPT_KH)
+    )
+    WHERE MAPT_KH = NVL(:NEW.MAPT_KH, :OLD.MAPT_KH);
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_PHIEUTRA_KH_HOAN_DIEM
+AFTER INSERT ON PHIEUTRA_KH
+FOR EACH ROW
+DECLARE
+    v_diem_da_cong  NUMBER;
+    v_makh          VARCHAR2(20);
+BEGIN
+    -- Lấy MAKH từ hóa đơn gốc
+    SELECT MAKH INTO v_makh FROM HOADON WHERE MAHD = :NEW.MAHD;
+
+    -- Tìm điểm đã cộng cho hóa đơn này
+    SELECT NVL(DIEMTHAYDOI, 0) INTO v_diem_da_cong
+    FROM DIEMTL
+    WHERE MAHD = :NEW.MAHD AND LOAIGD = 'CONG_DIEM'
+    AND ROWNUM = 1;
+
+    -- Tính điểm cần hoàn lại theo tỉ lệ tiền trả / tổng hóa đơn
+    -- (hoặc thu hồi toàn bộ nếu trả hết)
+    INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
+    VALUES (
+        v_makh, :NEW.MAHD, 'TRU_DIEM',
+        -v_diem_da_cong,
+        SYSDATE,
+        'Thu hồi điểm do trả hàng từ hóa đơn ' || :NEW.MAHD
+    );
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_LOSANPHAM_AUTO_STATUS
+BEFORE INSERT OR UPDATE ON LOSANPHAM
+FOR EACH ROW
+BEGIN
+    IF :NEW.SLSP <= 0 THEN
+        :NEW.TRANGTHAI := 'HET_HANG';
+    ELSIF :NEW.HSD < TRUNC(SYSDATE) THEN
+        :NEW.TRANGTHAI := 'HET_HAN';
+    ELSE
+        :NEW.TRANGTHAI := 'CON_HANG';
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_KHOA_CTHD
+BEFORE UPDATE OR DELETE ON CTHD
+FOR EACH ROW
+DECLARE
+    v_trangthai VARCHAR2(20);
+BEGIN
+    SELECT TRANGTHAI INTO v_trangthai
+    FROM HOADON WHERE MAHD = :OLD.MAHD;
+
+    IF v_trangthai = 'HOANTAT' THEN
+        RAISE_APPLICATION_ERROR(-20040,
+        'Hóa đơn đã hoàn tất, không được chỉnh sửa chi tiết!');
+    END IF;
+END;
+/

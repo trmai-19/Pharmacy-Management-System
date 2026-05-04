@@ -2,6 +2,9 @@ package com.pharmacy.backend.controller;
 
 import com.pharmacy.backend.dto.*;
 import com.pharmacy.backend.service.ImportReceiptService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,12 +12,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse")
+@RequiredArgsConstructor
 public class ImportReceiptsWarehouseController {
     private final ImportReceiptService importReceiptService;
-
-    public ImportReceiptsWarehouseController (ImportReceiptService importReceiptService) {
-        this.importReceiptService = importReceiptService;
-    }
 
     @GetMapping("/import-receipts")
     public ResponseEntity<ApiResponse<List<ImportReceiptResponse>>> getAllImportReceipts() {

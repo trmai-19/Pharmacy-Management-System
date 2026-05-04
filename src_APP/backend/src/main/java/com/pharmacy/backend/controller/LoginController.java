@@ -8,16 +8,16 @@ import com.pharmacy.backend.dto.LoginRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.service.AccountService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/login")
 @CrossOrigin(origins = "*") 
+@RequiredArgsConstructor
 public class LoginController {
 
     private final AccountService accountService;
 
-    public LoginController(AccountService accountService) {
-        this.accountService = accountService;
-    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
