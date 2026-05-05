@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Cho phep khong can dang nhap
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/sanpham/**").permitAll()
                         // Cac route khac can token
                         .anyRequest().authenticated()
                 )

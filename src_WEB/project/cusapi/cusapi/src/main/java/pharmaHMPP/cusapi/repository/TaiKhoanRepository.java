@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
     Optional<TaiKhoan> findBySdt(String sdt);
     boolean existsBySdt(String sdt);
+    Optional<TaiKhoan> findBySdtAndEmail(String sdt, String email);
 }
