@@ -38,4 +38,5 @@ public interface InvoiceDetailRepository extends JpaRepository<InvoiceDetail, In
            "AND i.ngayban >= :since " +
            "AND i.trangthai = 'HOANTAT'")
     List<String> findActiveBatchIdsSince(@Param("since") LocalDateTime since);
+       List<InvoiceDetail> findByMahd(String mahd);
 }

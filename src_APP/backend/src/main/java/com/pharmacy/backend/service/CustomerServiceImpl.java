@@ -111,7 +111,7 @@ public class CustomerServiceImpl implements CustomerService {
         
         return invoiceRepository.findPurchaseHistory(makh, twoYearsAgo)
                 .stream()
-                .map(invoiceMapper::toResponse)
+                .map(InvoiceMapper::toResponse)
                 .collect(Collectors.toList());
     }
 }

@@ -1,12 +1,14 @@
 package com.pharmacy.backend.repository;
 
-import com.pharmacy.backend.model.Batch;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import java.util.Date;
-import java.util.List;
+
+import com.pharmacy.backend.model.Batch;
 
 @Repository
 public interface BatchRepository extends JpaRepository<Batch, String> {
@@ -18,4 +20,5 @@ public interface BatchRepository extends JpaRepository<Batch, String> {
      */
     @Query("SELECT b FROM Batch b WHERE b.hsd BETWEEN :from AND :to AND b.slsp > 0 ORDER BY b.hsd ASC")
     List<Batch> findExpiringBatchesWithStock(@Param("from") Date from, @Param("to") Date to);
+    List<Batch> findByMasp(String masp);
 }
