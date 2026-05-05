@@ -27,6 +27,12 @@ public class SanPham {
     @Column(name = "CONGDUNG", length = 255)
     private String congDung;
 
+    @Column(name = "THANHPHAN", length = 500)
+    private String thanhPhan;
+
     @Column(name = "GIABAN")
-    private Long giaBan;
+    private Double giaBan;
+
+    @Column(name = "IS_MANUAL_PRICE")
+    private boolean isManualPrice = false;
 }

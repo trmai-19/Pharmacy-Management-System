@@ -17,7 +17,6 @@ public class AuthService {
 
     private final TaiKhoanRepository taiKhoanRepo;
     private final KhachHangRepository khachHangRepo;
-    private final DiemTLRepository diemTLRepo;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -29,40 +28,31 @@ public class AuthService {
             throw new RuntimeException("Số điện thoại đã được đăng ký!");
         }
 
-        // Tao ma tu dong (tranh trung bang timestamp)
-        long ts = System.currentTimeMillis() % 100000;
-        String maTK  = "TK" + ts;
-        String maKH  = "KH" + ts;
-        String maDTL = "DTL" + ts;
-
-        // 1. Tao DIEMTL truoc (vi KHACHHANG.MADTL la FK -> DIEMTL)
-        DiemTL diemTL = DiemTL.builder()
-                .maDTL(maDTL)
-                .loaiGD("DANG_KY")
-                .sl(0)
-                .build();
-        diemTLRepo.save(diemTL);
-
-        // 2. Tao TAIKHOAN (luu them email)
+        // 1. Tao TAIKHOAN (luu them email) - ID do Oracle trigger tu dong sinh
         TaiKhoan taiKhoan = TaiKhoan.builder()
-                .maTK(maTK)
-                .vaiTro("KHACH_HANG")
+                .vaiTro("CUSTOMER")
                 .password(passwordEncoder.encode(req.getPassword()))
                 .sdt(req.getSdt())
                 .ngayTao(LocalDate.now())
                 .isFirstLogin(false)
                 .email(req.getEmail())
+                .trangThai("HOAT DONG")
                 .build();
-        taiKhoanRepo.save(taiKhoan);
+        taiKhoanRepo.saveAndFlush(taiKhoan);
 
-        // 3. Tao KHACHHANG voi ca maTK va maDTL
+        // Fetch lai de lay maTK do Oracle sinh
+        TaiKhoan savedTaiKhoan = taiKhoanRepo.findBySdt(req.getSdt())
+                .orElseThrow(() -> new RuntimeException("Lỗi khi tạo tài khoản!"));
+
+        // 2. Tao KHACHHANG
         KhachHang khachHang = KhachHang.builder()
-                .maKH(maKH)
-                .maTK(maTK)
-                .maDTL(maDTL)
+                .maTK(savedTaiKhoan.getMaTK())
                 .tenKH(req.getTenKH())
                 .sdt(req.getSdt())
                 .gioiTinh(req.getGioiTinh())
+                .tongDoanhThu(java.math.BigDecimal.ZERO)
+                .diemTichLuy(0)
+                .hangTV("Thành Viên")
                 .build();
         khachHangRepo.save(khachHang);
 
