@@ -87,51 +87,44 @@ BEGIN
 END;
 /
 
--- TRIGGER Không cho sửa tồn kho
-CREATE OR REPLACE TRIGGER TRG_KHONGSUA_TONKHO
-BEFORE UPDATE OF SLTON ON KHO
-FOR EACH ROW
-DECLARE
-    v_program VARCHAR2(100);
-BEGIN
-    IF SYS_CONTEXT('USERENV', 'MODULE') NOT IN ('JDBC Thin Client', 'trigger') THEN
-        RAISE_APPLICATION_ERROR(-20004, 
-            'Lỗi: Không được phép sửa số lượng tồn kho trực tiếp!');
-    END IF;
-END;
-/
-
 -- TRIGGER Cập nhật tổng doanh thu khách hàng và hạng thành viên
+
 CREATE OR REPLACE TRIGGER TRG_CAPNHAT_DOANHTHU_HANGTV
-AFTER INSERT OR UPDATE OF TIENTHANHTOAN ON HOADON
+AFTER INSERT OR UPDATE OF TONGTIEN, TIENTHANHTOAN ON HOADON
 FOR EACH ROW
 DECLARE
-    v_doanhthu_cu NUMBER;
+    v_doanhthu_cu   NUMBER;
     v_tong_doanhthu NUMBER;
-    v_hang_moi VARCHAR2(50);
+    v_hang_moi      VARCHAR2(50);
 BEGIN
-    IF :NEW.MAKH IS NOT NULL THEN
-        SELECT NVL(TONGDOANHTHU, 0) INTO v_doanhthu_cu FROM KHACHHANG WHERE MAKH = :NEW.MAKH;
-
-        IF INSERTING THEN
-            v_tong_doanhthu := v_doanhthu_cu + NVL(:NEW.TIENTHANHTOAN, 0);
-        ELSIF UPDATING THEN
-            v_tong_doanhthu := v_doanhthu_cu - NVL(:OLD.TIENTHANHTOAN, 0) + NVL(:NEW.TIENTHANHTOAN, 0);
-        END IF;
-
-        IF v_tong_doanhthu < 10000000 THEN
-            v_hang_moi := 'Bạc';
-        ELSIF v_tong_doanhthu >= 10000000 AND v_tong_doanhthu < 50000000 THEN
-            v_hang_moi := 'Vàng';
-        ELSE
-            v_hang_moi := 'Kim Cương';
-        END IF;
-
-        UPDATE KHACHHANG 
-        SET TONGDOANHTHU = v_tong_doanhthu, 
-            HANGTV = v_hang_moi 
-        WHERE MAKH = :NEW.MAKH;
+    IF :NEW.MAKH IS NULL THEN
+        RETURN;
     END IF;
+
+    SELECT NVL(TONGDOANHTHU, 0) INTO v_doanhthu_cu 
+    FROM KHACHHANG WHERE MAKH = :NEW.MAKH;
+
+    IF INSERTING THEN
+        v_tong_doanhthu := v_doanhthu_cu + NVL(:NEW.TIENTHANHTOAN, 0);
+    ELSE
+        v_tong_doanhthu := v_doanhthu_cu 
+                         - NVL(:OLD.TIENTHANHTOAN, 0) 
+                         + NVL(:NEW.TIENTHANHTOAN, 0);
+    END IF;
+
+    IF v_tong_doanhthu >= 50000000 THEN
+        v_hang_moi := 'Kim Cương';
+    ELSIF v_tong_doanhthu >= 10000000 THEN
+        v_hang_moi := 'Vàng';
+    ELSE
+        v_hang_moi := 'Bạc';
+    END IF;
+
+    UPDATE KHACHHANG 
+    SET TONGDOANHTHU = v_tong_doanhthu,
+        HANGTV = v_hang_moi
+    WHERE MAKH = :NEW.MAKH;
+
 END;
 /
 
@@ -191,24 +184,31 @@ END;
 /
 
 --HOADON.TONGTIEN = SUM(CTHD.THANHTIEN)
-CREATE OR REPLACE TRIGGER TRG_CTHD_UPDATE_TONG_HD
+CREATE OR REPLACE TRIGGER TRG_CTHD_SYNC_TOTAL_HD
 AFTER INSERT OR UPDATE OR DELETE ON CTHD
 FOR EACH ROW
 DECLARE
     v_mahd VARCHAR2(20);
+    v_diff NUMBER := 0;
 BEGIN
-    IF DELETING THEN
-        v_mahd := :OLD.MAHD;
-    ELSE
+    IF INSERTING THEN
         v_mahd := :NEW.MAHD;
+        v_diff := NVL(:NEW.THANHTIEN, 0);
+        
+    ELSIF DELETING THEN
+        v_mahd := :OLD.MAHD;
+        v_diff := -NVL(:OLD.THANHTIEN, 0);
+        
+    ELSIF UPDATING THEN
+        v_mahd := :NEW.MAHD;
+        v_diff := NVL(:NEW.THANHTIEN, 0) - NVL(:OLD.THANHTIEN, 0);
     END IF;
 
     UPDATE HOADON 
-    SET TONGTIEN = (SELECT NVL(SUM(THANHTIEN), 0) FROM CTHD WHERE MAHD = v_mahd)
+    SET TONGTIEN = NVL(TONGTIEN, 0) + v_diff
     WHERE MAHD = v_mahd;
 END;
 /
-
 
 --Số lượng bán không được lớn hơn số lượng trong kho (còn hsd)
 CREATE OR REPLACE TRIGGER TRG_CTHD_CHECK_KHO_BEFORE
@@ -245,126 +245,80 @@ END;
 /
 
 --điểm sử dụng <= 50% tổng tiền && HD.TIENTHANHTOAN = HD.TONGTIEN - HD.DIEMSUDUNG
+
 CREATE OR REPLACE TRIGGER TRG_HOADON_CHECK_DIEM
-BEFORE INSERT OR UPDATE ON HOADON
+BEFORE INSERT ON HOADON
 FOR EACH ROW
 DECLARE
-    v_diem_hien_co NUMBER;
+    v_diem_hien_co NUMBER := 0;
+    v_tongtien     NUMBER := 0;
 BEGIN
-    IF NVL(:NEW.DIEMSUDUNG, 0) > (NVL(:NEW.TONGTIEN, 0) * 0.5) THEN
-        RAISE_APPLICATION_ERROR(-20020, 
-            'Lỗi: Điểm sử dụng (' || :NEW.DIEMSUDUNG || ') không được vượt quá 50% tổng tiền (' || (NVL(:NEW.TONGTIEN, 0) * 0.5) || ')');
+    -- Ưu tiên lấy TONGTIEN từ :NEW (nếu đã có)
+    v_tongtien := NVL(:NEW.TONGTIEN, 0);
+
+    -- Nếu chưa có tổng tiền thì bỏ qua kiểm tra 50% (vì CTHD chưa insert)
+    -- Trigger khác sẽ kiểm tra sau khi có CTHD
+    IF NVL(:NEW.DIEMSUDUNG, 0) > 0 THEN
+        
+        IF :NEW.MAKH IS NULL THEN
+            RAISE_APPLICATION_ERROR(-20022, 'Phải có mã khách hàng khi sử dụng điểm');
+        END IF;
+
+        -- Lấy điểm hiện có của khách
+        BEGIN
+            SELECT NVL(diemtichluy, 0) INTO v_diem_hien_co
+            FROM KHACHHANG
+            WHERE MAKH = :NEW.MAKH;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20021, 'Không tìm thấy khách hàng: ' || :NEW.MAKH);
+        END;
+
+        IF :NEW.DIEMSUDUNG > v_diem_hien_co THEN
+            RAISE_APPLICATION_ERROR(-20021, 
+                'Khách hàng không đủ điểm. Hiện có: ' || v_diem_hien_co 
+                || ', yêu cầu: ' || :NEW.DIEMSUDUNG);
+        END IF;
+
+        -- Chỉ kiểm tra 50% nếu đã có tổng tiền
+        IF v_tongtien > 0 AND :NEW.DIEMSUDUNG > (v_tongtien * 0.5) THEN
+            RAISE_APPLICATION_ERROR(-20020, 
+                'Điểm sử dụng (' || :NEW.DIEMSUDUNG || ') không được vượt quá 50% tổng tiền (' || v_tongtien || ')');
+        END IF;
     END IF;
 
-    SELECT NVL(diemtichluy, 0) INTO v_diem_hien_co
-    FROM KHACHHANG
-    WHERE MAKH = :NEW.MAKH;
+    -- Tính tiền thanh toán
+    :NEW.TIENTHANHTOAN := v_tongtien - NVL(:NEW.DIEMSUDUNG, 0);
 
-    IF NVL(:NEW.DIEMSUDUNG, 0) > v_diem_hien_co THEN
-        RAISE_APPLICATION_ERROR(-20021, 
-            'Lỗi: Khách hàng không đủ điểm. Hiện có: ' || v_diem_hien_co || ', yêu cầu dùng: ' || :NEW.DIEMSUDUNG);
-    END IF;
-
-    :NEW.TIENTHANHTOAN := NVL(:NEW.TONGTIEN, 0) - NVL(:NEW.DIEMSUDUNG, 0);
 END;
 /
+
 
 -- DIEMTL.SL = DIEMTL.SL + 1%*HD.TONGTIEN - HD.DIEMSUDUNG
 CREATE OR REPLACE TRIGGER TRG_HOADON_AUTO_LOG_DIEM
-AFTER INSERT ON HOADON
+AFTER INSERT OR UPDATE OF TONGTIEN, DIEMSUDUNG ON HOADON
 FOR EACH ROW
 DECLARE
-    v_diem_tich_luy NUMBER;
+    v_diem_thuong NUMBER;
 BEGIN
-    v_diem_tich_luy := FLOOR(NVL(:NEW.TONGTIEN, 0) * 0.01);
+    -- Xóa log cũ của hóa đơn này để tránh duplicate
+    DELETE FROM DIEMTL WHERE MAHD = :NEW.MAHD;
+
+    v_diem_thuong := FLOOR(NVL(:NEW.TONGTIEN, 0) * 0.01);
     
-    IF v_diem_tich_luy > 0 THEN
-        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, diemthaydoi, ngaygd, ghichu)
-        VALUES (
-            :NEW.MAKH,
-            :NEW.MAHD,
-            'CONG_DIEM',
-            v_diem_tich_luy,
-            SYSDATE,
-            'Tích điểm 1% từ hóa đơn ' || :NEW.MAHD
-        );
+    IF v_diem_thuong > 0 THEN
+        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
+        VALUES (:NEW.MAKH, :NEW.MAHD, 'CONG_DIEM', v_diem_thuong, SYSDATE, 
+                'Tích điểm 1% từ đơn ' || :NEW.MAHD);
     END IF;
 
     IF NVL(:NEW.DIEMSUDUNG, 0) > 0 THEN
-        -- KHÔNG CẦN CHÈN MADTL
-        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, diemthaydoi, ngaygd, ghichu)
-        VALUES (
-            :NEW.MAKH,
-            :NEW.MAHD,
-            'TRU_DIEM',
-            -(:NEW.DIEMSUDUNG), 
-            SYSDATE,
-            'Sử dụng điểm giảm giá cho đơn ' || :NEW.MAHD
-        );
+        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
+        VALUES (:NEW.MAKH, :NEW.MAHD, 'TRU_DIEM', -(:NEW.DIEMSUDUNG), SYSDATE, 
+                'Dùng điểm cho đơn ' || :NEW.MAHD);
     END IF;
 END;
 /
-
--- TRIGGER Cập nhật điểm tích lũy cho khách hàng sau khi có giao dịch mới
-CREATE OR REPLACE TRIGGER TRG_DIEMTL_UPDATE_KHACHHANG
-AFTER INSERT ON DIEMTL
-FOR EACH ROW
-BEGIN
-    UPDATE KHACHHANG
-    SET diemtichluy = NVL(diemtichluy, 0) + :NEW.diemthaydoi
-    WHERE MAKH = :NEW.MAKH;
-END;
-/
-
-
--- 2 BẢNG NÀY CHƯA LÀM ĐƯỢC LOG NÊN KHÔNG CHẠY TRIGGER được 
--- --TRIGGER LOG CTPN
--- CREATE OR REPLACE TRIGGER TRG_LOG_CTPN
--- AFTER INSERT OR UPDATE OR DELETE ON CTPN
--- FOR EACH ROW
--- DECLARE
---     v_action VARCHAR2(50);
---     v_details VARCHAR2(1000);
--- BEGIN
---     IF INSERTING THEN
---         v_action := 'INSERT';
---         v_details := 'Nhập mới lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Giá ' || :NEW.GIANHAP;
---     ELSIF UPDATING THEN
---         v_action := 'UPDATE';
---         v_details := 'Sửa lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> mới ' || :NEW.SL;
---     ELSE
---         v_action := 'DELETE';
---         v_details := 'Xóa dòng nhập lô ' || :OLD.MALO || ' khỏi phiếu ' || :OLD.MAPN;
---     END IF;
-
---     INSERT INTO LOG_NHAP_HANG (MAPN, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
---     VALUES (NVL(:NEW.MAPN, :OLD.MAPN), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
--- END;
--- /
-
--- --TRIGGER LOG CTHD
--- CREATE OR REPLACE TRIGGER TRG_LOG_CTHD
--- AFTER INSERT OR UPDATE OR DELETE ON CTHD
--- FOR EACH ROW
--- DECLARE
---     v_action VARCHAR2(50);
---     v_details VARCHAR2(1000);
--- BEGIN
---     IF INSERTING THEN
---         v_action := 'INSERT';
---         v_details := 'Bán lô ' || :NEW.MALO || ': SL ' || :NEW.SL || ', Đơn giá ' || :NEW.DONGIA;
---     ELSIF UPDATING THEN
---         v_action := 'UPDATE';
---         v_details := 'Sửa bán lô ' || :NEW.MALO || ': SL cũ ' || :OLD.SL || ' -> ' || :NEW.SL;
---     ELSE
---         v_action := 'DELETE';
---         v_details := 'Hủy bán lô ' || :OLD.MALO || ' (Hoàn kho)';
---     END IF;
-
---     INSERT INTO LOG_BAN_HANG (MAHD, MALO, HANH_DONG, NGUOI_THUC_HIEN, NOI_DUNG_CHI_TIET)
---     VALUES (NVL(:NEW.MAHD, :OLD.MAHD), NVL(:NEW.MALO, :OLD.MALO), v_action, USER, v_details);
--- END;
--- /
 
 
 -- TRIGGER trả hàng cho nhà cung cấp 
@@ -418,7 +372,6 @@ BEGIN
     WHERE MAPT_NCC = v_mapt;
 END;
 /
-
 
 --TRIGGER Thêm xóa sửa chi tiết phiếu nhập -> sửa số lượng tồn của kho.(CTPN & KHO.TONKHO)
 
@@ -541,7 +494,6 @@ BEGIN
     END IF;
 END;
 /
-
 
 ----TRIGGER TẠO MÃ TỰ ĐỘNG CHO 
 
@@ -738,48 +690,6 @@ BEGIN
 END;
 /
 
--- 1c. Cập nhật TONGTIENHOAN trên phiếu trả
-CREATE OR REPLACE TRIGGER TRG_CTPT_KH_TOTAL_UPDATE
-AFTER INSERT OR UPDATE OR DELETE ON CTPT_KH
-FOR EACH ROW
-BEGIN
-    UPDATE PHIEUTRA_KH
-    SET TONGTIENHOAN = (
-        SELECT NVL(SUM(THANHTIEN), 0) FROM CTPT_KH
-        WHERE MAPT_KH = NVL(:NEW.MAPT_KH, :OLD.MAPT_KH)
-    )
-    WHERE MAPT_KH = NVL(:NEW.MAPT_KH, :OLD.MAPT_KH);
-END;
-/
-
-CREATE OR REPLACE TRIGGER TRG_PHIEUTRA_KH_HOAN_DIEM
-AFTER INSERT ON PHIEUTRA_KH
-FOR EACH ROW
-DECLARE
-    v_diem_da_cong  NUMBER;
-    v_makh          VARCHAR2(20);
-BEGIN
-    -- Lấy MAKH từ hóa đơn gốc
-    SELECT MAKH INTO v_makh FROM HOADON WHERE MAHD = :NEW.MAHD;
-
-    -- Tìm điểm đã cộng cho hóa đơn này
-    SELECT NVL(DIEMTHAYDOI, 0) INTO v_diem_da_cong
-    FROM DIEMTL
-    WHERE MAHD = :NEW.MAHD AND LOAIGD = 'CONG_DIEM'
-    AND ROWNUM = 1;
-
-    -- Tính điểm cần hoàn lại theo tỉ lệ tiền trả / tổng hóa đơn
-    -- (hoặc thu hồi toàn bộ nếu trả hết)
-    INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
-    VALUES (
-        v_makh, :NEW.MAHD, 'TRU_DIEM',
-        -v_diem_da_cong,
-        SYSDATE,
-        'Thu hồi điểm do trả hàng từ hóa đơn ' || :NEW.MAHD
-    );
-END;
-/
-
 CREATE OR REPLACE TRIGGER TRG_LOSANPHAM_AUTO_STATUS
 BEFORE INSERT OR UPDATE ON LOSANPHAM
 FOR EACH ROW
@@ -809,3 +719,126 @@ BEGIN
     END IF;
 END;
 /
+
+-- sửa để chạy api trả hàng
+
+CREATE OR REPLACE TRIGGER TRG_DIEMTL_SYNC_KHACHHANG
+AFTER INSERT OR UPDATE OR DELETE ON DIEMTL
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        UPDATE KHACHHANG 
+        SET DIEMTICHLUY = NVL(DIEMTICHLUY, 0) + :NEW.DIEMTHAYDOI 
+        WHERE MAKH = :NEW.MAKH;
+
+    ELSIF DELETING THEN
+        UPDATE KHACHHANG 
+        SET DIEMTICHLUY = NVL(DIEMTICHLUY, 0) - :OLD.DIEMTHAYDOI 
+        WHERE MAKH = :OLD.MAKH;
+
+    ELSIF UPDATING THEN
+        UPDATE KHACHHANG 
+        SET DIEMTICHLUY = NVL(DIEMTICHLUY, 0) - :OLD.DIEMTHAYDOI + :NEW.DIEMTHAYDOI 
+        WHERE MAKH = :NEW.MAKH;
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_CTPT_KH_SYNC_TOTAL
+AFTER INSERT OR UPDATE OR DELETE ON CTPT_KH
+FOR EACH ROW
+DECLARE
+    v_diff NUMBER := 0;
+    v_mapt VARCHAR2(20);
+BEGIN
+    -- Tính toán mức độ chênh lệch tiền
+    IF INSERTING THEN
+        v_diff := NVL(:NEW.THANHTIEN, 0);
+        v_mapt := :NEW.MAPT_KH;
+    ELSIF DELETING THEN
+        v_diff := -NVL(:OLD.THANHTIEN, 0);
+        v_mapt := :OLD.MAPT_KH;
+    ELSIF UPDATING THEN
+        v_diff := NVL(:NEW.THANHTIEN, 0) - NVL(:OLD.THANHTIEN, 0);
+        v_mapt := :NEW.MAPT_KH;
+    END IF;
+
+    -- Cập nhật trực tiếp vào vỏ phiếu trả PHIEUTRA_KH
+    UPDATE PHIEUTRA_KH
+    SET TONGTIENHOAN = NVL(TONGTIENHOAN, 0) + v_diff
+    WHERE MAPT_KH = v_mapt;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_CTHD_SYNC_TOTAL_HD
+AFTER INSERT ON CTHD
+FOR EACH ROW
+BEGIN
+    UPDATE HOADON 
+    SET TONGTIEN = NVL(TONGTIEN, 0) + :NEW.THANHTIEN
+    WHERE MAHD = :NEW.MAHD;
+END;
+/
+
+CREATE OR REPLACE TRIGGER TRG_RETURN_DIEMTL
+AFTER UPDATE OF TONGTIENHOAN ON PHIEUTRA_KH
+FOR EACH ROW
+WHEN (NEW.TONGTIENHOAN > 0 AND OLD.TONGTIENHOAN = 0)
+DECLARE
+    v_makh VARCHAR2(20);
+    v_diem_can_tru NUMBER;
+BEGIN
+    SELECT MAKH INTO v_makh 
+    FROM HOADON 
+    WHERE MAHD = :NEW.MAHD;
+
+    v_diem_can_tru := FLOOR(NVL(:NEW.TONGTIENHOAN, 0) * 0.01);
+
+    IF v_diem_can_tru > 0 THEN
+        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
+        VALUES (v_makh, :NEW.MAHD, 'TRU_DIEM', -v_diem_can_tru, SYSDATE, 
+                'Thu hồi điểm do trả hàng đơn ' || :NEW.MAHD);
+    END IF;
+END;
+/
+
+-- TRIGGER TRỪ DOANH THU KHI TRẢ HÀNG 
+CREATE OR REPLACE TRIGGER TRG_PHIEUTRA_KH_UPDATE_DOANHTHU
+AFTER INSERT OR UPDATE OF TONGTIENHOAN ON PHIEUTRA_KH
+FOR EACH ROW
+DECLARE
+    v_makh          VARCHAR2(20);
+    v_doanhthu_cu   NUMBER;
+    v_tong_moi      NUMBER;
+    v_hang_moi      VARCHAR2(50);
+BEGIN
+    SELECT MAKH INTO v_makh 
+    FROM HOADON 
+    WHERE MAHD = :NEW.MAHD;
+
+    SELECT NVL(TONGDOANHTHU, 0) INTO v_doanhthu_cu 
+    FROM KHACHHANG 
+    WHERE MAKH = v_makh;
+
+    v_tong_moi := v_doanhthu_cu - NVL(:NEW.TONGTIENHOAN, 0);
+
+    IF v_tong_moi < 0 THEN
+        v_tong_moi := 0;
+    END IF;
+
+    IF v_tong_moi < 10000000 THEN
+        v_hang_moi := 'Bạc';
+    ELSIF v_tong_moi < 50000000 THEN
+        v_hang_moi := 'Vàng';
+    ELSE
+        v_hang_moi := 'Kim Cương';
+    END IF;
+
+    UPDATE KHACHHANG 
+    SET TONGDOANHTHU = v_tong_moi,
+        HANGTV = v_hang_moi
+    WHERE MAKH = v_makh;
+
+END;
+/
+

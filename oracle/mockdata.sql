@@ -412,3 +412,25 @@ FROM KHO k
 JOIN LOSANPHAM l ON k.MALO = l.MALO
 JOIN SANPHAM s ON l.MASP = s.MASP
 ORDER BY k.MALO;
+
+
+-- Note: Không sử dụng phương thức tự cập nhất giá bán nữa, mình tự cho giá bán luôn 
+-- nên là data cần phải tự nhập giá bán 
+
+UPDATE SANPHAM
+SET GIABAN = 50000, 
+    IS_MANUAL_PRICE = 1
+WHERE MASP = 'SP00001';
+
+
+UPDATE SANPHAM
+SET GIABAN = 60000, 
+    IS_MANUAL_PRICE = 1
+WHERE MASP = 'SP00002';
+UPDATE SANPHAM
+SET GIABAN = 70000, 
+    IS_MANUAL_PRICE = 1
+WHERE MASP = 'SP00004';
+
+COMMIT;
+

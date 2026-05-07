@@ -1,6 +1,5 @@
 package com.pharmacy.backend.mapper;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import com.pharmacy.backend.dto.InvoiceResponse;
@@ -23,8 +22,7 @@ public class InvoiceMapper {
                 .build();
     }
         public static InvoiceResponse toFullResponse(Invoice invoice, List<InvoiceDetail> details) {
-    return toResponse(invoice).toBuilder()
-            .items(new ArrayList<>())   
+            return toResponse(invoice).toBuilder()
             .build();
 }
 }

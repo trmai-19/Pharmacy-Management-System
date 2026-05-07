@@ -2,7 +2,6 @@ package com.pharmacy.backend.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,10 +12,12 @@ import com.pharmacy.backend.dto.InvoiceRequest;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.mapper.InvoiceMapper;
 import com.pharmacy.backend.model.Batch;
+import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.model.Invoice;
 import com.pharmacy.backend.model.InvoiceDetail;
 import com.pharmacy.backend.model.Product;
 import com.pharmacy.backend.repository.BatchRepository;
+import com.pharmacy.backend.repository.CustomerRepository;
 import com.pharmacy.backend.repository.InvoiceDetailRepository;
 import com.pharmacy.backend.repository.InvoiceRepository;
 import com.pharmacy.backend.repository.ProductRepository;
@@ -34,68 +35,109 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceDetailRepository invoiceDetailRepository;
     private final BatchRepository batchRepository;
     private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Override
-    public InvoiceResponse createInvoice(InvoiceRequest request) {
 
-        Invoice invoice = new Invoice();
-        invoice.setManv(request.getManv());
-        invoice.setMakh(request.getMakh());
-        invoice.setDiemsudung(request.getDiemsudung() != null ? request.getDiemsudung() : 0);
-        invoice.setNgayban(LocalDateTime.now());
-        invoice.setTrangthai("HOANTAT");
+@Override
+@Transactional
+public InvoiceResponse createInvoice(InvoiceRequest request) {
 
-        Invoice savedInvoice = invoiceRepository.save(invoice);
+    // 1. Tạo vỏ HOADON
+    Invoice invoice = new Invoice();
+    invoice.setManv(request.getManv());
+    invoice.setMakh(request.getMakh());
+    invoice.setDiemsudung(request.getDiemsudung() != null ? request.getDiemsudung() : 0);
+    invoice.setNgayban(LocalDateTime.now());
+    invoice.setTrangthai("HOANTAT");
 
-        List<InvoiceDetail> details = new ArrayList<>();
+    // Dùng saveAndFlush để Oracle sinh mã HD ngay lập tức
+    Invoice savedInvoice = invoiceRepository.saveAndFlush(invoice);
 
-        for (var item : request.getItems()) {
-            List<Batch> lots = batchRepository.findByMasp(item.getMasp());
+    // 2. Tạo chi tiết hóa đơn
+    List<InvoiceItemResponse> itemResponses = new ArrayList<>();
 
-            Batch chosenBatch = lots.stream()
-                    .filter((Batch b) -> b.getSlsp() >= item.getSl()
-                            && b.getHsd() != null
-                            && b.getHsd().after(new java.util.Date()))         
-                    .min(Comparator.comparing((Batch b) -> b.getHsd()))       
-                    .orElseThrow(() -> new RuntimeException(
-                        "Không đủ hàng cho sản phẩm " + item.getMasp() + 
-                        " (kiểm tra tồn kho hoặc hạn sử dụng)"));
+    for (var item : request.getItems()) {
+        // Lấy thông tin Lô để kiểm tra tồn kho
+        Batch batch = batchRepository.findById(item.getMalo())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lô: " + item.getMalo()));
 
-            Product product = productRepository.findById(item.getMasp())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        // --- ĐÂY LÀ DÒNG BỊ THIẾU TRONG ẢNH CỦA BẠN ---
+        Product product = productRepository.findById(item.getMasp())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        // ----------------------------------------------
 
-            InvoiceDetail detail = new InvoiceDetail();
-            detail.setMahd(savedInvoice.getMahd());
-            detail.setMalo(chosenBatch.getMalo());
-            detail.setSl(item.getSl());
-            detail.setDongia(product.getGiaban());
-           
-
-            details.add(detail);
+        if (batch.getSlsp() < item.getSl()) {
+            throw new RuntimeException("Lô " + item.getMalo() + " không đủ hàng (còn " + batch.getSlsp() + ")");
         }
 
-        invoiceDetailRepository.saveAll(details);
+        InvoiceDetail detail = new InvoiceDetail();
+        detail.setMahd(savedInvoice.getMahd());
+        detail.setMalo(item.getMalo());
+        detail.setSl(item.getSl());
+        detail.setDongia(product.getGiaban());
 
-        invoiceRepository.flush();
-        invoiceDetailRepository.flush();
+        // Dùng saveAndFlush để đẩy dữ liệu xuống Oracle ngay lập tức cho Trigger tính thanhtien
+        InvoiceDetail savedDetail = invoiceDetailRepository.saveAndFlush(detail);
 
-        Invoice finalInvoice = invoiceRepository.findById(savedInvoice.getMahd())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        // Refresh để lấy thanhtien đã được Trigger tính toán
+        entityManager.refresh(savedDetail);
 
-        entityManager.refresh(finalInvoice);
-
-        return InvoiceMapper.toResponse(finalInvoice);
+        itemResponses.add(InvoiceItemResponse.builder()
+                .malo(savedDetail.getMalo())
+                .masp(item.getMasp())
+                .tensanpham(product.getTensanpham())
+                .sl(savedDetail.getSl())
+                .dongia(savedDetail.getDongia())
+                .thanhtien(savedDetail.getThanhtien())
+                .ghichu(savedDetail.getGhichu())
+                .build());
     }
-    @Override
-    public List<InvoiceItemResponse> getInvoiceDetails(String mahd) {
-        List<InvoiceDetail> details = invoiceDetailRepository.findByMahd(mahd);
+
+    // 3. Ép Flush để các trigger tính tổng tiền trên bảng HOADON và DIEMTL kích hoạt
+    invoiceRepository.flush();
+
+    // 4. Lấy lại hóa đơn và refresh để có tongtien + tienthanhtoan mới nhất
+    Invoice finalInvoice = invoiceRepository.findById(savedInvoice.getMahd())
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+    entityManager.refresh(finalInvoice);
+
+    // 5. Lấy điểm tích lũy mới nhất của khách hàng (sau khi trigger cộng điểm chạy xong)
+    Integer currentDiem = 0;
+    if (request.getMakh() != null) {
+        Customer customer = customerRepository.findById(request.getMakh())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+
+        entityManager.refresh(customer);
+        currentDiem = (customer.getDiemtichluy() != null) 
+                        ? customer.getDiemtichluy().intValue() 
+                        : 0;
+    }
+    
+
+    // 6. Ép cập nhật TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG (an toàn)
+    if (finalInvoice.getTongtien() != null) {
+        double tienthanhtoan = finalInvoice.getTongtien() - 
+                              (request.getDiemsudung() != null ? request.getDiemsudung() : 0);
         
-        if (details.isEmpty()) {
-            throw new RuntimeException("Không tìm thấy chi tiết hóa đơn với mã: " + mahd);
-        }
+        finalInvoice.setTienthanhtoan(tienthanhtoan);
+        invoiceRepository.save(finalInvoice);   // cập nhật lại
+    }
+
+    // 7. Trả về response
+    return InvoiceMapper.toResponse(finalInvoice).toBuilder()
+            .items(itemResponses)
+            .build();
+}
+
+    @Override
+    public InvoiceResponse getInvoiceById(String mahd) {
+        Invoice invoice = invoiceRepository.findById(mahd)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với mã: " + mahd));
+
+        List<InvoiceDetail> details = invoiceDetailRepository.findByMahd(mahd);
 
         List<InvoiceItemResponse> itemResponses = new ArrayList<>();
 
@@ -106,7 +148,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             Product product = productRepository.findById(batch.getMasp())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-            InvoiceItemResponse item = InvoiceItemResponse.builder()
+            itemResponses.add(InvoiceItemResponse.builder()
                     .malo(detail.getMalo())
                     .masp(batch.getMasp())
                     .tensanpham(product.getTensanpham())
@@ -114,11 +156,11 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .dongia(detail.getDongia())
                     .thanhtien(detail.getThanhtien())
                     .ghichu(detail.getGhichu())
-                    .build();
-
-            itemResponses.add(item);
+                    .build());
         }
 
-    return itemResponses;
-}
+        return InvoiceMapper.toResponse(invoice).toBuilder()
+                .items(itemResponses)
+                .build();
+    }
 }

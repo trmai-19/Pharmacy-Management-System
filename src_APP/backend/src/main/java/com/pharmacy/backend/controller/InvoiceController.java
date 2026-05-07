@@ -1,5 +1,7 @@
 package com.pharmacy.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +18,6 @@ import com.pharmacy.backend.service.InvoiceService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/sales/invoices") 
@@ -40,15 +41,15 @@ public class InvoiceController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<List<InvoiceItemResponse>>> getInvoiceDetails(@PathVariable String id) {
-        List<InvoiceItemResponse> data = invoiceService.getInvoiceDetails(id);
+public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable String id) {
+    InvoiceResponse data = invoiceService.getInvoiceById(id);
 
-        ApiResponse<List<InvoiceItemResponse>> response = ApiResponse.<List<InvoiceItemResponse>>builder()
-                .status(200)
-                .message("Lấy chi tiết hóa đơn thành công")
-                .data(data)
-                .build();
+    ApiResponse<InvoiceResponse> response = ApiResponse.<InvoiceResponse>builder()
+            .status(200)
+            .message("Lấy chi tiết hóa đơn thành công")
+            .data(data)
+            .build();
 
-        return ResponseEntity.ok(response);
-    }
+    return ResponseEntity.ok(response);
+}
 }

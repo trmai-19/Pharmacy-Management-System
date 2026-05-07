@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface InvoiceService {
     InvoiceResponse createInvoice(InvoiceRequest request);
-    List<InvoiceItemResponse> getInvoiceDetails(String mahd);
-}
+    InvoiceResponse getInvoiceById(String mahd);
+}   // ← đổi lại thành trả về InvoiceResponse}
