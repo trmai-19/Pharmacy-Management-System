@@ -4,13 +4,9 @@ AFTER INSERT OR UPDATE OF GIANHAP ON CTPN
 FOR EACH ROW
 DECLARE
     v_masp      VARCHAR2(20);
-    v_madm      VARCHAR2(20);
-    v_tyle      NUMBER;
-    v_is_manual NUMBER;
     v_new_price NUMBER;
     v_trangthai VARCHAR2(20); 
 BEGIN
-
     BEGIN
         SELECT TRANGTHAI INTO v_trangthai
         FROM PHIEUNHAP WHERE MAPN = :NEW.MAPN;
@@ -21,39 +17,23 @@ BEGIN
     IF v_trangthai != 'HOANTAT' THEN RETURN; END IF;
 
     BEGIN
-        SELECT MASP, MADM INTO v_masp, v_madm 
+        SELECT MASP INTO v_masp 
         FROM LOSANPHAM 
         WHERE MALO = :NEW.MALO;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN RETURN; 
     END;
 
-    SELECT IS_MANUAL_PRICE INTO v_is_manual 
-    FROM SANPHAM 
-    WHERE MASP = v_masp;
+    -- Tính giá bán mặc định (giá nhập + 20%)
+    v_new_price := ROUND(:NEW.GIANHAP * 1.2, 0);
 
-
-    IF v_is_manual = 0 THEN
-        SELECT TYLELOINHUAN INTO v_tyle 
-        FROM DANHMUC 
-        WHERE MADM = v_madm;
-
-        IF v_tyle IS NOT NULL AND v_tyle > 0 THEN
-            v_new_price := :NEW.GIANHAP * (1 + v_tyle / 100);
-        ELSE
-            v_new_price := :NEW.GIANHAP;
-        END IF;
-
-        v_new_price := ROUND(v_new_price, 0);
-
-        IF v_new_price <= 0 THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Lỗi: Giá bán tính toán phải lớn hơn 0!');
-        END IF;
-
-        UPDATE SANPHAM 
-        SET GIABAN = v_new_price 
-        WHERE MASP = v_masp;
+    IF v_new_price <= 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Lỗi: Giá bán tính toán phải lớn hơn 0!');
     END IF;
+
+    UPDATE SANPHAM 
+    SET GIABAN = v_new_price 
+    WHERE MASP = v_masp;
 END;
 /
 
@@ -134,28 +114,33 @@ AFTER INSERT OR UPDATE OR DELETE ON CTHD
 FOR EACH ROW
 DECLARE
     v_diff NUMBER;
+    v_makho VARCHAR2(20);
 BEGIN
     IF INSERTING THEN
+        SELECT MAKHO INTO v_makho FROM LOSANPHAM WHERE MALO = :NEW.MALO;
+        
         UPDATE LOSANPHAM 
         SET SLSP = SLSP - :NEW.SL 
         WHERE MALO = :NEW.MALO;
 
         UPDATE KHO 
         SET SLTON = SLTON - :NEW.SL 
-        WHERE MALO = :NEW.MALO;
+        WHERE MAKHO = v_makho;
 
     ELSIF DELETING THEN
+        SELECT MAKHO INTO v_makho FROM LOSANPHAM WHERE MALO = :OLD.MALO;
+        
         UPDATE LOSANPHAM 
         SET SLSP = SLSP + :OLD.SL 
         WHERE MALO = :OLD.MALO;
         
         UPDATE KHO 
         SET SLTON = SLTON + :OLD.SL 
-        WHERE MALO = :OLD.MALO;
+        WHERE MAKHO = v_makho;
 
     ELSIF UPDATING THEN
-
         v_diff := :NEW.SL - :OLD.SL;
+        SELECT MAKHO INTO v_makho FROM LOSANPHAM WHERE MALO = :NEW.MALO;
 
         UPDATE LOSANPHAM 
         SET SLSP = SLSP - v_diff 
@@ -163,14 +148,8 @@ BEGIN
         
         UPDATE KHO 
         SET SLTON = SLTON - v_diff 
-        WHERE MALO = :NEW.MALO;
+        WHERE MAKHO = v_makho;
     END IF;
-
-    FOR r IN (SELECT SLSP FROM LOSANPHAM WHERE MALO = NVL(:NEW.MALO, :OLD.MALO)) LOOP
-        IF r.SLSP < 0 THEN
-            RAISE_APPLICATION_ERROR(-20005, 'Lỗi: Số lượng tồn kho không đủ để thực hiện thao tác này!');
-        END IF;
-    END LOOP;
 END;
 /
 
@@ -217,6 +196,8 @@ FOR EACH ROW
 DECLARE
     v_ton_kho NUMBER;
     v_hsd DATE;
+    v_masp VARCHAR2(20);
+    v_trangthai_sp VARCHAR2(50);
 BEGIN
     BEGIN
         SELECT SLSP, HSD INTO v_ton_kho, v_hsd
@@ -226,6 +207,16 @@ BEGIN
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Mã lô ' || :NEW.MALO || ' không tồn tại!');
+    END;
+
+    BEGIN
+        SELECT TRANGTHAI INTO v_trangthai_sp
+        FROM SANPHAM
+        WHERE MASP = v_masp;
+        
+        IF v_trangthai_sp = 'NGUNG_BAN' THEN
+            RAISE_APPLICATION_ERROR(-20014, 'Lỗi: Sản phẩm này đã ngừng kinh doanh, không thể lập hóa đơn!');
+        END IF;
     END;
 
     IF v_hsd < TRUNC(SYSDATE) THEN
@@ -337,8 +328,9 @@ FOR EACH ROW
 DECLARE
     v_ton_kho NUMBER;
     v_masp VARCHAR2(20);
+    v_makho VARCHAR2(20);
 BEGIN
-    SELECT SLSP, MASP INTO v_ton_kho, v_masp
+    SELECT SLSP, MASP, MAKHO INTO v_ton_kho, v_masp, v_makho
     FROM LOSANPHAM 
     WHERE MALO = :NEW.MALO;
 
@@ -354,7 +346,7 @@ BEGIN
 
     UPDATE KHO 
     SET SLTON = SLTON - :NEW.SL 
-    WHERE MALO = :NEW.MALO;
+    WHERE MAKHO = v_makho;
 END;
 /
 
@@ -363,12 +355,24 @@ CREATE OR REPLACE TRIGGER TRG_CTPT_NCC_TOTAL_UPDATE
 AFTER INSERT OR UPDATE OR DELETE ON CTPT_NCC
 FOR EACH ROW
 DECLARE
+    v_diff NUMBER := 0;
     v_mapt VARCHAR2(20);
 BEGIN
-    v_mapt := NVL(:NEW.MAPT_NCC, :OLD.MAPT_NCC);
+    -- Tính toán mức độ chênh lệch tiền
+    IF INSERTING THEN
+        v_diff := NVL(:NEW.THANHTIEN, 0);
+        v_mapt := :NEW.MAPT_NCC;
+    ELSIF DELETING THEN
+        v_diff := -NVL(:OLD.THANHTIEN, 0);
+        v_mapt := :OLD.MAPT_NCC;
+    ELSIF UPDATING THEN
+        v_diff := NVL(:NEW.THANHTIEN, 0) - NVL(:OLD.THANHTIEN, 0);
+        v_mapt := :NEW.MAPT_NCC;
+    END IF;
 
+    -- Cập nhật trực tiếp vào vỏ phiếu trả PHIEUTRA_NCC
     UPDATE PHIEUTRA_NCC 
-    SET TONGTIEN = (SELECT NVL(SUM(THANHTIEN), 0) FROM CTPT_NCC WHERE MAPT_NCC = v_mapt)
+    SET TONGTIEN = NVL(TONGTIEN, 0) + v_diff
     WHERE MAPT_NCC = v_mapt;
 END;
 /
@@ -383,19 +387,20 @@ WHEN (NEW.TRANGTHAI = 'HOANTAT')
 DECLARE
 BEGIN
     FOR r IN (
-        SELECT MALO, SL
-        FROM CTPN
-        WHERE MAPN = :NEW.MAPN
+        SELECT c.MALO, c.SL, l.MAKHO
+        FROM CTPN c
+        JOIN LOSANPHAM l ON c.MALO = l.MALO
+        WHERE c.MAPN = :NEW.MAPN
     )
     LOOP
         UPDATE KHO
         SET SLTON = SLTON + r.SL
-        WHERE MALO = r.MALO;
+        WHERE MAKHO = r.MAKHO;
     END LOOP;
 END;
 /
 --chặn sửa và xóa chi tiết phiếu nhập khi phiếu nhập đã done 
-CREATE OR REPLACE TRIGGER TRG_KHOA_CTPN
+/*CREATE OR REPLACE TRIGGER TRG_KHOA_CTPN
 BEFORE UPDATE OR DELETE ON CTPN
 FOR EACH ROW
 DECLARE
@@ -410,7 +415,7 @@ BEGIN
         'Phiếu nhập đã hoàn tất, không được chỉnh sửa');
     END IF;
 END;
-/
+/*/
 -- không cho thêm chi tiết phiếu nhập vào phiếu nhập đã done
 CREATE OR REPLACE TRIGGER TRG_CHECK_INSERT_CTPN
 BEFORE INSERT ON CTPN
@@ -441,13 +446,24 @@ CREATE OR REPLACE TRIGGER TRG_PN_TONGTIEN
 AFTER INSERT OR UPDATE OR DELETE ON CTPN
 FOR EACH ROW
 BEGIN
-    UPDATE PHIEUNHAP
-    SET TONGTIEN = (
-        SELECT NVL(SUM(THANHTIEN),0)
-        FROM CTPN
-        WHERE MAPN = NVL(:NEW.MAPN, :OLD.MAPN)
-    )
-    WHERE MAPN = NVL(:NEW.MAPN, :OLD.MAPN);
+    IF INSERTING THEN
+        -- Khi thêm 1 chi tiết mới -> CỘNG thêm thành tiền vào tổng
+        UPDATE PHIEUNHAP
+        SET TONGTIEN = NVL(TONGTIEN, 0) + NVL(:NEW.THANHTIEN, 0)
+        WHERE MAPN = :NEW.MAPN;
+        
+    ELSIF UPDATING THEN
+        -- Khi sửa chi tiết (VD: sửa số lượng làm thành tiền đổi) -> TRỪ đi cái cũ, CỘNG vào cái mới
+        UPDATE PHIEUNHAP
+        SET TONGTIEN = NVL(TONGTIEN, 0) - NVL(:OLD.THANHTIEN, 0) + NVL(:NEW.THANHTIEN, 0)
+        WHERE MAPN = :NEW.MAPN;
+        
+    ELSIF DELETING THEN
+        -- Khi xóa 1 chi tiết -> TRỪ thành tiền đó ra khỏi tổng
+        UPDATE PHIEUNHAP
+        SET TONGTIEN = NVL(TONGTIEN, 0) - NVL(:OLD.THANHTIEN, 0)
+        WHERE MAPN = :OLD.MAPN;
+    END IF;
 END;
 /
 --TRIGGER Kiểm tra khoảng cách HSD hợp lý
@@ -490,7 +506,7 @@ AFTER UPDATE ON KHO
 FOR EACH ROW
 BEGIN
     IF :NEW.SLTON < 10 THEN
-        DBMS_OUTPUT.PUT_LINE ('Cảnh báo: Sản phẩm ' || :NEW.MALO || ' sắp hết hàng');
+        DBMS_OUTPUT.PUT_LINE ('Cảnh báo: Kho ' || :NEW.MAKHO || ' sắp hết hàng');
     END IF;
 END;
 /
@@ -682,11 +698,19 @@ AFTER INSERT ON CTPT_KH
 FOR EACH ROW
 DECLARE
     v_ton NUMBER;
+    v_makho VARCHAR2(20);
 BEGIN
-    SELECT SLSP INTO v_ton FROM LOSANPHAM WHERE MALO = :NEW.MALO;
+    SELECT SLSP, MAKHO INTO v_ton, v_makho 
+    FROM LOSANPHAM 
+    WHERE MALO = :NEW.MALO;
 
-    UPDATE LOSANPHAM SET SLSP = SLSP + :NEW.SL WHERE MALO = :NEW.MALO;
-    UPDATE KHO SET SLTON = SLTON + :NEW.SL WHERE MALO = :NEW.MALO;
+    UPDATE LOSANPHAM 
+    SET SLSP = SLSP + :NEW.SL 
+    WHERE MALO = :NEW.MALO;
+    
+    UPDATE KHO 
+    SET SLTON = SLTON + :NEW.SL 
+    WHERE MAKHO = v_makho;
 END;
 /
 
@@ -767,16 +791,6 @@ BEGIN
     UPDATE PHIEUTRA_KH
     SET TONGTIENHOAN = NVL(TONGTIENHOAN, 0) + v_diff
     WHERE MAPT_KH = v_mapt;
-END;
-/
-
-CREATE OR REPLACE TRIGGER TRG_CTHD_SYNC_TOTAL_HD
-AFTER INSERT ON CTHD
-FOR EACH ROW
-BEGIN
-    UPDATE HOADON 
-    SET TONGTIEN = NVL(TONGTIEN, 0) + :NEW.THANHTIEN
-    WHERE MAHD = :NEW.MAHD;
 END;
 /
 

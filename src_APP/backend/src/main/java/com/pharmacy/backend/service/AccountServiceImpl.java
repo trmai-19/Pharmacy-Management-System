@@ -36,16 +36,16 @@ public class AccountServiceImpl implements AccountService {
         Account acc = accountRepo.findBySdt(sdt)
             .orElseThrow(() -> new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!"));
 
-        if (!passwordEncoder.matches(password, acc.getPassword())) {
-            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
-        }
-
         if ("LOCKED".equals(acc.getTrangthai())) {
             throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
         }
 
         if (!"STAFF".equals(acc.getVaitro())) {
             throw new RuntimeException("Tài khoản không có quyền truy cập vào hệ thống này!");
+        }
+        
+        if (!passwordEncoder.matches(password, acc.getPassword())) {
+            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
         }
 
         Employee emp = employeeRepo.findByMatk(acc.getMatk())

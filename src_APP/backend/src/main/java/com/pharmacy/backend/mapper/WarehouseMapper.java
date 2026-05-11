@@ -28,7 +28,6 @@ public class WarehouseMapper {
         return BatchResponse.builder()
                 .malo(batch.getMalo())
                 .masp(batch.getMasp())
-                .madm(batch.getMadm())
                 .ngaysx(batch.getNgaysx())
                 .ngaynhap(batch.getNgaynhap())
                 .hsd(batch.getHsd())
@@ -40,7 +39,6 @@ public class WarehouseMapper {
     public InventoryResponse toInventoryResponse(Warehouse warehouse) {
         return InventoryResponse.builder()
                 .makho(warehouse.getMakho())
-                .malo(warehouse.getMalo())
                 .slton(warehouse.getSlton())
                 .dvsp(warehouse.getDvsp())
                 .build();

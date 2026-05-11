@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class ReturnItemRequest { // <-- Đã thêm chữ public
+public class SupplierReturnItemRequest {
     @NotBlank(message = "Mã lô không được để trống")
     private String malo;
 

@@ -11,14 +11,15 @@ import com.pharmacy.backend.repository.InvoiceDetailRepository;
 import com.pharmacy.backend.repository.InvoiceRepository;
 import com.pharmacy.backend.repository.ReturnReceiptDetailRepository;
 import com.pharmacy.backend.repository.ReturnReceiptRepository;
-import jakarta.persistence.EntityManager; // Đảm bảo đã import đúng
-import jakarta.persistence.PersistenceContext; // Đảm bảo đã import đúng
+import jakarta.persistence.EntityManager; 
+import jakarta.persistence.PersistenceContext; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +32,7 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
     private final InvoiceDetailRepository invoiceDetailRepository;
 
     @PersistenceContext
-    private EntityManager entityManager; // BỎ 'final' ở đây để hết lỗi gạch đỏ
+    private EntityManager entityManager; 
 
     @Override
     @Transactional
@@ -50,11 +51,14 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
             throw new RuntimeException("Lỗi: Hóa đơn không thuộc về khách hàng " + request.getMakh());
         }
 
-        // 4. Lấy TOÀN BỘ chi tiết từ hóa đơn gốc để hoàn trả nguyên đơn
+        // 4. Lấy TOÀN BỘ chi tiết từ hóa đơn gốc
         List<InvoiceDetail> cthdList = invoiceDetailRepository.findByMahd(request.getMahd());
         if (cthdList.isEmpty()) {
             throw new RuntimeException("Lỗi: Hóa đơn không có sản phẩm nào để trả!");
         }
+
+        Map<String, InvoiceDetail> originalMap = cthdList.stream()
+                .collect(Collectors.toMap(InvoiceDetail::getMalo, d -> d));
 
         // 5. Tạo vỏ Phiếu Trả
         ReturnReceipt phieuTra = new ReturnReceipt();
@@ -65,13 +69,25 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
         
         ReturnReceipt savedHeader = returnReceiptRepository.saveAndFlush(phieuTra);
 
-        // 6. Chuyển toàn bộ CTHD sang Chi tiết phiếu trả
-        List<ReturnReceiptDetail> detailsToSave = cthdList.stream().map(cthd -> {
+        // 6. Lấy data từ Request (chỉ trả những món khách muốn) và chốt giá hoàn từ DB
+        List<ReturnReceiptDetail> detailsToSave = request.getItems().stream().map(item -> {
+            InvoiceDetail origDetail = originalMap.get(item.getMalo());
+            
+            if (origDetail == null) {
+                throw new RuntimeException("Lỗi: Lô " + item.getMalo() + " không có trong hóa đơn gốc!");
+            }
+            if (item.getSl() > origDetail.getSl()) {
+                throw new RuntimeException("Lỗi: Số lượng trả (" + item.getSl() + ") vượt quá số lượng đã mua!");
+            }
+
             ReturnReceiptDetail detail = new ReturnReceiptDetail();
             detail.setMaptKh(savedHeader.getMaptKh());
-            detail.setMalo(cthd.getMalo());
-            detail.setSl(cthd.getSl()); // Trả hết 100% số lượng
-            detail.setDongiahoan(cthd.getDongia()); // Hoàn 100% tiền
+            detail.setMalo(item.getMalo());
+            detail.setSl(item.getSl()); 
+            
+            // QUAN TRỌNG: Lấy giá bán lúc mua từ DB làm giá hoàn, không lấy từ request
+            detail.setDongiahoan(origDetail.getDongia()); 
+            
             return detail;
         }).collect(Collectors.toList());
 

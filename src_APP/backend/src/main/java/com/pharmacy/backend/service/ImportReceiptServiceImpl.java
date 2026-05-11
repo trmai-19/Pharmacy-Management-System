@@ -7,6 +7,8 @@ import com.pharmacy.backend.mapper.WarehouseMapper;
 import com.pharmacy.backend.model.*;
 import com.pharmacy.backend.repository.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -25,6 +27,10 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     private final WarehouseRepository warehouseRepository;
     private final SupplierRepository supplierRepository;
     private final WarehouseMapper warehouseMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Override
     public List<ImportReceiptResponse> getAllImportReceipts() {
         return importReceiptRepository.findAll().stream()
@@ -55,7 +61,7 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
             
             Batch newBatch = new Batch();
             newBatch.setMasp(item.getMasp());
-            newBatch.setMadm(item.getMadm());
+            newBatch.setMakho(item.getMakho());
             newBatch.setNgaysx(item.getNgaysx());
             newBatch.setNgaynhap(new Date());
             newBatch.setHsd(item.getHsd());
@@ -65,12 +71,6 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
             Batch savedBatch = batchRepository.save(newBatch);
             String finalMalo = savedBatch.getMalo();
 
-            Warehouse warehouse = new Warehouse();
-            warehouse.setMalo(finalMalo);
-            warehouse.setSlton(0);
-            warehouse.setDvsp(item.getDvt());
-            warehouseRepository.save(warehouse);
-
             ImportReceiptDetail detail = new ImportReceiptDetail();
             detail.setMapn(finalMapn);
             detail.setMalo(finalMalo);
@@ -79,14 +79,15 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
             detail.setDvt(item.getDvt());
             detail.setGhichu(item.getGhichu());
             
-            importReceiptDetailRepository.save(detail);
+            importReceiptDetailRepository.saveAndFlush(detail);
         }
 
+        entityManager.refresh(savedReceipt);
+
         savedReceipt.setTrangthai("HOANTAT");
-        importReceiptRepository.save(savedReceipt);
 
-        ImportReceipt finalReceipt = importReceiptRepository.findById(finalMapn).get();
+        importReceiptRepository.saveAndFlush(savedReceipt);
 
-        return warehouseMapper.toImportReceiptResponse(finalReceipt);
+        return warehouseMapper.toImportReceiptResponse(savedReceipt);
     }
 }

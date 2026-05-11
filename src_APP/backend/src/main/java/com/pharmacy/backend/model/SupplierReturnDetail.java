@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "CTPT_NCC")
+@IdClass(SupplierReturnDetailId.class)
 public class SupplierReturnDetail {
     @Id
     @Column(name = "MAPT_NCC")

@@ -45,4 +45,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setTrangthai("RESIGNED"); 
         employeeRepository.save(employee);
     }
+
+    @Override
+    public List<EmployeeResponse> searchEmployees(String keyword) {
+        return employeeRepository.searchEmployees(keyword).stream()
+                .map(employeeMapper::toResponse)
+                .toList();
+    }
 }

@@ -23,6 +23,10 @@ public class ProductServiceImpl implements ProductService {
         
         productMapper.updateProductFromRequest(product, request);
         
+        if (product.getTrangthai() == null || product.getTrangthai().isEmpty()) {
+            product.setTrangthai("DANG_BAN"); 
+        }
+
         Product savedProduct = productRepository.save(product);
         return productMapper.toResponse(savedProduct);
     }
@@ -43,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + id));
             
-        productRepository.delete(product);
+        product.setTrangthai("NGUNG_BAN"); 
+        productRepository.save(product);
     }
 }

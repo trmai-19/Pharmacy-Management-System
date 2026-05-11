@@ -16,7 +16,7 @@ public class ProductMapper {
                 .congdung(product.getCongdung())
                 .thanhphan(product.getThanhphan())
                 .giaban(product.getGiaban())
-                .isManualPrice(product.isManualPrice()) 
+                .trangthai(product.getTrangthai())
                 .build();
     }
     
@@ -27,6 +27,6 @@ public class ProductMapper {
         product.setCongdung(request.getCongdung());
         product.setThanhphan(request.getThanhphan());
         product.setGiaban(request.getGiaban());
-        product.setManualPrice(request.isManualPrice());
+        product.setTrangthai(request.getTrangthai());
     }
 }
