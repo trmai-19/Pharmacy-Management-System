@@ -9,4 +9,5 @@ public interface EmployeeService {
     List<EmployeeResponse> getAllEmployees();
     EmployeeResponse updateEmployeeProfile(String id, EmployeeUpdateRequest request);
     void deleteEmployee(String id);
+    List<EmployeeResponse> searchEmployees(String keyword);
 }

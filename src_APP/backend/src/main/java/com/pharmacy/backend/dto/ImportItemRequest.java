@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 public class ImportItemRequest {
     private String masp;
-    private String madm;
+    private String makho;
     private Integer sl;
     private Double gianhap;
     private String dvt;

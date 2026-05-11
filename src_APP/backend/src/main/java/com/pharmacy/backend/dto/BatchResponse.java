@@ -10,7 +10,6 @@ import lombok.*;
 public class BatchResponse {
     private String malo;
     private String masp;
-    private String madm;
     private Date ngaysx;
     private Date ngaynhap;
     private Date hsd;

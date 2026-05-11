@@ -33,8 +33,6 @@ Bao gồm các API quản lý thông tin thuốc và phân loại dành cho Admi
 *   **`POST /api/admin/products`**: Thêm mới một loại thuốc/sản phẩm.
 *   **`PUT /api/admin/products/{id}`**: Cập nhật thông tin thuốc/sản phẩm.
 *   **`DELETE /api/admin/products/{id}`**: Xóa thuốc/sản phẩm.
-*   **`GET /api/admin/products/{id}/price-suggestion`**: Gợi ý giá bán cho một sản phẩm dựa trên giá nhập gần nhất và tỷ lệ lợi nhuận của danh mục.
-*   **`GET /api/admin/products/price-suggestions`**: Lấy danh sách gợi ý giá bán cho tất cả sản phẩm (sắp xếp ưu tiên các sản phẩm cần điều chỉnh giá nhất).
 
 ### 5. Nhóm Khách hàng & Bán hàng (Customer & Sales)
 Các API phục vụ bán hàng, quản lý hồ sơ khách hàng, hóa đơn và điểm tích lũy.
@@ -56,14 +54,6 @@ Quản lý nhập kho, nhà cung cấp, lô hàng và các cảnh báo/gợi ý 
 *   **`GET /api/warehouse/inventory`**: Lấy danh sách số lượng hàng tồn theo từng lô/kho.
 *   **`GET /api/warehouse/alerts/low-stock`**: Lấy danh sách các sản phẩm đang sắp hết hàng (tồn kho dưới 10).
 *   **`GET /api/warehouse/alerts/expiring-soon`**: Lấy danh sách các lô thuốc sắp hết hạn sử dụng (dưới 3 tháng).
-*   **`GET /api/warehouse/reorder-suggestions`**: Gợi ý tái nhập kho thông minh dựa vào tốc độ bán hàng của 30 ngày qua và tồn kho hiện tại (đề xuất số lượng cần nhập).
-*   **`GET /api/warehouse/dead-stock?days=...`**: Phát hiện hàng tồn "chết" (những lô hàng không có giao dịch bán nào trong X ngày, mặc định là 60 ngày).
-*   **`GET /api/warehouse/expiry-timeline?months=...`**: Phân tích biểu đồ (timeline) các lô hàng chuẩn bị hết hạn theo từng tháng tới.
-
-### 7. Nhóm Báo cáo thống kê (Reports)
-Các API phân tích kinh doanh dành cho Admin.
-*   **`GET /api/admin/reports/staff-performance`**: Thống kê hiệu suất bán hàng và xếp hạng của từng nhân viên (có thể lọc theo khoảng thời gian `from` và `to`, mặc định là 30 ngày)[cite: 1].
-*   **`GET /api/admin/reports/customer-segments`**: Phân tích các tập khách hàng dựa theo hạng thành viên (Vàng, Bạc, Thành viên,...) và doanh thu mang lại.
 
 ### 8. API Kiểm thử hệ thống (Test/Utility)
 *   **`GET /api/test-mail?toEmail=...`**: API test gửi email HTML thử nghiệm nghiệm để kiểm tra cấu hình SMTP của hệ thống có hoạt động không.

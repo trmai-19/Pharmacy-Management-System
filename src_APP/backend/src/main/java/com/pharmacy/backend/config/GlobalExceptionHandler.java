@@ -12,6 +12,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import org.springframework.security.access.AccessDeniedException;
 
+import org.springframework.dao.DataAccessException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,5 +41,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotFound(NoHandlerFoundException ex) {
         return ResponseEntity.status(404)
             .body(new ApiResponse<>(404, "API không tồn tại: " + ex.getRequestURL(), null));
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDatabaseException(DataAccessException ex) {
+        // Lấy nguyên gốc thông báo lỗi từ Database
+        String msg = ex.getMostSpecificCause().getMessage();
+        
+        // Cắt chuỗi để lấy đúng nội dung từ ORA-20xxx (mã lỗi tự định nghĩa của chúng ta)
+        if (msg != null && msg.contains("ORA-20")) {
+            // Tách bằng regex tìm chữ ORA-20...
+            String[] parts = msg.split("ORA-20\\d{2}:");
+            if (parts.length > 1) {
+                // Chỉ lấy dòng đầu tiên, bỏ các dòng trace (ORA-06512...) bên dưới
+                msg = parts[1].split("\n")[0].trim(); 
+            }
+        } else {
+            msg = "Lỗi thao tác cơ sở dữ liệu!"; // Fallback nếu lỗi DB khác
+        }
+        
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, msg, null));
     }
 }

@@ -40,97 +40,101 @@ public class InvoiceServiceImpl implements InvoiceService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Override
+    @Transactional
+    public InvoiceResponse createInvoice(InvoiceRequest request) {
 
-@Override
-@Transactional
-public InvoiceResponse createInvoice(InvoiceRequest request) {
+        // 1. Tạo vỏ HOADON
+        Invoice invoice = new Invoice();
+        invoice.setManv(request.getManv());
+        invoice.setMakh(request.getMakh());
+        invoice.setDiemsudung(request.getDiemsudung() != null ? request.getDiemsudung() : 0);
+        invoice.setNgayban(LocalDateTime.now());
+        invoice.setTrangthai("HOANTAT");
 
-    // 1. Tạo vỏ HOADON
-    Invoice invoice = new Invoice();
-    invoice.setManv(request.getManv());
-    invoice.setMakh(request.getMakh());
-    invoice.setDiemsudung(request.getDiemsudung() != null ? request.getDiemsudung() : 0);
-    invoice.setNgayban(LocalDateTime.now());
-    invoice.setTrangthai("HOANTAT");
+        // Dùng saveAndFlush để Oracle sinh mã HD ngay lập tức
+        Invoice savedInvoice = invoiceRepository.saveAndFlush(invoice);
 
-    // Dùng saveAndFlush để Oracle sinh mã HD ngay lập tức
-    Invoice savedInvoice = invoiceRepository.saveAndFlush(invoice);
+        // 2. Tạo chi tiết hóa đơn
+        List<InvoiceItemResponse> itemResponses = new ArrayList<>();
 
-    // 2. Tạo chi tiết hóa đơn
-    List<InvoiceItemResponse> itemResponses = new ArrayList<>();
+        for (var item : request.getItems()) {
+            // Lấy thông tin Lô để kiểm tra tồn kho
+            Batch batch = batchRepository.findById(item.getMalo())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lô: " + item.getMalo()));
 
-    for (var item : request.getItems()) {
-        // Lấy thông tin Lô để kiểm tra tồn kho
-        Batch batch = batchRepository.findById(item.getMalo())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lô: " + item.getMalo()));
+            // Lấy thông tin sản phẩm
+            Product product = productRepository.findById(item.getMasp())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
-        // --- ĐÂY LÀ DÒNG BỊ THIẾU TRONG ẢNH CỦA BẠN ---
-        Product product = productRepository.findById(item.getMasp())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-        // ----------------------------------------------
+            // ---- CHỐT CHẶN: Kiểm tra trạng thái sản phẩm ----
+            if ("NGUNG_BAN".equals(product.getTrangthai())) {
+                throw new RuntimeException("Sản phẩm '" + product.getTensanpham() + "' đã ngừng kinh doanh!");
+            }
+            // -------------------------------------------------
 
-        if (batch.getSlsp() < item.getSl()) {
-            throw new RuntimeException("Lô " + item.getMalo() + " không đủ hàng (còn " + batch.getSlsp() + ")");
+            if (batch.getSlsp() < item.getSl()) {
+                throw new RuntimeException("Lô " + item.getMalo() + " không đủ hàng (còn " + batch.getSlsp() + ")");
+            }
+
+            InvoiceDetail detail = new InvoiceDetail();
+            detail.setMahd(savedInvoice.getMahd());
+            detail.setMalo(item.getMalo());
+            detail.setSl(item.getSl());
+            detail.setDongia(product.getGiaban());
+
+            // Dùng saveAndFlush để đẩy dữ liệu xuống Oracle ngay lập tức cho Trigger tính thanhtien
+            InvoiceDetail savedDetail = invoiceDetailRepository.saveAndFlush(detail);
+
+            // Refresh để lấy thanhtien đã được Trigger tính toán
+            entityManager.refresh(savedDetail);
+
+            itemResponses.add(InvoiceItemResponse.builder()
+                    .malo(savedDetail.getMalo())
+                    .masp(item.getMasp())
+                    .tensanpham(product.getTensanpham())
+                    .sl(savedDetail.getSl())
+                    .dongia(savedDetail.getDongia())
+                    .thanhtien(savedDetail.getThanhtien())
+                    .ghichu(savedDetail.getGhichu())
+                    .build());
         }
 
-        InvoiceDetail detail = new InvoiceDetail();
-        detail.setMahd(savedInvoice.getMahd());
-        detail.setMalo(item.getMalo());
-        detail.setSl(item.getSl());
-        detail.setDongia(product.getGiaban());
+        // 3. Ép Flush để các trigger tính tổng tiền trên bảng HOADON và DIEMTL kích hoạt
+        invoiceRepository.flush();
 
-        // Dùng saveAndFlush để đẩy dữ liệu xuống Oracle ngay lập tức cho Trigger tính thanhtien
-        InvoiceDetail savedDetail = invoiceDetailRepository.saveAndFlush(detail);
+        // 4. Lấy lại hóa đơn và refresh để có tongtien + tienthanhtoan mới nhất
+        Invoice finalInvoice = invoiceRepository.findById(savedInvoice.getMahd())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        entityManager.refresh(finalInvoice);
 
-        // Refresh để lấy thanhtien đã được Trigger tính toán
-        entityManager.refresh(savedDetail);
+        // 5. Lấy điểm tích lũy mới nhất của khách hàng (sau khi trigger cộng điểm chạy xong)
+        Integer currentDiem = 0;
+        if (request.getMakh() != null) {
+            Customer customer = customerRepository.findById(request.getMakh())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
 
-        itemResponses.add(InvoiceItemResponse.builder()
-                .malo(savedDetail.getMalo())
-                .masp(item.getMasp())
-                .tensanpham(product.getTensanpham())
-                .sl(savedDetail.getSl())
-                .dongia(savedDetail.getDongia())
-                .thanhtien(savedDetail.getThanhtien())
-                .ghichu(savedDetail.getGhichu())
-                .build());
-    }
-
-    // 3. Ép Flush để các trigger tính tổng tiền trên bảng HOADON và DIEMTL kích hoạt
-    invoiceRepository.flush();
-
-    // 4. Lấy lại hóa đơn và refresh để có tongtien + tienthanhtoan mới nhất
-    Invoice finalInvoice = invoiceRepository.findById(savedInvoice.getMahd())
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-    entityManager.refresh(finalInvoice);
-
-    // 5. Lấy điểm tích lũy mới nhất của khách hàng (sau khi trigger cộng điểm chạy xong)
-    Integer currentDiem = 0;
-    if (request.getMakh() != null) {
-        Customer customer = customerRepository.findById(request.getMakh())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-
-        entityManager.refresh(customer);
-        currentDiem = (customer.getDiemtichluy() != null) 
-                        ? customer.getDiemtichluy().intValue() 
-                        : 0;
-    }
-    
-
-    // 6. Ép cập nhật TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG (an toàn)
-    if (finalInvoice.getTongtien() != null) {
-        double tienthanhtoan = finalInvoice.getTongtien() - 
-                              (request.getDiemsudung() != null ? request.getDiemsudung() : 0);
+            entityManager.refresh(customer);
+            currentDiem = (customer.getDiemtichluy() != null) 
+                            ? customer.getDiemtichluy().intValue() 
+                            : 0;
+        }
         
-        finalInvoice.setTienthanhtoan(tienthanhtoan);
-        invoiceRepository.save(finalInvoice);   // cập nhật lại
-    }
 
-    // 7. Trả về response
-    return InvoiceMapper.toResponse(finalInvoice).toBuilder()
-            .items(itemResponses)
-            .build();
-}
+        // 6. Ép cập nhật TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG (an toàn)
+        if (finalInvoice.getTongtien() != null) {
+            double tienthanhtoan = finalInvoice.getTongtien() - 
+                                  (request.getDiemsudung() != null ? request.getDiemsudung() : 0);
+            
+            finalInvoice.setTienthanhtoan(tienthanhtoan);
+            invoiceRepository.save(finalInvoice);   // cập nhật lại
+        }
+
+        // 7. Trả về response
+        return InvoiceMapper.toResponse(finalInvoice).toBuilder()
+                .items(itemResponses)
+                .build();
+    }
 
     @Override
     public InvoiceResponse getInvoiceById(String mahd) {

@@ -11,5 +11,5 @@ public class ProductRequest {
     private String congdung;
     private String thanhphan;
     private Double giaban;
-    private boolean isManualPrice;
+    private String trangthai;
 }

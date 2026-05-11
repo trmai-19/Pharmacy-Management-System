@@ -14,7 +14,12 @@ COMMIT;
 -- @procedures.sql;
 
 -- 5. Chay Mock Data
-@mockdata.sql;
+--@mockdata.sql;
 
 -- Xác nhận lưu toàn bộ thay đổi vào database
 COMMIT;
+
+select * from NHANVIEN;
+SELECT * FROM SANPHAM;
+select * from NHACUNGCAP;
+SELECT * FROM DANHMUC;

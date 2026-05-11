@@ -1,7 +1,5 @@
 package com.pharmacy.backend.controller;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pharmacy.backend.dto.ApiResponse;
-import com.pharmacy.backend.dto.InvoiceItemResponse;
 import com.pharmacy.backend.dto.InvoiceRequest;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.service.InvoiceService;

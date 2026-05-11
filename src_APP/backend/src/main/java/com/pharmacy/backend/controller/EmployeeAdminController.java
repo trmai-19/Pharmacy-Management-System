@@ -42,5 +42,11 @@ public class EmployeeAdminController {
         return ResponseEntity.ok(response);
     }
 
-    
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> searchEmployees(
+            @RequestParam(required = false) String keyword) {
+        List<EmployeeResponse> data = employeeService.searchEmployees(keyword);
+        ApiResponse<List<EmployeeResponse>> response = new ApiResponse<>(200, "Tìm kiếm nhân viên thành công", data);
+        return ResponseEntity.ok(response);
+    }
 }
