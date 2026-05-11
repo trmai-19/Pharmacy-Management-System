@@ -89,16 +89,17 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-    @FXML
+@FXML
     void handleLogin(ActionEvent event) {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
 
+        // Kiểm tra rỗng
         if(username.isEmpty() && password.isEmpty()) {
             showError("Vui lòng nhập thông tin đăng nhập!");
             return;
         }
-        if (username.isEmpty() ) {
+        if (username.isEmpty()) {
             showError("Vui lòng nhập tài khoản!");
             return;
         }
@@ -111,10 +112,17 @@ public class LoginController {
         btnLogin.setDisable(true);
         btnLogin.setText("ĐANG XỬ LÝ...");
 
-        // Giả lập logic đăng nhập
-        if ("1".equals(username.toLowerCase()) && "1".equals(password)) {
+        // --- LOGIC ĐĂNG NHẬP MỚI ---
+        if ("1".equals(username) && "1".equals(password)) {
             navigateToDashboard("ADMIN");
-        } else {
+        } 
+        else if ("2".equals(username) && "2".equals(password)) {
+            navigateToDashboard("SALES");
+        } 
+        else if ("3".equals(username) && "3".equals(password)) {
+            navigateToDashboard("WAREHOUSE");
+        } 
+        else {
             showError("Tài khoản hoặc mật khẩu không đúng!");
             btnLogin.setDisable(false);
             btnLogin.setText("VÀO HỆ THỐNG");
@@ -132,10 +140,10 @@ public class LoginController {
                 path = "/com/pharmacy/views/admin/admin-main.fxml"; 
                 break;
             case "sales":
-                path = "/com/pharmacy/views/sales/dashboard.fxml";
+                path = "/com/pharmacy/views/sales/sales-main.fxml";
                 break;
             case "warehouse":
-                path = "/com/pharmacy/views/warehouse/dashboard.fxml";
+                path = "/com/pharmacy/views/warehouse/warehouse-main.fxml";
                 break;
             default:
                 path = "/com/pharmacy/views/login.fxml";

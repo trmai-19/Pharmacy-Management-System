@@ -1,171 +1,340 @@
 package com.pharmacy.controller.admin;
 
 import com.pharmacy.model.Product;
+import com.pharmacy.model.Batch;
+import com.pharmacy.model.Category;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.GridPane;
+
+import java.util.Optional;
 
 public class ProductManagerController {
 
-    // Thống kê
+    // --- THỐNG KÊ ---
     @FXML private Label lblTotalProducts;
     @FXML private Label lblLowStock;
-    @FXML private Label lblExpiring;
 
-    // Thanh công cụ
-    @FXML private TextField txtSearch;
-    @FXML private ComboBox<String> cbCategory;
-
-    // Bảng và Cột
+    // --- TAB SẢN PHẨM ---
+    @FXML private TextField txtSearchProduct;
+    @FXML private ComboBox<String> cbCategoryFilter;
+    
+    // Nút chức năng Sản phẩm
+    @FXML private Button btnConfirmEditProduct;
+    @FXML private Button btnAddProduct;
+    @FXML private Button btnEditProduct;
+    
     @FXML private TableView<Product> tableProduct;
-    @FXML private TableColumn<Product, String> colId;
-    @FXML private TableColumn<Product, String> colName;
-    @FXML private TableColumn<Product, String> colActiveIngredient;
-    @FXML private TableColumn<Product, String> colCategory;
-    @FXML private TableColumn<Product, String> colUnit;
-    @FXML private TableColumn<Product, String> colQuantity;
-    @FXML private TableColumn<Product, String> colExpiryDate;
-    @FXML private TableColumn<Product, String> colStatus;
+    @FXML private TableColumn<Product, String> colProdId;
+    @FXML private TableColumn<Product, String> colProdName;
+    @FXML private TableColumn<Product, String> colProdActive;
+    @FXML private TableColumn<Product, String> colProdCat;
+    @FXML private TableColumn<Product, String> colProdUnit;
+    @FXML private TableColumn<Product, String> colProdQty;
 
+    // Bảng Lô hàng (Detail)
+    @FXML private TableView<Batch> tableBatch;
+    @FXML private TableColumn<Batch, String> colBatchId;
+    @FXML private TableColumn<Batch, String> colBatchMfg;
+    @FXML private TableColumn<Batch, String> colBatchExp;
+    @FXML private TableColumn<Batch, String> colBatchImport;
+    @FXML private TableColumn<Batch, String> colBatchQty;
+    @FXML private TableColumn<Batch, String> colBatchStatus;
+
+    // --- TAB DANH MỤC ---
+    @FXML private TextField txtSearchCategory;
+    
+    // Nút chức năng Danh mục
+    @FXML private Button btnConfirmEditCategory;
+    @FXML private Button btnAddCategory;
+    @FXML private Button btnEditCategory;
+
+    @FXML private TableView<Category> tableCategory;
+    @FXML private TableColumn<Category, String> colCatId;
+    @FXML private TableColumn<Category, String> colCatName;
+    @FXML private TableColumn<Category, String> colCatNote;
+
+    // --- DANH SÁCH DỮ LIỆU ---
     private ObservableList<Product> productList;
-    private FilteredList<Product> filteredData;
+    private ObservableList<Category> categoryList;
+    private FilteredList<Product> filteredProducts;
 
     @FXML
     public void initialize() {
-        System.out.println("📦 ProductManagerController đang tải...");
+        setupProductTable();
+        setupBatchTable();
+        setupCategoryTable();
+        loadData();
+        setupSearchFilter();
 
-        // 1. Ánh xạ các cột với Model Product
-        colId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
-        colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        colActiveIngredient.setCellValueFactory(cellData -> cellData.getValue().activeIngredientProperty());
-        colCategory.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
-        colUnit.setCellValueFactory(cellData -> cellData.getValue().unitProperty());
-        colQuantity.setCellValueFactory(cellData -> cellData.getValue().quantityProperty());
-        colExpiryDate.setCellValueFactory(cellData -> cellData.getValue().expiryDateProperty());
-        colStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
-
-        // 2. Khởi tạo dữ liệu Dropdown Danh mục
-        cbCategory.setItems(FXCollections.observableArrayList(
-                "Tất cả danh mục", "Kháng sinh", "Giảm đau - Hạ sốt", "Vitamin - Khoáng chất", "Thực phẩm chức năng", "Vật tư y tế"
-        ));
-        cbCategory.getSelectionModel().selectFirst();
-
-        // 3. Tải dữ liệu giả lập (Mock Data chuẩn ngành Dược)
-        loadMockData();
-
-        // 4. Thiết lập tính năng Tìm kiếm & Lọc thời gian thực
-        setupSearchAndFilter();
+        tableProduct.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                loadBatchesForProduct(newVal.getId());
+            } else {
+                tableBatch.getItems().clear();
+            }
+        });
     }
 
-    private void loadMockData() {
-        productList = FXCollections.observableArrayList(
-                new Product("SP001", "Avastin 400mg Injection", "Bevacizumab (400mg)", "Cancer of colon and rectum Non-small cell lung cancer Kidney cancer Brain tumor Ovarian cancer Cervical cancer", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP002", "Augmentin 625 Duo Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP003", "Azithral 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP004", "Ascoril LS Syrup", "Ambroxol (30mg/5ml) + Levosalbutamol (1mg/5ml) + Guaifenesin (50mg/5ml)", "Cough with mucus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP005", "Aciloc 150 Tablet", "Ranitidine (150mg)", "Peptic ulcer disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP006", "Allegra 120mg Tablet", "Fexofenadine (120mg)", "Allergic conditions", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP007", "Avil 25 Tablet", "Pheniramine (25mg)", "Skin conditions with inflammation & itchingTreatment and prevention of Meniere's disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP008", "Aricep 5 Tablet", "Donepezil (5mg)", "Alzheimer's disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP009", "Amoxyclav 625 Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP010", "Atarax 25mg Tablet", "Hydroxyzine (25mg)", "Skin conditions with inflammation & itching", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP011", "Azee 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP012", "Anovate Cream", "Phenylephrine (0.10% w/w) + Beclometasone (0.025% w/w) + Lidocaine (2.50% w/w)", "Piles", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP013", "Allegra-M Tablet", "Montelukast (10mg) + Fexofenadine (120mg)", "Sneezing and runny nose due to allergies", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP014", "Ascoril D Plus Syrup Sugar Free", "Phenylephrine (5mg) + Chlorpheniramine Maleate (2mg) + Dextromethorphan Hydrobromide (10mg)", "Dry cough", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP015", "Alex Syrup", "Phenylephrine (5mg/5ml) + Chlorpheniramine Maleate (2mg/5ml) + Dextromethorphan Hydrobromide (10mg/5ml)", "Dry cough", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP016", "Armotraz Tablet", "Anastrozole (1mg)", "Breast cancer", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP017", "Augmentin Duo Oral Suspension", "Amoxycillin  (200mg) +  Clavulanic Acid (28.5mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP018", "Albendazole 400mg Tablet", "Albendazole (400mg)", "Parasitic infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP019", "Arkamin Tablet", "Clonidine (100mcg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP020", "Allegra 180mg Tablet", "Fexofenadine (180mg)", "Allergic conditions", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP021", "Asthalin 100mcg Inhaler", "Salbutamol (100mcg)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP022", "Azee 250 Tablet", "Azithromycin (250mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP023", "Amlokind-AT Tablet", "Amlodipine (5mg) + Atenolol (50mg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP024", "Atarax 10mg Tablet", "Hydroxyzine (10mg)", "Anxiety Skin conditions with inflammation & itching", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP025", "Amoxyclav 625 Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP026", "Amlong Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP027", "Azee 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP028", "Aciloc 300 Tablet", "Ranitidine (300mg)", "Gastroesophageal reflux disease (Acid reflux)Treatment of Peptic ulcer disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP029", "Amaryl 1mg Tablet", "Glimepiride (1mg)", "Type 2 diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP030", "Alkasol Oral Solution", "Disodium Hydrogen Citrate (1.37gm/5ml)", "GoutTreatment of Kidney stone", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP031", "Ativan 1mg Tablet", "Lorazepam (1mg)", "Short term anxiety", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP032", "Amaryl 2mg Tablet", "Glimepiride (2mg)", "Type 2 diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP033", "Amlokind 5 Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP034", "Anafortan Tablet", "Camylofin (25mg) + Paracetamol (300mg)", "Abdominal pain", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP035", "Azithral 200 Liquid", "Azithromycin (200mg/5ml)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP036", "Ativan 2mg Tablet", "Lorazepam (2mg)", "Short term anxiety", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP037", "Aquasol A Capsule", "Vitamin A (50000IU)", "Vitamin A deficiency", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP038", "Ascoril LS Drops", "Ambroxol (7.5mg/ml) + Levosalbutamol (0.25mg/ml) + Guaifenesin (12.5mg/ml)", "Cough with mucus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP039", "Azopt Eye Drop", "Brinzolamide (1% w/v)", "Glaucoma", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP040", "Aldactone Tablet", "Spironolactone (25mg)", "Hypertension (high blood pressure)Treatment of EdemaTreatment of Low potassium Heart failure", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP041", "Actrapid HM Penfill", "Human Insulin/Soluble Insulin (100IU/ml)", "Diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP042", "Asthalin 4 Tablet", "Salbutamol (4mg)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP043", "Axtar 1.5gm Injection", "Ceftriaxone (1000mg) + Sulbactam (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP044", "Abzorb Dusting Powder", "Clotrimazole (1% w/w)", "Fungal skin infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP045", "App UP Tablet", "Cyproheptadine (4mg)", "Loss of appetite", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP046", "Aldigesic-SP Tablet", "Aceclofenac (100mg) + Paracetamol (325mg) + Serratiopeptidase (15mg)", "Pain relief", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP047", "Amodep AT Tablet", "Amlodipine (5mg) + Atenolol (50mg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP048", "Asthalin Respirator Solution", "Salbutamol (5mg/ml)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP049", "Angispan - TR 2.5mg Capsule", "Nitroglycerin (2.5mg)", "Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP050", "AF - 150 Tablet", "Fluconazole (150mg)", "Fungal infections", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP051", "Amlokind 10 Tablet", "Amlodipine (10mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP052", "Azee 250 Tablet", "Azithromycin (250mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP053", "Amlokind 5 Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt")
-                
-        );
-        tableProduct.setItems(productList);
+    private void setupProductTable() {
+        tableProduct.setEditable(false); // Mặc định khóa sửa
+
+        colProdId.setCellValueFactory(cell -> cell.getValue().idProperty());
+        colProdName.setCellValueFactory(cell -> cell.getValue().nameProperty());
+        colProdActive.setCellValueFactory(cell -> cell.getValue().activeIngredientProperty());
+        colProdCat.setCellValueFactory(cell -> cell.getValue().categoryProperty());
+        colProdUnit.setCellValueFactory(cell -> cell.getValue().unitProperty());
+        colProdQty.setCellValueFactory(cell -> cell.getValue().quantityProperty());
+
+        // Cấu hình Edit-in-place. Dùng .property().set() vì Model không có hàm Setter
+        colProdName.setCellFactory(TextFieldTableCell.forTableColumn());
+        colProdName.setOnEditCommit(e -> e.getRowValue().nameProperty().set(e.getNewValue()));
+
+        colProdActive.setCellFactory(TextFieldTableCell.forTableColumn());
+        colProdActive.setOnEditCommit(e -> e.getRowValue().activeIngredientProperty().set(e.getNewValue()));
+
+        colProdCat.setCellFactory(TextFieldTableCell.forTableColumn());
+        colProdCat.setOnEditCommit(e -> e.getRowValue().categoryProperty().set(e.getNewValue()));
+
+        colProdUnit.setCellFactory(TextFieldTableCell.forTableColumn());
+        colProdUnit.setOnEditCommit(e -> e.getRowValue().unitProperty().set(e.getNewValue()));
     }
 
-    private void setupSearchAndFilter() {
-        filteredData = new FilteredList<>(productList, b -> true);
+    private void setupBatchTable() {
+        colBatchId.setCellValueFactory(cell -> cell.getValue().batchIdProperty());
+        colBatchMfg.setCellValueFactory(cell -> cell.getValue().mfgDateProperty());
+        colBatchExp.setCellValueFactory(cell -> cell.getValue().expDateProperty());
+        colBatchImport.setCellValueFactory(cell -> cell.getValue().importDateProperty());
+        colBatchQty.setCellValueFactory(cell -> cell.getValue().currentQtyProperty());
+        colBatchStatus.setCellValueFactory(cell -> cell.getValue().statusProperty());
+    }
 
-        // Lắng nghe sự thay đổi của Text Search
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> updateFilter());
+    private void setupCategoryTable() {
+        tableCategory.setEditable(false);
 
-        // Lắng nghe sự thay đổi của ComboBox Danh mục
-        cbCategory.valueProperty().addListener((observable, oldValue, newValue) -> updateFilter());
+        colCatId.setCellValueFactory(cell -> cell.getValue().categoryIdProperty());
+        colCatName.setCellValueFactory(cell -> cell.getValue().categoryNameProperty());
+        colCatNote.setCellValueFactory(cell -> cell.getValue().noteProperty());
 
-        SortedList<Product> sortedData = new SortedList<>(filteredData);
+        colCatName.setCellFactory(TextFieldTableCell.forTableColumn());
+        colCatName.setOnEditCommit(e -> e.getRowValue().categoryNameProperty().set(e.getNewValue()));
+
+        colCatNote.setCellFactory(TextFieldTableCell.forTableColumn());
+        colCatNote.setOnEditCommit(e -> e.getRowValue().noteProperty().set(e.getNewValue()));
+    }
+
+    private void setupSearchFilter() {
+        filteredProducts = new FilteredList<>(productList, p -> true);
+
+        txtSearchProduct.textProperty().addListener((obs, oldV, newV) -> updateFilter());
+        cbCategoryFilter.valueProperty().addListener((obs, oldV, newV) -> updateFilter());
+
+        SortedList<Product> sortedData = new SortedList<>(filteredProducts);
         sortedData.comparatorProperty().bind(tableProduct.comparatorProperty());
         tableProduct.setItems(sortedData);
+
+        cbCategoryFilter.setItems(FXCollections.observableArrayList(
+            "Tất cả danh mục", "Kháng sinh", "Giảm đau - Hạ sốt", "Vitamin", "Thực phẩm chức năng"
+        ));
+        cbCategoryFilter.getSelectionModel().selectFirst();
     }
 
-    // Hàm xử lý lọc kép: Phải thỏa mãn cả từ khóa tìm kiếm VÀ danh mục đã chọn
     private void updateFilter() {
-        String searchText = txtSearch.getText().toLowerCase();
-        String selectedCategory = cbCategory.getValue();
+        String searchText = txtSearchProduct.getText() != null ? txtSearchProduct.getText().toLowerCase() : "";
+        String selectedCat = cbCategoryFilter.getValue();
 
-        filteredData.setPredicate(product -> {
-            // 1. Kiểm tra lọc theo Danh mục trước
-            boolean matchesCategory = true;
-            if (selectedCategory != null && !selectedCategory.equals("Tất cả danh mục")) {
-                matchesCategory = product.getCategory().equals(selectedCategory);
+        filteredProducts.setPredicate(p -> {
+            boolean matchCat = (selectedCat == null || selectedCat.equals("Tất cả danh mục")) 
+                               || p.getCategory().equals(selectedCat);
+            boolean matchText = searchText.isEmpty() 
+                               || p.getName().toLowerCase().contains(searchText)
+                               || p.getId().toLowerCase().contains(searchText);
+            return matchCat && matchText;
+        });
+    }
+
+    private void loadData() {
+        // Đúng theo tham số Model Product của m
+        productList = FXCollections.observableArrayList(
+            new Product("SP001", "Panadol Extra", "Paracetamol", "Giảm đau - Hạ sốt", "Vỉ", "500", "01/01/2027", "Bình thường"),
+            new Product("SP002", "Augmentin 625mg", "Amoxicillin", "Kháng sinh", "Hộp", "120", "15/05/2026", "Tốt")
+        );
+
+        categoryList = FXCollections.observableArrayList(
+            new Category("DM01", "Kháng sinh", "Các loại thuốc trị nhiễm khuẩn"),
+            new Category("DM02", "Giảm đau - Hạ sốt", "Thuốc giảm đau thông thường")
+        );
+        tableCategory.setItems(categoryList);
+        
+        lblTotalProducts.setText(String.valueOf(productList.size()));
+        lblLowStock.setText("5");
+    }
+
+    private void loadBatchesForProduct(String productId) {
+        ObservableList<Batch> batches = FXCollections.observableArrayList(
+            new Batch("BATCH-01", "01/01/2024", "01/01/2027", "10/01/2024", "250", "Tốt"),
+            new Batch("BATCH-02", "12/02/2024", "12/02/2027", "20/02/2024", "250", "Tốt")
+        );
+        tableBatch.setItems(batches);
+    }
+
+    // ==========================================
+    // --- XỬ LÝ SỰ KIỆN SẢN PHẨM ---
+    // ==========================================
+    
+    @FXML
+    void handleAddProduct(ActionEvent event) {
+        Dialog<Product> dialog = new Dialog<>();
+        dialog.setTitle("Thêm Sản Phẩm Mới");
+        dialog.setHeaderText("Điền thông tin SP (Tồn kho mặc định = 0)");
+
+        ButtonType saveButtonType = new ButtonType("Lưu", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10); grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField txtId = new TextField(); txtId.setPromptText("Mã SP");
+        TextField txtName = new TextField(); txtName.setPromptText("Tên thương mại");
+        TextField txtActive = new TextField(); txtActive.setPromptText("Hoạt chất");
+        TextField txtCat = new TextField(); txtCat.setPromptText("Danh mục");
+        TextField txtUnit = new TextField(); txtUnit.setPromptText("Đơn vị tính");
+
+        grid.add(new Label("Mã SP:"), 0, 0); grid.add(txtId, 1, 0);
+        grid.add(new Label("Tên thương mại:"), 0, 1); grid.add(txtName, 1, 1);
+        grid.add(new Label("Hoạt chất:"), 0, 2); grid.add(txtActive, 1, 2);
+        grid.add(new Label("Danh mục:"), 0, 3); grid.add(txtCat, 1, 3);
+        grid.add(new Label("Đơn vị tính:"), 0, 4); grid.add(txtUnit, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                // Constructor y xì Model của m: id, name, activeIngredient, category, unit, quantity, expiryDate, status
+                return new Product(txtId.getText(), txtName.getText(), txtActive.getText(), 
+                                   txtCat.getText(), txtUnit.getText(), "0", "Chưa cập nhật", "Mới");
             }
+            return null;
+        });
 
-            // 2. Kiểm tra lọc theo Text
-            boolean matchesSearch = true;
-            if (searchText != null && !searchText.isEmpty()) {
-                matchesSearch = product.getName().toLowerCase().contains(searchText) ||
-                                product.getId().toLowerCase().contains(searchText) ||
-                                product.getActiveIngredient().toLowerCase().contains(searchText);
-            }
-
-            // Phải thỏa mãn cả 2 điều kiện
-            return matchesCategory && matchesSearch;
+        dialog.showAndWait().ifPresent(p -> {
+            productList.add(p);
+            lblTotalProducts.setText(String.valueOf(productList.size()));
         });
     }
 
     @FXML
-    void handleAddProduct(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thêm thuốc mới");
-        alert.setHeaderText("Mở Form Nhập Kho");
-        alert.setContentText("Tại đây sẽ bật lên một Dialog để nhập thông tin thuốc mới, mã vạch, số lô, v.v.");
+    void handleEditProduct(ActionEvent event) {
+        tableProduct.setEditable(true); // Bật chế độ click đúp
+        btnConfirmEditProduct.setVisible(true);
+        btnConfirmEditProduct.setManaged(true);
+        btnAddProduct.setDisable(true); 
+        
+        showAlert("Chế độ sửa", "Đã bật chế độ sửa. Hãy nháy đúp chuột vào ô cần sửa trong bảng. Sau khi xong, bấm nút '✔ Xong' bên trái để lưu.");
+    }
+
+    @FXML
+    void handleConfirmEditProduct(ActionEvent event) {
+        tableProduct.setEditable(false); 
+        btnConfirmEditProduct.setVisible(false);
+        btnConfirmEditProduct.setManaged(false);
+        btnAddProduct.setDisable(false); 
+        
+        showAlert("Thành công", "Dữ liệu sản phẩm đã được cập nhật!");
+    }
+
+    @FXML
+    void handleDeleteProduct(ActionEvent event) {
+        Product selected = tableProduct.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            Alert alert = new Alert(AlertType.CONFIRMATION, "Xóa sản phẩm " + selected.getName() + "?", ButtonType.YES, ButtonType.NO);
+            if (alert.showAndWait().get() == ButtonType.YES) {
+                productList.remove(selected);
+                lblTotalProducts.setText(String.valueOf(productList.size()));
+            }
+        } else {
+            showAlert("Thông báo", "Vui lòng chọn sản phẩm cần xóa!");
+        }
+    }
+
+    // ==========================================
+    // --- XỬ LÝ SỰ KIỆN DANH MỤC ---
+    // ==========================================
+    
+    @FXML
+    void handleAddCategory(ActionEvent event) {
+        Dialog<Category> dialog = new Dialog<>();
+        dialog.setTitle("Thêm Danh Mục Mới");
+        
+        ButtonType saveButtonType = new ButtonType("Lưu", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10); grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField txtId = new TextField();
+        TextField txtName = new TextField();
+        TextField txtNote = new TextField();
+
+        grid.add(new Label("Mã DM:"), 0, 0); grid.add(txtId, 1, 0);
+        grid.add(new Label("Tên DM:"), 0, 1); grid.add(txtName, 1, 1);
+        grid.add(new Label("Ghi chú:"), 0, 2); grid.add(txtNote, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                return new Category(txtId.getText(), txtName.getText(), txtNote.getText());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(cat -> categoryList.add(cat));
+    }
+
+    @FXML
+    void handleEditCategory(ActionEvent event) {
+        tableCategory.setEditable(true);
+        btnConfirmEditCategory.setVisible(true);
+        btnConfirmEditCategory.setManaged(true);
+        btnAddCategory.setDisable(true);
+        
+        showAlert("Chế độ sửa", "Nháy đúp vào ô trên bảng để sửa danh mục. Bấm '✔ Xong' để hoàn tất.");
+    }
+
+    @FXML
+    void handleConfirmEditCategory(ActionEvent event) {
+        tableCategory.setEditable(false);
+        btnConfirmEditCategory.setVisible(false);
+        btnConfirmEditCategory.setManaged(false);
+        btnAddCategory.setDisable(false);
+    }
+
+    @FXML
+    void handleDeleteCategory(ActionEvent event) {
+        Category selected = tableCategory.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            categoryList.remove(selected);
+        } else {
+            showAlert("Thông báo", "Vui lòng chọn danh mục cần xóa!");
+        }
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

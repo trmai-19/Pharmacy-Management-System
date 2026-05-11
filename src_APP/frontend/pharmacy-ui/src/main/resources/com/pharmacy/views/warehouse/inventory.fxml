@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" style="-fx-background-color: #F4F7F6;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.warehouse.InventoryController">
+   <children>
+      <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="30.0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <children>
+                  <VBox HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="QUẢN LÝ KHO" textFill="#1e293b">
+                           <font><Font name="System Bold" size="26.0" /></font>
+                        </Label>
+                        <Label text="Theo dõi và nhập xuất lô hàng" textFill="#64748b" />
+                     </children>
+                  </VBox>
+                  <Button onAction="#onBtnDoiTraClick" prefHeight="45.0" style="-fx-background-color: white; -fx-border-color: #f97316; -fx-border-radius: 8; -fx-text-fill: #f97316; -fx-cursor: hand;" text="⇆ Tạo phiếu xuất trả">
+                     <font><Font name="System Bold" size="14.0" /></font>
+                  </Button>
+                  <Button onAction="#handleAddProduct" prefHeight="45.0" style="-fx-background-color: #0d94aa; -fx-background-radius: 8; -fx-text-fill: white; -fx-cursor: hand;" text="+ Nhập Lô Mới">
+                     <font><Font name="System Bold" size="14.0" /></font>
+                  </Button>
+               </children>
+            </HBox>
+
+            <!-- Thống kê nhanh -->
+            <HBox spacing="20.0">
+               <children>
+                  <VBox prefHeight="80.0" prefWidth="250.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="TỔNG MẶT HÀNG TỒN KHO" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label>
+                        <Label fx:id="lblTotalProducts" text="0" textFill="#0d94aa"><font><Font name="System Bold" size="28.0" /></font></Label>
+                     </children>
+                  </VBox>
+                  <VBox prefHeight="80.0" prefWidth="250.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="SẮP HẾT HÀNG (CẦN NHẬP)" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label>
+                        <Label fx:id="lblLowStock" text="0" textFill="#f97316"><font><Font name="System Bold" size="28.0" /></font></Label>
+                     </children>
+                  </VBox>
+                  <VBox prefHeight="80.0" prefWidth="250.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="CẬN DATE / HẾT HẠN (CẦN XỬ LÝ)" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label>
+                        <Label fx:id="lblExpiring" text="0" textFill="#dc3545"><font><Font name="System Bold" size="28.0" /></font></Label>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+            <VBox style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;" VBox.vgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="15.0">
+                     <children>
+                        <TextField fx:id="txtSearch" prefHeight="40.0" prefWidth="350.0" promptText="🔍 Tìm mã lô, tên thuốc..." style="-fx-background-radius: 8;" />
+                        <ComboBox fx:id="cbCategory" prefHeight="40.0" prefWidth="200.0" />
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onBtnXuatExcelClick" prefHeight="40.0" style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="⬇ Xuất Báo Cáo Tồn Kho" />
+                     </children>
+                     <VBox.margin><Insets bottom="15.0" /></VBox.margin>
+                  </HBox>
+                  <TableView fx:id="tableProduct" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="colId" prefWidth="80.0" text="Mã SP" />
+                        <TableColumn fx:id="colName" prefWidth="180.0" text="Tên thuốc / Vật tư" />
+                        <TableColumn fx:id="colActiveIngredient" prefWidth="180.0" text="Hoạt chất" />
+                        <TableColumn fx:id="colCategory" prefWidth="130.0" text="Nhóm" />
+                        <TableColumn fx:id="colUnit" prefWidth="70.0" text="ĐVT" />
+                        <TableColumn fx:id="colQuantity" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Tồn kho" />
+                        <TableColumn fx:id="colExpiryDate" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Hạn dùng" />
+                        <TableColumn fx:id="colStatus" prefWidth="100.0" style="-fx-alignment: CENTER;" text="Tình trạng" />
+                     </columns>
+                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                  </TableView>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+
+      <!-- ================= FIX MODAL NHẬP KHO ================= -->
+      <StackPane fx:id="modalNhapKho" visible="false" style="-fx-background-color: rgba(0,0,0,0.6);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
+               <children>
+                  <HBox alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="📦 Lập Phiếu Nhập Lô Mới" textFill="#0d94aa"><font><Font name="System Bold" size="20.0" /></font></Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onBtnHideModals" style="-fx-background-color: transparent; -fx-cursor: hand;" text="✕"><font><Font size="18.0" /></font></Button>
+                     </children>
+                  </HBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Tên thuốc / Sản phẩm *" />
+                        <TextField fx:id="txtTenThuocImport" prefHeight="40.0" promptText="Nhập tên thuốc..." />
+                     </children>
+                  </VBox>
+                  <GridPane hgap="15.0" vgap="15.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <VBox spacing="5.0">
+                           <children><Label text="Nhà cung cấp *" /><ComboBox fx:id="cbNhaCungCapImport" prefHeight="40.0" prefWidth="300.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1">
+                           <children><Label text="Mã lô (Batch No.) *" /><TextField fx:id="txtMaLoImport" prefHeight="40.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.rowIndex="1">
+                           <children><Label text="Hạn sử dụng (EXP Date) *" /><DatePicker fx:id="dpHanSuDungImport" prefHeight="40.0" prefWidth="300.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children><Label text="Ngày sản xuất (MFG Date)" /><DatePicker fx:id="dpNgaySanXuatImport" prefHeight="40.0" prefWidth="300.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.rowIndex="2">
+                           <children><Label text="Số lượng nhập *" /><TextField fx:id="txtSoLuongImport" prefHeight="40.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                           <children><Label text="Giá tiền nhập (VNĐ) *" /><TextField fx:id="txtGiaNhapImport" prefHeight="40.0" /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.rowIndex="3">
+                           <children><Label text="Danh mục *" /><ComboBox fx:id="cbDanhMucImport" prefHeight="40.0" prefWidth="300.0" promptText="Chọn danh mục..." /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                           <children><Label text="Ghi chú" /><TextField fx:id="txtGhiChuImport" prefHeight="40.0" promptText="Ghi chú thêm (nếu có)..." /></children>
+                        </VBox>
+                     </children>
+                  </GridPane>
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                     <children>
+                        <Button onAction="#onBtnHideModals" style="-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-cursor: hand;" text="Hủy bỏ" />
+                        <Button onAction="#onBtnXacNhanNhapKhoClick" prefHeight="45.0" prefWidth="180.0" style="-fx-background-color: #0d94aa; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;" text="Xác nhận nhập kho" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+
+      <!-- ================= FIX MODAL ĐỔI TRẢ (Nới rộng lên 600 và dùng GridPane) ================= -->
+      <StackPane fx:id="modalDoiTra" visible="false" style="-fx-background-color: rgba(0,0,0,0.6);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
+               <children>
+                  <HBox alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="⚠ Lập Phiếu Xuất Trả" textFill="#c2410c"><font><Font name="System Bold" size="20.0" /></font></Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button onAction="#onBtnHideModals" style="-fx-background-color: transparent; -fx-cursor: hand;" text="✕"><font><Font size="18.0" /></font></Button>
+                     </children>
+                  </HBox>
+
+                  <GridPane hgap="15.0" vgap="15.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="65.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <!-- Dòng 1: Mã phiếu nhập & Ngày trả -->
+                        <VBox spacing="5.0">
+                           <children><Label text="Mã phiếu nhập *" /><TextField fx:id="txtMaPhieuNhapReturn" prefHeight="40.0" promptText="VD: PN-2024..." /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1">
+                           <children><Label text="Ngày trả *" /><DatePicker fx:id="dpNgayTraReturn" prefHeight="40.0" prefWidth="300.0" /></children>
+                        </VBox>
+                        
+                        <!-- Dòng 2: Tên sản phẩm & Mã lô -->
+                        <VBox spacing="5.0" GridPane.rowIndex="1">
+                           <children><Label text="Tên sản phẩm *" /><TextField fx:id="txtTenSanPhamReturn" prefHeight="40.0" promptText="Nhập tên sản phẩm..." /></children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children><Label text="Mã lô *" /><TextField fx:id="txtMaLoReturn" prefHeight="40.0" promptText="Nhập mã lô..." /></children>
+                        </VBox>
+
+                        <!-- Dòng 3: Số lượng -->
+                        <VBox spacing="5.0" GridPane.rowIndex="2">
+                           <children><Label text="Số lượng trả *" /><TextField fx:id="txtSoLuongReturn" prefHeight="40.0" promptText="Nhập số lượng..." /></children>
+                        </VBox>
+
+                        <!-- Dòng 4: Lý do trả (kéo dài qua 2 cột) -->
+                        <VBox spacing="5.0" GridPane.rowIndex="3" GridPane.columnSpan="2">
+                           <children>
+                              <Label text="Lý do trả *" />
+                              <TextArea fx:id="txtLyDoReturn" prefHeight="80.0" promptText="Lý do: Hàng lỗi, cận date, không đúng quy cách..." />
+                           </children>
+                        </VBox>
+                     </children>
+                  </GridPane>
+
+                  <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                     <children>
+                        <Button onAction="#onBtnHideModals" prefHeight="40.0" style="-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-cursor: hand;" text="Hủy bỏ" />
+                        <Button onAction="#onBtnXacNhanDoiTraClick" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;" text="Xác nhận tạo phiếu" />
+                     </children>
+                     <VBox.margin><Insets top="10.0" /></VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+   </children>
+</AnchorPane>

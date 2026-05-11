@@ -11,14 +11,15 @@ module com.pharmacy {
 
     // Mở package chứa LoginController (vì nó cũng là controller)
     opens com.pharmacy to javafx.fxml;
-
+    opens com.pharmacy.controller.warehouse;
     // Nếu sau này có controller ở package khác, thêm tiếp:
-    // opens com.pharmacy.controller.sales to javafx.fxml;
-    // opens com.pharmacy.controller.warehouse to javafx.fxml;
+    opens com.pharmacy.controller.sales to javafx.fxml;
+    //opens com.pharmacy.controller.warehouse to javafx.fxml;
 
     // Export các package cần thiết
     exports com.pharmacy;
     exports com.pharmacy.util;
     exports com.pharmacy.model;
+
     // exports com.pharmacy.controller.admin;   // không bắt buộc, nhưng có thể thêm
 }

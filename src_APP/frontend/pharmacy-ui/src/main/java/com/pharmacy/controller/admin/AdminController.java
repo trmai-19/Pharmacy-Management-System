@@ -83,6 +83,11 @@ public class AdminController {
     }
 
     @FXML
+    void showReturnManager(ActionEvent event) {
+        handleMenuClick((Button) event.getSource(), "return-management.fxml", "QUẢN LÝ ĐỔI TRẢ");
+    }
+
+    @FXML
     void showReports(ActionEvent event) {
         handleMenuClick((Button) event.getSource(), "report.fxml", "BÁO CÁO & THỐNG KÊ");
     }

@@ -41,6 +41,8 @@
                     <Button maxWidth="Infinity" onAction="#showEmployeeManager" styleClass="nav-btn" text="👥  QUẢN LÝ NHÂN SỰ" />
                     <Button maxWidth="Infinity" onAction="#showCustomerManager" styleClass="nav-btn" text="🤝  QUẢN LÝ KHÁCH HÀNG" />
                     <Button maxWidth="Infinity" onAction="#showAccountManager" styleClass="nav-btn" text="🔐  QUẢN LÝ TÀI KHOẢN" />
+                    <!-- Đã thêm nút QUẢN LÝ ĐỔI TRẢ ở đây -->
+                    <Button maxWidth="Infinity" onAction="#showReturnManager" styleClass="nav-btn" text="🔄  QUẢN LÝ ĐỔI TRẢ" />
                     <Button maxWidth="Infinity" onAction="#showReports" styleClass="nav-btn" text="📈  BÁO CÁO - THỐNG KÊ" />
                     <Button maxWidth="Infinity" onAction="#showRoleManager" styleClass="nav-btn" text="📈  QUẢN LÝ QUYỀN" />
                 </VBox>
@@ -76,7 +78,7 @@
                     <HBox alignment="CENTER_RIGHT" spacing="25.0">
                         <children>
                             
-                                 <!-- ==================== ICON CHUÔNG THÔNG BÁO (ĐÃ SỬA) ==================== -->
+                                 <!-- ==================== ICON CHUÔNG THÔNG BÁO ==================== -->
 <StackPane fx:id="bellIcon" focusTraversable="false" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;                    -fx-background-color: transparent;                    -fx-focus-color: transparent;                    -fx-faint-focus-color: transparent;">
     <children>
         <Label style="-fx-font-size: 24px; -fx-text-fill: white;" text="🔔" />
@@ -103,12 +105,12 @@
                <AnchorPane>
                   <children>
                               
-                                                                                       <Label fx:id="lblAdminName" layoutY="50.0" style="-fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-font-size: 17px;" text="   Nguyễn Văn Phát" />
+                                                                                                               <Label fx:id="lblAdminName" layoutY="50.0" style="-fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-font-size: 17px;" text="   Nguyễn Văn Phát" />
                      <Label fx:id="lblAdminName1" layoutX="47.0" layoutY="27.0" style="-fx-font-weight: bold; -fx-text-fill: #5EEAD4; -fx-font-size: 17;" text="ADMIN" />
                   </children>
                </AnchorPane>
                         
-                                                                          <!-- Phần mới - khuyến nghị -->
+                                                                                             <!-- Phần mới - khuyến nghị -->
                         <MenuButton fx:id="avatarMenuButton" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;" styleClass="hamburger-menu" text="☰" textFill="WHITE">
                             <items>
                                 <MenuItem onAction="#handleViewProfile" style="-fx-font-size: 14px; -fx-padding: 8 20 8 10;" text="📝 Thông tin tài khoản" />

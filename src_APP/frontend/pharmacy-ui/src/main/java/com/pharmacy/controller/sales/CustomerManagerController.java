@@ -1,4 +1,4 @@
-package com.pharmacy.controller.admin;
+package com.pharmacy.controller.sales;
 
 import com.pharmacy.model.Customer;
 import javafx.collections.FXCollections;

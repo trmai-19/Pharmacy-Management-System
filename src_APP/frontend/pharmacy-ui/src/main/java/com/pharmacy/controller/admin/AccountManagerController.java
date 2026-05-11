@@ -1,6 +1,7 @@
 package com.pharmacy.controller.admin;
 
 import com.pharmacy.model.Account;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -31,15 +32,17 @@ public class AccountManagerController {
     // --- TAB 2: KHÁCH HÀNG WEB ---
     @FXML private TextField txtSearchCust;
     @FXML private Button btnResetPwdCust;
-    @FXML private Button btnLockCust;
+    // Đã bỏ nút btnLockCust (Đình chỉ truy cập)
     @FXML private TableView<Account> tableCustomerAcc;
-    @FXML private TableColumn<Account, String> colCustUser;
+    // Tách thành 2 cột hiển thị
+    @FXML private TableColumn<Account, String> colCustPhone;
+    @FXML private TableColumn<Account, String> colCustEmail;
     @FXML private TableColumn<Account, String> colCustName;
     @FXML private TableColumn<Account, String> colCustRole;
     @FXML private TableColumn<Account, String> colCustStatus;
     @FXML private TableColumn<Account, String> colCustLastLogin;
 
-    // Danh sách dữ liệu chung (hoặc riêng lẻ tùy bạn query từ DB)
+    // Danh sách dữ liệu chung
     private ObservableList<Account> allAccounts;
 
     @FXML
@@ -63,8 +66,25 @@ public class AccountManagerController {
         colEmpStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
         colEmpLastLogin.setCellValueFactory(cellData -> cellData.getValue().lastLoginProperty());
 
-        // Cột cho bảng Khách Hàng Web
-        colCustUser.setCellValueFactory(cellData -> cellData.getValue().usernameProperty());
+        // Cột cho bảng Khách Hàng Web (Tự động phân loại SĐT và Email từ Username)
+        colCustPhone.setCellValueFactory(cellData -> {
+            String user = cellData.getValue().getUsername();
+            // Nếu không có '@' thì đưa vào cột Số điện thoại
+            if (user != null && !user.contains("@")) {
+                return new SimpleStringProperty(user);
+            }
+            return new SimpleStringProperty("-");
+        });
+
+        colCustEmail.setCellValueFactory(cellData -> {
+            String user = cellData.getValue().getUsername();
+            // Nếu có '@' thì đưa vào cột Email
+            if (user != null && user.contains("@")) {
+                return new SimpleStringProperty(user);
+            }
+            return new SimpleStringProperty("-");
+        });
+
         colCustName.setCellValueFactory(cellData -> cellData.getValue().ownerNameProperty());
         colCustRole.setCellValueFactory(cellData -> cellData.getValue().roleProperty());
         colCustStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
@@ -72,6 +92,7 @@ public class AccountManagerController {
     }
 
     private void loadMockData() {
+        // GIỮ NGUYÊN CONSTRUCTOR CŨ CỦA BẠN - KHÔNG CẦN SỬA MODEL ACCOUNT
         allAccounts = FXCollections.observableArrayList(
             // --- DỮ LIỆU NHÂN VIÊN ---
             new Account("admin_phat", "Nguyễn Văn Phát", "Admin Hệ Thống", "Đang hoạt động", "18/04/2026 08:30:00", "EMPLOYEE"),
@@ -89,11 +110,10 @@ public class AccountManagerController {
     }
 
     private void setupSearchFilters() {
-        // 1. Tách danh sách thành 2 luồng: Nhân viên và Khách hàng
-        FilteredList<Account> empData = new FilteredList<>(allAccounts, acc -> acc.getAccountType().equals("EMPLOYEE"));
-        FilteredList<Account> custData = new FilteredList<>(allAccounts, acc -> acc.getAccountType().equals("CUSTOMER"));
+        FilteredList<Account> empData = new FilteredList<>(allAccounts, acc -> "EMPLOYEE".equals(acc.getAccountType()));
+        FilteredList<Account> custData = new FilteredList<>(allAccounts, acc -> "CUSTOMER".equals(acc.getAccountType()));
 
-        // 2. Logic tìm kiếm cho Tab Nhân viên
+        // Logic tìm kiếm cho Tab Nhân viên
         FilteredList<Account> searchEmpData = new FilteredList<>(empData, b -> true);
         txtSearchEmp.textProperty().addListener((observable, oldValue, newValue) -> {
             searchEmpData.setPredicate(acc -> {
@@ -107,7 +127,7 @@ public class AccountManagerController {
         sortedEmpData.comparatorProperty().bind(tableEmployeeAcc.comparatorProperty());
         tableEmployeeAcc.setItems(sortedEmpData);
 
-        // 3. Logic tìm kiếm cho Tab Khách hàng
+        // Logic tìm kiếm cho Tab Khách hàng
         FilteredList<Account> searchCustData = new FilteredList<>(custData, b -> true);
         txtSearchCust.textProperty().addListener((observable, oldValue, newValue) -> {
             searchCustData.setPredicate(acc -> {
@@ -122,51 +142,32 @@ public class AccountManagerController {
         tableCustomerAcc.setItems(sortedCustData);
     }
 
-    // ==========================================
-    // CÁC HÀM XỬ LÝ SỰ KIỆN CHO NÚT BẤM (MỚI THÊM)
-    // ==========================================
-
     private void setupEmployeeActions() {
-        // Nút Cấp lại mật khẩu - NHÂN VIÊN
         btnResetPwdEmp.setOnAction(event -> {
             Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
-            
             if (selectedAcc == null) {
                 showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để cấp lại mật khẩu!");
                 return;
             }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận", 
-                    "Bạn đồng ý cấp lại mật khẩu cho nhân viên [" + selectedAcc.getOwnerName() + "] chứ?"
-            );
-            
+            boolean isConfirm = showConfirmationDialog("Xác nhận", "Bạn đồng ý cấp lại mật khẩu cho nhân viên [" + selectedAcc.getOwnerName() + "] chứ?");
             if (isConfirm) {
                 System.out.println("Đã cấp lại mật khẩu cho NV: " + selectedAcc.getUsername());
-                // TODO: Gọi API hoặc cập nhật database tại đây
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công!");
             }
         });
 
-        // Nút Khóa tài khoản - NHÂN VIÊN
         btnLockEmp.setOnAction(event -> {
             Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
-            
             if (selectedAcc == null) {
                 showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để khóa tài khoản!");
                 return;
             }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận khóa", 
-                    "Bạn có chắc chắn muốn khóa tài khoản nhân viên [" + selectedAcc.getOwnerName() + "] không?"
-            );
+            boolean isConfirm = showConfirmationDialog("Xác nhận khóa", "Bạn có chắc chắn muốn khóa tài khoản nhân viên [" + selectedAcc.getOwnerName() + "] không?");
             if (isConfirm) {
                 System.out.println("Đã khóa tài khoản NV: " + selectedAcc.getUsername());
-                // TODO: Gọi API khóa tài khoản, cập nhật trạng thái
-                    selectedAcc.statusProperty().set("Đã khóa");                
-                    tableEmployeeAcc.refresh(); // Cập nhật lại UI bảng
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã khóa tài khoản nhân viên thành công!");
+                selectedAcc.statusProperty().set("Đã khóa");                
+                tableEmployeeAcc.refresh(); 
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã khóa tài khoản nhân viên thành công!");
             }
         });
     }
@@ -175,63 +176,28 @@ public class AccountManagerController {
         // Nút Cấp lại mật khẩu - KHÁCH HÀNG
         btnResetPwdCust.setOnAction(event -> {
             Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
-            
             if (selectedAcc == null) {
                 showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để cấp lại mật khẩu!");
                 return;
             }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận", 
-                    "Bạn đồng ý cấp lại mật khẩu cho khách hàng [" + selectedAcc.getOwnerName() + "] chứ?"
-            );
-            
+            boolean isConfirm = showConfirmationDialog("Xác nhận", "Bạn đồng ý cấp lại mật khẩu cho khách hàng [" + selectedAcc.getOwnerName() + "] chứ?");
             if (isConfirm) {
                 System.out.println("Đã cấp lại mật khẩu cho KH: " + selectedAcc.getUsername());
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công và gửi thông báo cho khách hàng!");
             }
         });
-
-        // Nút Khóa tài khoản - KHÁCH HÀNG
-        btnLockCust.setOnAction(event -> {
-            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
-            
-            if (selectedAcc == null) {
-                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để đình chỉ truy cập!");
-                return;
-            }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận đình chỉ", 
-                    "Bạn có chắc chắn muốn đình chỉ truy cập web của khách hàng [" + selectedAcc.getOwnerName() + "]?"
-            );
-            if (isConfirm) {
-                System.out.println("Đã đình chỉ KH: " + selectedAcc.getUsername());
-                selectedAcc.statusProperty().set("Đình chỉ truy cập");              
-                tableCustomerAcc.refresh();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đình chỉ truy cập khách hàng thành công!");
-            }
-        });
     }
 
     // --- CÁC HÀM TIỆN ÍCH DÙNG CHUNG ---
-
-    /**
-     * Hiển thị hộp thoại Xác nhận (Yes/No)
-     */
     private boolean showConfirmationDialog(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
-
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    /**
-     * Hiển thị hộp thoại Thông báo (Lỗi, Cảnh báo, Thành công)
-     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

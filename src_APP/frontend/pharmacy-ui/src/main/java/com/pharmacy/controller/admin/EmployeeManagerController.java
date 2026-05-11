@@ -1,6 +1,7 @@
 package com.pharmacy.controller.admin;
 
 import com.pharmacy.model.Employee;
+import com.pharmacy.util.SceneManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -10,8 +11,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-
-import com.pharmacy.util.SceneManager;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.Node;
 
 public class EmployeeManagerController {
 
@@ -48,59 +49,64 @@ public class EmployeeManagerController {
      * 🔍 BỘ MÁY TÌM KIẾM THEO THỜI GIAN THỰC (REAL-TIME FILTERING)
      */
     private void setupSearch() {
-        // 1. Bọc danh sách gốc vào FilteredList (Khởi tạo mặc định là hiển thị tất cả b -> true)
         FilteredList<Employee> filteredData = new FilteredList<>(employeeList, b -> true);
 
-        // 2. Lắng nghe sự thay đổi từng ký tự khi người dùng gõ vào ô tìm kiếm
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(employee -> {
-                // Nếu ô tìm kiếm trống rỗng -> Hiển thị lại toàn bộ nhân viên
                 if (newValue == null || newValue.isEmpty()) {
                     return true;
                 }
 
-                // Chuyển chữ gõ vào thành chữ thường để so sánh không phân biệt hoa/thường
                 String lowerCaseFilter = newValue.toLowerCase();
 
-                // KIỂM TRA ĐIỀU KIỆN TÌM KIẾM
-                // Tìm theo Mã NV (Ví dụ gõ "001" sẽ ra "NV001")
                 if (employee.getId().toLowerCase().contains(lowerCaseFilter)) {
                     return true; 
                 } 
-                // Tìm theo Tên NV (Ví dụ gõ "Phát" sẽ ra "Nguyễn Văn Phát")
                 else if (employee.getName().toLowerCase().contains(lowerCaseFilter)) {
                     return true; 
                 }
-                // Tìm theo Số điện thoại
                 else if (employee.getPhone().toLowerCase().contains(lowerCaseFilter)) {
                     return true;
                 }
 
-                return false; // Không khớp cái nào thì giấu nhân viên này đi
+                return false;
             });
         });
 
-        // 3. Bọc FilteredList vào SortedList để không bị lỗi khi người dùng click vào tiêu đề cột để sắp xếp (Sort A-Z)
         SortedList<Employee> sortedData = new SortedList<>(filteredData);
-
-        // 4. Liên kết quy tắc sắp xếp của SortedList với TableView
         sortedData.comparatorProperty().bind(tableEmployee.comparatorProperty());
-
-        // 5. Đổ dữ liệu cuối cùng vào bảng
         tableEmployee.setItems(sortedData);
     }
 
+    /**
+     * Chuyển hướng sang giao diện thêm nhân viên
+     */
     @FXML
     void openAddEmployeeForm(ActionEvent event) {
+        loadForm(event, "/com/pharmacy/views/admin/add-employee.fxml");
+    }
+
+    /**
+     * 🔥 Chuyển hướng sang giao diện xóa nhân viên
+     */
+    @FXML
+    void openDeleteEmployeeForm(ActionEvent event) {
+        loadForm(event, "/com/pharmacy/views/admin/delete-employee.fxml");
+    }
+
+    /**
+     * Hàm dùng chung để load content vào giao diện chính
+     */
+    private void loadForm(ActionEvent event, String fxmlPath) {
         try {
-            javafx.scene.Node source = (javafx.scene.Node) event.getSource();
-            javafx.scene.layout.AnchorPane adminContentPane = 
-                (javafx.scene.layout.AnchorPane) source.getScene().lookup("#contentPane");
+            Node source = (Node) event.getSource();
+            AnchorPane adminContentPane = (AnchorPane) source.getScene().lookup("#contentPane");
 
             if (adminContentPane != null) {
-                SceneManager.loadContent(adminContentPane, "/com/pharmacy/views/admin/add-employee.fxml");
+                SceneManager.loadContent(adminContentPane, fxmlPath);
             }
         } catch (Exception e) {
+            System.err.println("❌ Lỗi khi load form: " + fxmlPath);
             e.printStackTrace();
         }
     }
@@ -112,6 +118,5 @@ public class EmployeeManagerController {
                 new Employee("NV003", "Lê Minh Tuấn", "Thu ngân", "0912223334", "Nghỉ phép"),
                 new Employee("NV004", "Phạm Hoàng Sơn", "Kiểm kho", "0944555666", "Đang làm việc")
         );
-        // Lưu ý: KHÔNG set items trực tiếp ở đây nữa, vì setupSearch() sẽ đảm nhận việc đổ dữ liệu
     }
 }
