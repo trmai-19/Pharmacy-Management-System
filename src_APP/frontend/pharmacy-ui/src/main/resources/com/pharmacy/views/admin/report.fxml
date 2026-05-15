@@ -12,8 +12,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -353,38 +351,10 @@
                   <Font name="System Bold" size="20.0" />
                </font>
             </Text>
-            <Pane layoutX="6.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #57F4DD; -fx-background-radius: 12;">
-               <children>
-                  <ImageView fitHeight="78.0" fitWidth="143.0" layoutX="-11.0" layoutY="-10.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../icon/performance.png" />
-                     </image>
-                  </ImageView>
-               </children></Pane>
-            <Pane layoutX="106.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
-               <children>
-                  <ImageView fitHeight="58.0" fitWidth="109.0" layoutX="4.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../icon/inventory.png" />
-                     </image>
-                  </ImageView>
-               </children></Pane>
-            <Pane layoutX="6.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
-               <children>
-                  <ImageView fitHeight="78.0" fitWidth="117.0" layoutX="-11.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../icon/customer.png" />
-                     </image>
-                  </ImageView>
-               </children></Pane>
-            <Pane layoutX="106.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
-               <children>
-                  <ImageView fitHeight="58.0" fitWidth="117.0" layoutX="4.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../icon/loss1.png" />
-                     </image>
-                  </ImageView>
-               </children></Pane>
+            <Pane layoutX="6.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #57F4DD; -fx-background-radius: 12;" />
+            <Pane layoutX="106.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;" />
+            <Pane layoutX="6.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;" />
+            <Pane layoutX="106.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;" />
          </children>
       </AnchorPane>
    </children>
