@@ -1,139 +1,391 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.AreaChart?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="900.0" prefWidth="1200.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ReportController">
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="932.0" prefWidth="1211.0" stylesheets="@dashboard-style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ReportController">
    <children>
-      <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="20.0">
+      <AnchorPane fx:id="inventory" prefHeight="925.0" prefWidth="1217.0" style="-fx-background-color: FAFCFC;" visible="false">
          <children>
-            
-            <HBox alignment="CENTER_LEFT" prefHeight="70.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-padding: 0 20;">
+            <Pane prefHeight="923.0" prefWidth="208.0" style="-fx-background-color: #112642; -fx-background-radius: 0;">
                <children>
-                  <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="🔍  THỜI GIAN BÁO CÁO" />
-                  <Region prefWidth="15.0" />
-                  <Region prefWidth="15.0" />
-                  <DatePicker fx:id="dpStartDate" prefHeight="40.0" promptText="Từ ngày..." style="-fx-font-size: 14px;" />
-                  <Label style="-fx-padding: 0 10; -fx-text-fill: #64748b;" text="-" />
-                  <DatePicker fx:id="dpEndDate" prefHeight="40.0" promptText="Đến ngày..." style="-fx-font-size: 14px;" />
-                  <Region prefWidth="15.0" />
-                  <Button onAction="#handleFilter" prefHeight="40.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="THỐNG KÊ">
-                     <padding><Insets left="20" right="20" /></padding>
-                  </Button>
-                  <Region HBox.hgrow="ALWAYS" />
+                  <Text fill="#f2eeee" layoutX="-1.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="DASHBOARD INVENTORY" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                     <font>
+                        <Font name="System Bold" size="25.0" />
+                     </font>
+                  </Text>
+                  <VBox layoutX="1.0" layoutY="87.0" prefHeight="836.0" prefWidth="208.0">
+                     <children>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="INVENTORY" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="CUSTOMER" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="236.0" prefWidth="208.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" text="LOSS" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                     </children>
+                  </VBox>
+               </children>
+            </Pane>
+            <Pane layoutX="216.0" layoutY="154.0" prefHeight="404.0" prefWidth="998.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <TableView fx:id="inven_table" layoutY="2.0" prefHeight="404.0" prefWidth="998.0">
+                    <columns>
+                      <TableColumn prefWidth="75.0" text="C1" />
+                      <TableColumn prefWidth="75.0" text="C2" />
+                    </columns>
+                  </TableView>
+               </children>
+            </Pane>
+            <HBox layoutX="208.0" layoutY="52.0" prefHeight="100.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
+               <children>
+                  <HBox prefHeight="98.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
+                     <children>
+                        <AnchorPane prefHeight="115.0" prefWidth="201.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                     </children>
+                  </HBox>
                </children>
             </HBox>
-
-            <VBox style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);" VBox.vgrow="ALWAYS">
+            <HBox layoutX="207.0" prefHeight="38.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
                <children>
-                  <TabPane prefHeight="500.0" prefWidth="1000.0" style="-fx-background-color: transparent;-fx-focus-color: transparent" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
-                    <tabs>
-                        
-                      <Tab style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10 30;" text="BÁO CÁO BÁN HÀNG">
-                           <content>
-                              <VBox spacing="20.0" style="-fx-padding: 25;">
-                                 <children>
-                                    <HBox spacing="20.0">
-                                       <VBox style="-fx-background-color: linear-gradient(to bottom right, #0ea5e9, #3b82f6); -fx-background-radius: 12; -fx-padding: 20;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: white; -fx-font-weight: bold;" text="TỔNG DOANH THU BÁN RA" />
-                                          <Label fx:id="lblTotalRevenue" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: white;" text="0đ" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #64748b; -fx-font-weight: bold;" text="TỔNG SỐ HÓA ĐƠN" />
-                                          <Label fx:id="lblTotalInvoices" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #334155;" text="0" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #64748b; -fx-font-weight: bold;" text="GIÁ TRỊ TRUNG BÌNH / HÓA ĐƠN" />
-                                          <Label fx:id="lblAvgInvoiceValue" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #10b981;" text="0đ" />
-                                       </VBox>
-                                    </HBox>
-                                    <VBox style="-fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 15;" VBox.vgrow="ALWAYS">
-                                       <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="BIỂU ĐỒ DOANH THU" />
-                                       <LineChart fx:id="revenueChart" prefHeight="350.0" VBox.vgrow="ALWAYS">
-                                         <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
-                                         <yAxis><NumberAxis side="LEFT" /></yAxis>
-                                       </LineChart>
-                                    </VBox>
-                                 </children>
-                              </VBox>
-                           </content>
-                      </Tab>
-                      
-                      <Tab style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10 30;" text="BÁO CÁO NHẬP HÀNG">
-                           <content>
-                              <VBox spacing="20.0" style="-fx-padding: 25;">
-                                 <children>
-                                    <HBox spacing="20.0">
-                                       <VBox style="-fx-background-color: linear-gradient(to bottom right, #f59e0b, #d97706); -fx-background-radius: 12; -fx-padding: 20;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: white; -fx-font-weight: bold;" text="TỔNG TIỀN NHẬP HÀNG" />
-                                          <Label fx:id="lblTotalImportValue" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: white;" text="0đ" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #64748b; -fx-font-weight: bold;" text="SỐ PHIẾU NHẬP" />
-                                          <Label fx:id="lblImportCount" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #334155;" text="0" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #64748b; -fx-font-weight: bold;" text="NHÀ CUNG CẤP LỚN NHẤT" />
-                                          <Label fx:id="lblTopSupplier" style="-fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="-" />
-                                       </VBox>
-                                    </HBox>
-                                    <VBox style="-fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 15;" VBox.vgrow="ALWAYS">
-                                       <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="TOP 5 NHÀ CUNG CẤP(THEO TỔNG GIÁ TRỊ NHẬP)" />
-                                       <BarChart fx:id="supplierChart" legendVisible="false" prefHeight="350.0" VBox.vgrow="ALWAYS">
-                                         <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
-                                         <yAxis><NumberAxis side="LEFT" /></yAxis>
-                                       </BarChart>
-                                    </VBox>
-                                 </children>
-                              </VBox>
-                           </content>
-                      </Tab>
-
-                      <Tab style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10 30;" text="BÁO CÁO ĐỔI TRẢ">
-                           <content>
-                              <VBox spacing="20.0" style="-fx-padding: 25;">
-                                 <children>
-                                    <HBox spacing="20.0">
-                                       <VBox style="-fx-background-color: linear-gradient(to bottom right, #ef4444, #b91c1c); -fx-background-radius: 12; -fx-padding: 20;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: white; -fx-font-weight: bold;" text="GIÁ TRỊ HÀNG BỊ TRẢ" />
-                                          <Label fx:id="lblTotalReturnValue" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: white;" text="0đ" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #ef4444; -fx-font-weight: bold;" text="SỐ LƯỢNG HÀNG BỊ TRẢ" />
-                                          <Label fx:id="lblReturnCount" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #7f1d1d;" text="0" />
-                                       </VBox>
-                                       <VBox style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
-                                          <Label style="-fx-text-fill: #ef4444; -fx-font-weight: bold;" text="TỈ LỆ ĐỔI TRẢ / TỔNG ĐƠN" />
-                                          <Label fx:id="lblReturnRate" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #7f1d1d;" text="0%" />
-                                       </VBox>
-                                    </HBox>
-                                    <VBox style="-fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 15;" VBox.vgrow="ALWAYS">
-                                       <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="THỐNG KÊ LÝ DO TRẢ HÀNG" />
-                                       <PieChart fx:id="returnReasonChart" prefHeight="350.0" VBox.vgrow="ALWAYS" />
-                                    </VBox>
-                                 </children>
-                              </VBox>
-                           </content>
-                      </Tab>
-
-                    </tabs>
-                  </TabPane>
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Tháng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                </children>
-            </VBox>
+            </HBox>
+            <PieChart layoutX="156.0" layoutY="539.0" prefHeight="339.0" prefWidth="342.0" />
+            <Pane layoutX="216.0" layoutY="575.0" prefHeight="339.0" prefWidth="482.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <LineChart prefHeight="339.0" prefWidth="482.0">
+                    <xAxis>
+                      <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis side="LEFT" />
+                    </yAxis>
+                  </LineChart>
+               </children>
+            </Pane>
+            <Pane layoutX="723.0" layoutY="575.0" prefHeight="339.0" prefWidth="482.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart prefHeight="339.0" prefWidth="259.0" />
+                  <PieChart prefHeight="339.0" prefWidth="482.0" />
+                  <StackedBarChart layoutX="-1.0" prefHeight="339.0" prefWidth="482.0">
+                    <xAxis>
+                      <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis side="LEFT" />
+                    </yAxis>
+                  </StackedBarChart>
+               </children>
+            </Pane>
          </children>
-      </VBox>
+      </AnchorPane>
+      <AnchorPane fx:id="customer" prefHeight="925.0" prefWidth="1217.0" style="-fx-background-color: FAFCFC;" visible="false">
+         <children>
+            <Pane prefHeight="923.0" prefWidth="208.0" style="-fx-background-color: #112642; -fx-background-radius: 0;">
+               <children>
+                  <Text fill="#f2eeee" layoutX="-1.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="DASHBOARD PERFORMANCE" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                     <font>
+                        <Font name="System Bold" size="25.0" />
+                     </font>
+                  </Text>
+                  <VBox layoutX="1.0" layoutY="87.0" prefHeight="836.0" prefWidth="208.0">
+                     <children>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="INVENTORY" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="CUSTOMER" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                        <Pane prefHeight="236.0" prefWidth="208.0" style="-fx-border-color: #C2C2C2;">
+                           <children>
+                              <Text fill="#f2eeee" layoutX="3.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" text="LOSS" textAlignment="CENTER" wrappingWidth="201.60000000000002">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </Pane>
+                     </children>
+                  </VBox>
+               </children>
+            </Pane>
+            <Pane layoutX="216.0" layoutY="154.0" prefHeight="378.0" prefWidth="642.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <Label layoutX="14.0" layoutY="14.0" text="Label" />
+               </children>
+            </Pane>
+            <HBox layoutX="208.0" layoutY="52.0" prefHeight="100.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
+               <children>
+                  <HBox prefHeight="98.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
+                     <children>
+                        <AnchorPane prefHeight="115.0" prefWidth="201.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <AnchorPane prefHeight="97.0" prefWidth="210.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+            <HBox layoutX="207.0" prefHeight="38.0" prefWidth="1012.0" style="-fx-background-color: white; -fx-border-color: black;">
+               <children>
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Tháng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+               </children>
+            </HBox>
+            <HBox layoutX="216.0" layoutY="539.0" prefHeight="38.0" prefWidth="661.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <Button mnemonicParsing="false" prefHeight="38.0" prefWidth="158.0" text="Doanh Thu" />
+                  <Button mnemonicParsing="false" prefHeight="38.0" prefWidth="158.0" text="Lợi Nhuận" />
+                  <Button mnemonicParsing="false" prefHeight="38.0" prefWidth="158.0" text="Số tiền thua lỗ " />
+                  <Button mnemonicParsing="false" prefHeight="37.0" prefWidth="165.0" text="Số tiền bỏ ra" />
+                  <Button mnemonicParsing="false" prefHeight="37.0" prefWidth="165.0" text="Số lượng đơn hàng" />
+               </children>
+            </HBox>
+            <Pane layoutX="868.0" layoutY="154.0" prefHeight="378.0" prefWidth="342.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <StackedBarChart layoutX="6.0" layoutY="29.0" prefHeight="339.0" prefWidth="336.0">
+                     <xAxis>
+                        <CategoryAxis side="BOTTOM" />
+                     </xAxis>
+                     <yAxis>
+                        <NumberAxis side="LEFT" />
+                     </yAxis>
+                  </StackedBarChart>
+               </children>
+            </Pane>
+            <Pane layoutX="550.0" layoutY="575.0" prefHeight="339.0" prefWidth="325.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart prefHeight="339.0" prefWidth="326.0" />
+                  <AreaChart layoutY="7.0" prefHeight="339.0" prefWidth="326.0">
+                    <xAxis>
+                      <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis side="LEFT" />
+                    </yAxis>
+                  </AreaChart>
+               </children>
+            </Pane>
+            <Pane layoutX="885.0" layoutY="575.0" prefHeight="339.0" prefWidth="325.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart prefHeight="339.0" prefWidth="326.0" />
+               </children>
+            </Pane>
+            <Pane layoutX="216.0" layoutY="575.0" prefHeight="339.0" prefWidth="325.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart prefHeight="339.0" prefWidth="326.0" />
+                  <AreaChart prefHeight="339.0" prefWidth="326.0">
+                    <xAxis>
+                      <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis side="LEFT" />
+                    </yAxis>
+                  </AreaChart>
+               </children>
+            </Pane>
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="performace" prefHeight="918.0" prefWidth="1219.0" style="-fx-background-color: FAFCFC;">
+         <children>
+            <Pane layoutX="16.0" layoutY="207.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <AreaChart fx:id="trendAreaChart" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="246.0" prefWidth="807.0" title="Area chart: Trend Overtime" verticalGridLinesVisible="false">
+                     <xAxis>
+                        <CategoryAxis side="BOTTOM" />
+                     </xAxis>
+                     <yAxis>
+                        <NumberAxis side="LEFT" />
+                     </yAxis>
+                  </AreaChart>
+               </children>
+            </Pane>
+            <HBox layoutX="208.0" layoutY="10.0" prefHeight="30.0" prefWidth="1011.0" style="-fx-background-color: white; -fx-border-color: black;">
+               <children>
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Tháng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                  <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+               </children>
+            </HBox>
+            <HBox layoutX="16.0" layoutY="176.0" prefHeight="30.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="144.0" text="Doanh Thu" />
+                  <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="154.0" text="Lợi Nhuận" />
+                  <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Số tiền thua lỗ " />
+                  <Button mnemonicParsing="false" prefHeight="31.0" prefWidth="190.0" text="Số tiền bỏ ra" />
+                  <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="171.0" text="Số lượng đơn hàng" />
+               </children>
+            </HBox>
+            <Pane layoutX="833.0" layoutY="178.0" prefHeight="274.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <BarChart fx:id="topProductsBarChart" horizontalGridLinesVisible="false" layoutY="1.0" legendVisible="false" prefHeight="274.0" prefWidth="384.0" title="Bar chart: TOP 5 loại SP lớn nhất" verticalGridLinesVisible="false">
+                    <xAxis>
+                      <CategoryAxis side="LEFT" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis />
+                    </yAxis>
+                  </BarChart>
+               </children>
+            </Pane>
+            <Pane layoutX="358.0" layoutY="466.0" prefHeight="215.0" prefWidth="326.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart fx:id="agePieChart" labelsVisible="false" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
+                  <Circle fill="WHITE" layoutX="132.0" layoutY="117.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+               </children>
+            </Pane>
+            <Pane layoutX="695.0" layoutY="466.0" prefHeight="215.0" prefWidth="521.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart prefHeight="215.0" prefWidth="520.0" title="Treemap theo Đối tượng khách hàng: tự thiết kế" />
+               </children>
+            </Pane>
+            <Pane layoutX="16.0" layoutY="466.0" prefHeight="215.0" prefWidth="326.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+               <children>
+                  <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Gender" />
+                  <Circle fill="WHITE" layoutX="116.0" layoutY="118.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+               </children>
+            </Pane>
+            <Pane layoutX="208.0" layoutY="49.0" prefHeight="123.0" prefWidth="239.0" style="-fx-border-color: #C2C2C2;">
+               <children>
+                  <AnchorPane fx:id="lblTotalOrders" layoutY="23.0" prefHeight="100.0" prefWidth="239.0" />
+                  <Label layoutX="7.0" layoutY="6.0" prefHeight="17.0" prefWidth="190.0" text="Total Orders" />
+               </children></Pane>
+            <Pane layoutX="467.0" layoutY="49.0" prefHeight="123.0" prefWidth="239.0" style="-fx-border-color: #C2C2C2;">
+               <children>
+                  <AnchorPane fx:id="lblProfit" layoutY="20.0" prefHeight="100.0" prefWidth="239.0" />
+                  <Label layoutX="7.0" layoutY="3.0" prefHeight="17.0" prefWidth="190.0" text="Profit" />
+               </children></Pane>
+            <Pane layoutX="725.0" layoutY="49.0" prefHeight="123.0" prefWidth="239.0" style="-fx-border-color: #C2C2C2;">
+               <children>
+                  <AnchorPane fx:id="lblSpend" layoutY="20.0" prefHeight="100.0" prefWidth="239.0" />
+                  <Label layoutX="7.0" layoutY="3.0" prefHeight="17.0" prefWidth="190.0" text="Spend" />
+               </children></Pane>
+            <Pane layoutX="977.0" layoutY="49.0" prefHeight="123.0" prefWidth="239.0" style="-fx-border-color: #C2C2C2;">
+               <children>
+                  <AnchorPane fx:id="lblLoss" layoutY="20.0" prefHeight="100.0" prefWidth="239.0" />
+                  <Label layoutX="7.0" layoutY="3.0" prefHeight="17.0" prefWidth="190.0" text="Loss" />
+               </children></Pane>
+            <Text layoutX="5.0" layoutY="40.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="202.39999999999986">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Text>
+            <Pane layoutX="6.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #57F4DD; -fx-background-radius: 12;">
+               <children>
+                  <ImageView fitHeight="78.0" fitWidth="143.0" layoutX="-11.0" layoutY="-10.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../icon/performance.png" />
+                     </image>
+                  </ImageView>
+               </children></Pane>
+            <Pane layoutX="106.0" layoutY="49.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
+               <children>
+                  <ImageView fitHeight="58.0" fitWidth="109.0" layoutX="4.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../icon/inventory.png" />
+                     </image>
+                  </ImageView>
+               </children></Pane>
+            <Pane layoutX="6.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
+               <children>
+                  <ImageView fitHeight="78.0" fitWidth="117.0" layoutX="-11.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../icon/customer.png" />
+                     </image>
+                  </ImageView>
+               </children></Pane>
+            <Pane layoutX="106.0" layoutY="111.0" prefHeight="58.0" prefWidth="94.0" style="-fx-background-color: #E6E6E6; -fx-background-radius: 12;">
+               <children>
+                  <ImageView fitHeight="58.0" fitWidth="117.0" layoutX="4.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../icon/loss1.png" />
+                     </image>
+                  </ImageView>
+               </children></Pane>
+         </children>
+      </AnchorPane>
    </children>
-</AnchorPane>
+</StackPane>

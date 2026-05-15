@@ -4,9 +4,12 @@ module com.pharmacy {
     requires transitive javafx.graphics;
     requires java.net.http;
     requires transitive javafx.base;
+    requires com.google.gson;
+    // Mở folder dto cho Gson dùng reflection để gán dữ liệu
+    opens com.pharmacy.dto to com.google.gson;
 
     // Mở tất cả package chứa Controller cho JavaFX FXMLLoader
-    opens com.pharmacy.controller.admin to javafx.fxml;
+    opens com.pharmacy.controller.admin to javafx.fxml, javafx.base;
     opens com.pharmacy.controller.common to javafx.fxml;   // nếu có
 
     // Mở package chứa LoginController (vì nó cũng là controller)

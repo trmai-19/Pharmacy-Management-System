@@ -2,134 +2,80 @@ package com.pharmacy.controller.admin;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.chart.*;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
-import java.time.LocalDate;
 
-public class ReportController {
+import java.net.URL;
+import java.util.ResourceBundle;
 
-    // --- BỘ LỌC CHUNG ---
-    // @FXML private ComboBox<String> cbTimeFilter;
-    @FXML private DatePicker dpStartDate;
-    @FXML private DatePicker dpEndDate;
+public class ReportController implements Initializable {
 
-    // --- TAB 1: BÁN HÀNG ---
-    @FXML private Label lblTotalRevenue;
-    @FXML private Label lblTotalInvoices;
-    @FXML private Label lblAvgInvoiceValue;
-    @FXML private LineChart<String, Number> revenueChart;
+    // 1. KHAI BÁO CÁC BIỂU ĐỒ TỪ SCENE BUILDER (Tên biến phải khớp 100% với fx:id)
+    @FXML private AreaChart<String, Number> trendAreaChart;
+    @FXML private BarChart<String, Number> topProductsBarChart;
+    @FXML private PieChart genderPieChart;
+    @FXML private PieChart agePieChart;
 
-    // --- TAB 2: NHẬP HÀNG ---
-    @FXML private Label lblTotalImportValue;
-    @FXML private Label lblImportCount;
-    @FXML private Label lblTopSupplier;
-    @FXML private BarChart<String, Number> supplierChart; 
-
-    // --- TAB 3: ĐỔI TRẢ ---
-    @FXML private Label lblTotalReturnValue;
-    @FXML private Label lblReturnCount;
-    @FXML private Label lblReturnRate;
-    @FXML private PieChart returnReasonChart;
-
-    @FXML
-    public void initialize() {
-        System.out.println("📊 Nạp giao diện Báo Cáo có 3 Tab Con...");
-
-        // Khởi tạo bộ lọc thời gian
-        // cbTimeFilter.setItems(FXCollections.observableArrayList("Theo Ngày", "Theo Tuần", "Theo Tháng", "Tùy Chỉnh"));
-        // cbTimeFilter.getSelectionModel().select("Theo Tuần");
-        dpStartDate.setValue(LocalDate.now().minusDays(7));
-        dpEndDate.setValue(LocalDate.now());
-
-        // Chạy hàm nạp dữ liệu cho cả 3 Tab
-        loadAllData();
+    // 2. HÀM KHỞI CHẠY (Chạy ngay khi mở Tab Báo cáo)
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        loadTrendAreaChart();
+        loadTopProductsBarChart();
+        loadGenderPieChart();
+        loadAgePieChart();
     }
 
-    @FXML
-    void handleFilter(ActionEvent event) {
-        System.out.println("🔄 Đang truy xuất Database từ " + dpStartDate.getValue() + " đến " + dpEndDate.getValue());
-        loadAllData(); // Tái nạp dữ liệu dựa trên ngày
-    }
-
-    @FXML
-    void handleExport(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Xuất Excel");
-        alert.setHeaderText("Tải Báo Cáo Toàn Diện");
-        alert.setContentText("Đang tổng hợp dữ liệu Bán Hàng, Nhập Hàng và Đổi Trả thành 3 sheet Excel...");
-        alert.showAndWait();
-    }
-
-    private void loadAllData() {
-        loadSalesTab();
-        loadImportTab();
-        loadReturnTab();
-    }
-
-    // =====================================
-    // HÀM NẠP DỮ LIỆU TAB 1 (BÁN HÀNG)
-    // =====================================
-    private void loadSalesTab() {
-        lblTotalRevenue.setText("245.800.000đ");
-        lblTotalInvoices.setText("1,452");
-        lblAvgInvoiceValue.setText("169.200đ");
-
-        revenueChart.getData().clear();
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Doanh thu (Triệu VNĐ)");
+    // 3. CÁC HÀM ĐỔ DỮ LIỆU CHO TỪNG BIỂU ĐỒ
+    
+    private void loadTrendAreaChart() {
+        trendAreaChart.getData().clear(); // Xóa dữ liệu cũ (nếu có)
         
-        series.getData().add(new XYChart.Data<>("Thứ 2", 12.5));
-        series.getData().add(new XYChart.Data<>("Thứ 3", 18.2));
-        series.getData().add(new XYChart.Data<>("Thứ 4", 15.0));
-        series.getData().add(new XYChart.Data<>("Thứ 5", 24.5));
-        series.getData().add(new XYChart.Data<>("Thứ 6", 21.3));
-        series.getData().add(new XYChart.Data<>("Thứ 7", 35.8));
-        series.getData().add(new XYChart.Data<>("Chủ Nhật", 28.5));
-
-        revenueChart.getData().add(series);
-    }
-
-    // =====================================
-    // HÀM NẠP DỮ LIỆU TAB 2 (NHẬP HÀNG)
-    // =====================================
-    private void loadImportTab() {
-        lblTotalImportValue.setText("180.500.000đ");
-        lblImportCount.setText("24 Phiếu");
-        lblTopSupplier.setText("Dược Hậu Giang");
-
-        supplierChart.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Tiền Nhập (Triệu VNĐ)");
+        series.setName("Doanh thu 2026");
 
-        // Biểu đồ cột đứng: Trục X (Nhà cung cấp), Trục Y (Tiền)
-        series.getData().add(new XYChart.Data<>("Dược Hậu Giang", 85.5));
-        series.getData().add(new XYChart.Data<>("Sanofi VN", 42.0));
-        series.getData().add(new XYChart.Data<>("Traphaco", 28.4));
-        series.getData().add(new XYChart.Data<>("AstraZeneca", 15.6));
-        series.getData().add(new XYChart.Data<>("Khác", 9.0));
+        // Thêm dữ liệu giả vào biểu đồ đường/vùng
+        series.getData().add(new XYChart.Data<>("Tháng 1", 12000000));
+        series.getData().add(new XYChart.Data<>("Tháng 2", 15000000));
+        series.getData().add(new XYChart.Data<>("Tháng 3", 11000000));
+        series.getData().add(new XYChart.Data<>("Tháng 4", 18000000));
+        series.getData().add(new XYChart.Data<>("Tháng 5", 22000000));
 
-        supplierChart.getData().add(series);
+        trendAreaChart.getData().add(series);
     }
 
-    // =====================================
-    // HÀM NẠP DỮ LIỆU TAB 3 (ĐỔI TRẢ)
-    // =====================================
-    private void loadReturnTab() {
-        lblTotalReturnValue.setText("1.250.000đ");
-        lblReturnCount.setText("18 Sản Phẩm");
-        lblReturnRate.setText("1.2%"); // = (18 / 1452)*100
+    private void loadTopProductsBarChart() {
+        topProductsBarChart.getData().clear();
+        
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Số lượng bán");
 
-        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList(
-                new PieChart.Data("Khách dị ứng thuốc (30%)", 30),
-                new PieChart.Data("Sản phẩm cận Date (40%)", 40),
-                new PieChart.Data("Bán sai toa bác sĩ (15%)", 15),
-                new PieChart.Data("Lỗi vỏ hộp/móp méo (15%)", 15)
+        // Thêm dữ liệu giả vào biểu đồ cột
+        series.getData().add(new XYChart.Data<>("Panadol", 500));
+        series.getData().add(new XYChart.Data<>("Vitamin C", 420));
+        series.getData().add(new XYChart.Data<>("Khẩu trang", 350));
+        series.getData().add(new XYChart.Data<>("Nước muối", 300));
+        series.getData().add(new XYChart.Data<>("Bông y tế", 150));
+
+        topProductsBarChart.getData().add(series);
+    }
+
+    private void loadGenderPieChart() {
+        // Dữ liệu cho biểu đồ tròn
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data("Nam (45%)", 45),
+                new PieChart.Data("Nữ (55%)", 55)
         );
-        returnReasonChart.setData(pieData);
+        genderPieChart.setData(pieChartData);
+    }
+
+    private void loadAgePieChart() {
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data("18-24", 15),
+                new PieChart.Data("25-34", 40),
+                new PieChart.Data("35-44", 25),
+                new PieChart.Data("45+", 20)
+        );
+        agePieChart.setData(pieChartData);
     }
 }

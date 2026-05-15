@@ -1,0 +1,78 @@
+/* 1. CHỈNH BIỂU ĐỒ BAR: Viền đen, đậm hơn */
+.chart-bar {
+    -fx-border-color: #111111; /* Màu viền đen đậm */
+    -fx-border-width: 1.5px;     /* Độ dày của viền */
+}
+
+/* Tùy chọn: Nếu muốn viền bo góc nhẹ cho hiện đại */
+.chart-bar {
+    -fx-background-radius: 3px 3px 0 0;
+    -fx-border-radius: 3px 3px 0 0;
+}
+
+/* 2. CHỈNH BIỂU ĐỒ AREA: Đường line bự hơn */
+.chart-series-area-line {
+    -fx-stroke-width: 3px; /* Mặc định là khoảng 2px, tăng lên 4px sẽ rất rõ */
+}
+
+/* (Bonus) Làm mờ bớt cái phần nền cam ở dưới để cái đường line nổi bật hơn */
+.chart-series-area-fill {
+    -fx-opacity: 0.3; 
+}
+
+/* Phóng to các dấu chấm trên biểu đồ Area */
+.chart-area-symbol {
+    -fx-padding: 7px; /* Mặc định là khoảng 3-4px, tăng lên 7px sẽ làm nút to rõ hơn */
+    -fx-background-radius: 7px; /* Bo tròn hoàn hảo */
+}
+
+/* Tùy chọn: Làm cho cái nút tròn có viền trắng cho nổi bật trên nền cam */
+.chart-area-symbol {
+    -fx-background-color: #ffffff, #ff6600; /* Màu trắng ở ngoài, màu cam ở trong */
+    -fx-background-insets: 0, 2; /* Tạo hiệu ứng viền trắng dày 2px */
+}
+
+/* --- 1. MÀU XANH NGỌC CHO AREA VÀ BAR CHART --- */
+/* Màu cho cột (Bar) */
+.default-color0.chart-bar {
+    -fx-bar-fill: #00bfa5; /* Xanh ngọc */
+}
+
+/* Màu cho đường Line (Area) */
+.default-color0.chart-series-area-line {
+    -fx-stroke: #00bfa5;
+}
+
+/* Màu cho vùng đổ bóng dưới Line (Area) - tớ để độ trong suốt 0.3 cho đẹp */
+.default-color0.chart-series-area-fill {
+    -fx-fill: rgba(0, 191, 165, 0.3);
+}
+
+/* Màu cho nút tròn (Symbol) trên Area Chart */
+.default-color0.chart-area-symbol {
+    -fx-background-color: #ffffff, #00bfa5; /* Viền trắng, ruột xanh ngọc */
+}
+
+
+/* --- 2. MÀU CHO PIE CHART (GENDER & AGE) --- */
+/* JavaFX dùng thứ tự default-color0, 1, 2... để đổ màu cho từng miếng bánh */
+
+/* Màu 1: Xanh ngọc (Nam / Nhóm tuổi 1) */
+.default-color0.chart-pie { -fx-pie-color: #00bfa5; }
+
+/* Màu 2: Tím (Nữ / Nhóm tuổi 2) */
+.default-color1.chart-pie { -fx-pie-color: #460aad; }
+
+/* Màu 3: Xanh dương (Nhóm tuổi 3) */
+.default-color2.chart-pie { -fx-pie-color: #2979ff; }
+
+/* Màu 4: Xám (Nhóm tuổi 4) */
+.default-color3.chart-pie { -fx-pie-color: #b0bec5; }
+
+
+/* --- 3. ĐỒNG BỘ MÀU CHO CHÚ THÍCH (LEGEND) --- */
+/* Phải chỉnh cả cái ô vuông nhỏ ở phần Legend thì nhìn mới chuyên nghiệp được */
+.default-color0.chart-legend-item-symbol { -fx-background-color: #00bfa5; }
+.default-color1.chart-legend-item-symbol { -fx-background-color: #9c27b0; }
+.default-color2.chart-legend-item-symbol { -fx-background-color: #2979ff; }
+.default-color3.chart-legend-item-symbol { -fx-background-color: #b0bec5; }
