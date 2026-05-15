@@ -13,6 +13,7 @@
 <?import javafx.scene.shape.Circle?>
 
 <!-- SỬA TẠI ĐÂY: Trỏ về đúng controller của warehouse -->
+
 <AnchorPane prefHeight="800.0" prefWidth="1150.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.sales.EditProfileController">
     <children>
         <VBox alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -25,7 +26,7 @@
                                 <StackPane><Circle fill="#ccfbf1" radius="60.0" /><Label style="-fx-font-size: 55px;" text="📦" /></StackPane>
                                 <Label fx:id="lblFullNameCard" style="-fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="Nguyễn Văn Phát" />
                                 <!-- SỬA TẠI ĐÂY: Hiển thị đúng vai trò -->
-                                <Label style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-padding: 5 15; -fx-background-radius: 20;" text="Nhân viên kho" />
+                                <Label style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-padding: 5 15; -fx-background-radius: 20;" text="Nhân viên bán hàng" />
                                 <Region prefHeight="15.0" />
                             </children>
                         </VBox>

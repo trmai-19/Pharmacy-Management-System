@@ -43,10 +43,6 @@ public class SupplierReturnServiceImpl implements SupplierReturnService {
             throw new RuntimeException("Lỗi: Không tìm thấy phiếu nhập kho gốc có mã: " + request.getMapn());
         }
 
-        if (supplierReturnRepository.existsByMapn(request.getMapn())) {
-            throw new RuntimeException("Lỗi: Phiếu nhập này đã được hoàn trả trước đó. Chỉ được trả duy nhất 1 lần!");
-        }
-
         List<ImportReceiptDetail> originalDetails = importReceiptDetailRepository.findByMapn(request.getMapn());
         if (originalDetails.isEmpty()) {
             throw new RuntimeException("Lỗi: Phiếu nhập gốc không có dữ liệu sản phẩm để đối soát!");

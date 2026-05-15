@@ -34,7 +34,6 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
-    private final InvoiceMapper invoiceMapper;
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional

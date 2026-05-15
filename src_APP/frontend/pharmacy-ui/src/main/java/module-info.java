@@ -4,7 +4,7 @@ module com.pharmacy {
     requires transitive javafx.graphics;
     requires java.net.http;
     requires transitive javafx.base;
-
+    requires com.fasterxml.jackson.databind;
     // Mở tất cả package chứa Controller cho JavaFX FXMLLoader
     opens com.pharmacy.controller.admin to javafx.fxml;
     opens com.pharmacy.controller.common to javafx.fxml;   // nếu có

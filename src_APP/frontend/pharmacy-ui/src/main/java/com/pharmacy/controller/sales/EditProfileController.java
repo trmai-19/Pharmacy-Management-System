@@ -1,5 +1,7 @@
-package com.pharmacy.controller.sales; // Đã đổi package
+package com.pharmacy.controller.sales;
 
+import com.pharmacy.model.User;
+import com.pharmacy.util.Session;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,15 +26,38 @@ public class EditProfileController {
         
         cbGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
         
-        // Data mẫu cho Sales
-        lblFullNameCard.setText("NGUYỄN VĂN PHÁT");
-        txtName.setText("Nguyễn Văn Phát");
-        cbGender.setValue("Nam");
-        dpBirthDate.setValue(LocalDate.of(2004, 1, 1));
-        txtPhone.setText("0987.654.321");
-        txtEmail.setText("sales.phat@pharmacy.com"); // Đổi email demo thành sales
-        txtRole.setText("Nhân viên bán hàng (Sales)"); // Đổi role
-        txtJoinDate.setText("15/10/2023");
+        // LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP TỪ SESSION
+        User currentUser = Session.getCurrentUser();
+        
+        if (currentUser != null) {
+            // Đổ dữ liệu thật lên form
+            lblFullNameCard.setText(currentUser.getFullName().toUpperCase());
+            txtName.setText(currentUser.getFullName());
+            txtPhone.setText(currentUser.getUsername());
+            
+            // Xử lý hiển thị Role
+            String roleDisplay = "Nhân viên bán hàng (Sales)";
+            if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+                roleDisplay = "Quản trị viên (Admin)";
+            } else if ("WAREHOUSE_STAFF".equalsIgnoreCase(currentUser.getRole())) {
+                roleDisplay = "Nhân viên Kho";
+            }
+            txtRole.setText(roleDisplay);
+
+            // Set rỗng các trường chưa có dữ liệu trong Session
+            cbGender.setValue(null);
+            dpBirthDate.setValue(null);
+            txtEmail.setText("");
+            txtJoinDate.setText("");
+            
+            // BẢO MẬT: Không cho phép tự ý sửa SĐT (Username) và Chức vụ (Role)
+            txtPhone.setEditable(false);
+            txtPhone.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #64748b;"); // Làm xám ô SĐT
+            txtRole.setEditable(false);
+            txtRole.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #64748b;"); // Làm xám ô Role
+            txtJoinDate.setEditable(false);
+            txtJoinDate.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #64748b;");
+        }
     }
 
     @FXML
@@ -44,10 +69,13 @@ public class EditProfileController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            
+            // TODO: Ở đây sau này sẽ gọi ApiService.post(...) hoặc put để gửi dữ liệu lên Backend
+            
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Thành công");
             success.setHeaderText(null);
-            success.setContentText("Dữ liệu bán hàng đã được cập nhật an toàn.");
+            success.setContentText("Dữ liệu cá nhân đã được cập nhật an toàn.");
             success.showAndWait();
             
             returnToView(event);
@@ -62,18 +90,16 @@ public class EditProfileController {
     private void returnToView(ActionEvent event) {
         try {
             javafx.scene.Node source = (javafx.scene.Node) event.getSource();
-            // Đổi tên biến từ adminContentPane thành salesContentPane cho đúng ngữ cảnh
             javafx.scene.layout.AnchorPane salesContentPane = 
                 (javafx.scene.layout.AnchorPane) source.getScene().lookup("#contentPane");
 
             if (salesContentPane != null) {
-                // ĐÃ ĐỔI: Đường dẫn view từ /admin/ sang /sales/
                 com.pharmacy.util.SceneManager.loadContent(salesContentPane, "/com/pharmacy/views/sales/profile.fxml");
             } else {
-                System.err.println("❌ Lỗi: Không tìm thấy khung #contentPane của Sales.");
+                System.err.println("Lỗi: Không tìm thấy khung #contentPane của Sales.");
             }
         } catch (Exception e) {
-            System.err.println("❌ Lỗi khi quay lại trang Profile Sales.");
+            System.err.println("Lỗi khi quay lại trang Profile Sales.");
             e.printStackTrace();
         }
     }

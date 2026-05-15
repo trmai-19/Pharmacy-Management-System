@@ -184,7 +184,8 @@ BEGIN
     END IF;
 
     UPDATE HOADON 
-    SET TONGTIEN = NVL(TONGTIEN, 0) + v_diff
+    SET TONGTIEN = NVL(TONGTIEN, 0) + v_diff,
+        TIENTHANHTOAN = (NVL(TONGTIEN, 0) + v_diff) - NVL(DIEMSUDUNG, 0)
     WHERE MAHD = v_mahd;
 END;
 /
@@ -199,8 +200,9 @@ DECLARE
     v_masp VARCHAR2(20);
     v_trangthai_sp VARCHAR2(50);
 BEGIN
+    -- 1. Lấy thông tin lô hàng và mã sản phẩm
     BEGIN
-        SELECT SLSP, HSD INTO v_ton_kho, v_hsd
+        SELECT SLSP, HSD, MASP INTO v_ton_kho, v_hsd, v_masp
         FROM LOSANPHAM 
         WHERE MALO = :NEW.MALO
         FOR UPDATE;
@@ -209,27 +211,33 @@ BEGIN
             RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Mã lô ' || :NEW.MALO || ' không tồn tại!');
     END;
 
+    -- 2. Kiểm tra trạng thái sản phẩm (có xử lý Exception)
     BEGIN
         SELECT TRANGTHAI INTO v_trangthai_sp
         FROM SANPHAM
         WHERE MASP = v_masp;
         
         IF v_trangthai_sp = 'NGUNG_BAN' THEN
-            RAISE_APPLICATION_ERROR(-20014, 'Lỗi: Sản phẩm này đã ngừng kinh doanh, không thể lập hóa đơn!');
+            RAISE_APPLICATION_ERROR(-20014, 'Lỗi: Sản phẩm này đã ngừng kinh doanh!');
         END IF;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN 
+            NULL; -- Bỏ qua nếu không tìm thấy cấu hình sản phẩm
     END;
 
+    -- 3. Kiểm tra hạn sử dụng
     IF v_hsd < TRUNC(SYSDATE) THEN
-        RAISE_APPLICATION_ERROR(-20013, 'Lỗi: Thuốc thuộc lô ' || :NEW.MALO || ' đã hết hạn sử dụng!');
+        RAISE_APPLICATION_ERROR(-20013, 'Lỗi: Thuốc thuộc lô ' || :NEW.MALO || ' đã hết hạn!');
     END IF;
 
+    -- 4. Kiểm tra tồn kho
     IF INSERTING THEN
         IF :NEW.SL > v_ton_kho THEN
             RAISE_APPLICATION_ERROR(-20011, 'Lỗi: Không đủ hàng trong kho! (Tồn: ' || v_ton_kho || ')');
         END IF;
     ELSIF UPDATING THEN
         IF (:NEW.SL - :OLD.SL) > v_ton_kho THEN
-            RAISE_APPLICATION_ERROR(-20012, 'Lỗi: Số lượng cập nhật vượt quá tồn kho hiện tại!');
+            RAISE_APPLICATION_ERROR(-20012, 'Lỗi: Số lượng cập nhật vượt quá tồn kho!');
         END IF;
     END IF;
 END;
@@ -797,21 +805,26 @@ END;
 CREATE OR REPLACE TRIGGER TRG_RETURN_DIEMTL
 AFTER UPDATE OF TONGTIENHOAN ON PHIEUTRA_KH
 FOR EACH ROW
-WHEN (NEW.TONGTIENHOAN > 0 AND OLD.TONGTIENHOAN = 0)
 DECLARE
     v_makh VARCHAR2(20);
     v_diem_can_tru NUMBER;
+    v_diff NUMBER;
 BEGIN
-    SELECT MAKH INTO v_makh 
-    FROM HOADON 
-    WHERE MAHD = :NEW.MAHD;
+    -- Tính tiền hoàn chênh lệch so với trước đó
+    v_diff := NVL(:NEW.TONGTIENHOAN, 0) - NVL(:OLD.TONGTIENHOAN, 0);
+    
+    IF v_diff > 0 THEN
+        SELECT MAKH INTO v_makh 
+        FROM HOADON 
+        WHERE MAHD = :NEW.MAHD;
 
-    v_diem_can_tru := FLOOR(NVL(:NEW.TONGTIENHOAN, 0) * 0.01);
+        v_diem_can_tru := FLOOR(v_diff * 0.01);
 
-    IF v_diem_can_tru > 0 THEN
-        INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
-        VALUES (v_makh, :NEW.MAHD, 'TRU_DIEM', -v_diem_can_tru, SYSDATE, 
-                'Thu hồi điểm do trả hàng đơn ' || :NEW.MAHD);
+        IF v_diem_can_tru > 0 THEN
+            INSERT INTO DIEMTL (MAKH, MAHD, LOAIGD, DIEMTHAYDOI, NGAYGD, GHICHU)
+            VALUES (v_makh, :NEW.MAHD, 'TRU_DIEM', -v_diem_can_tru, SYSDATE, 
+                    'Thu hồi điểm do trả hàng đơn ' || :NEW.MAHD);
+        END IF;
     END IF;
 END;
 /
@@ -825,6 +838,7 @@ DECLARE
     v_doanhthu_cu   NUMBER;
     v_tong_moi      NUMBER;
     v_hang_moi      VARCHAR2(50);
+    v_diff          NUMBER := 0;
 BEGIN
     SELECT MAKH INTO v_makh 
     FROM HOADON 
@@ -834,25 +848,27 @@ BEGIN
     FROM KHACHHANG 
     WHERE MAKH = v_makh;
 
-    v_tong_moi := v_doanhthu_cu - NVL(:NEW.TONGTIENHOAN, 0);
-
-    IF v_tong_moi < 0 THEN
-        v_tong_moi := 0;
+    -- Tính toán phần chênh lệch cần trừ
+    IF INSERTING THEN
+        v_diff := NVL(:NEW.TONGTIENHOAN, 0);
+    ELSIF UPDATING THEN
+        v_diff := NVL(:NEW.TONGTIENHOAN, 0) - NVL(:OLD.TONGTIENHOAN, 0);
     END IF;
 
-    IF v_tong_moi < 10000000 THEN
-        v_hang_moi := 'Bạc';
-    ELSIF v_tong_moi < 50000000 THEN
-        v_hang_moi := 'Vàng';
-    ELSE
-        v_hang_moi := 'Kim Cương';
+    v_tong_moi := v_doanhthu_cu - v_diff;
+    IF v_tong_moi < 0 THEN 
+        v_tong_moi := 0; 
+    END IF;
+
+    -- Cập nhật lại hạng
+    IF v_tong_moi < 10000000 THEN v_hang_moi := 'Bạc';
+    ELSIF v_tong_moi < 50000000 THEN v_hang_moi := 'Vàng';
+    ELSE v_hang_moi := 'Kim Cương';
     END IF;
 
     UPDATE KHACHHANG 
-    SET TONGDOANHTHU = v_tong_moi,
-        HANGTV = v_hang_moi
+    SET TONGDOANHTHU = v_tong_moi, HANGTV = v_hang_moi
     WHERE MAKH = v_makh;
-
 END;
 /
 
