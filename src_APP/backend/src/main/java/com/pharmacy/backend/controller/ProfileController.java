@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.pharmacy.backend.dto.ApiResponse;
+import com.pharmacy.backend.dto.ProfileResponse;
 import com.pharmacy.backend.dto.UpdateProfileRequest;
 import com.pharmacy.backend.service.ProfileService;
 
@@ -17,7 +18,17 @@ import lombok.RequiredArgsConstructor;
 public class ProfileController {
 
     private final ProfileService profileService;
+    
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<ProfileResponse>> getProfile() {
+        // Lấy SĐT từ token đã parse trong SecurityContext
+        String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        ProfileResponse profile = profileService.getProfile(currentSdt);
+
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy thông tin thành công!", profile));
+    }
+    
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<Void>> updateProfile(@RequestBody UpdateProfileRequest request) {
         String currentSdt = SecurityContextHolder.getContext().getAuthentication().getName();

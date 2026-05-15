@@ -16,7 +16,7 @@ public class Session {
     public static String getFullName() { return currentUser != null ? currentUser.getFullName() : "Unknown User"; }
     
     public static boolean isLoggedIn() { return currentUser != null && token != null; }
-
+    
     public static void logout() {
         currentUser = null;
         token = null;

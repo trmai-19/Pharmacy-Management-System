@@ -32,4 +32,25 @@ public class ApiService {
                 .build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
+
+    // Hàm gọi PUT
+    public static CompletableFuture<HttpResponse<String>> put(String endpoint, String jsonBody) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + Session.getToken())
+                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public static CompletableFuture<HttpResponse<String>> postPublic(String endpoint, String jsonBody) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Content-Type", "application/json")
+                // KHÔNG gắn header Authorization ở đây
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
 }

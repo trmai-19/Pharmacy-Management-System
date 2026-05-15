@@ -1,15 +1,10 @@
 package com.pharmacy.controller.common;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import com.pharmacy.model.User;
+import com.pharmacy.util.ApiService;
 import com.pharmacy.util.SceneManager;
 import com.pharmacy.util.Session;
 import javafx.application.Platform;
@@ -29,25 +24,17 @@ public class LoginController {
     @FXML private Button btnLogin;
     @FXML private Label lblError;
 
-    // Các công cụ xử lý API và JSON (Bà nhớ fix module-info.java để xài được cái này)
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @FXML
     void initialize() {
-        // --- 1. SỬA LỖI KHÔNG FULL MÀN HÌNH ---
         leftPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.45));
         rightPane.prefWidthProperty().bind(rootPane.widthProperty().multiply(0.55));
 
         applyStaticStyle();
-        
         clearError();
-        
         Platform.runLater(() -> btnLogin.requestFocus());
     }
 
     private void applyStaticStyle() {
-        // Style cho TextField & PasswordField (Glassmorphism) - Giữ nguyên của bà
         String inputStyle = "-fx-background-color: rgba(15, 23, 42, 0.6); " +
                             "-fx-text-fill: white; " +
                             "-fx-background-radius: 8; " +
@@ -59,11 +46,9 @@ public class LoginController {
         txtUsername.setStyle(inputStyle);
         txtPassword.setStyle(inputStyle);
 
-        // Hiệu ứng Focus
         setupInputFocus(txtUsername, inputStyle);
         setupInputFocus(txtPassword, inputStyle);
 
-        // Style cho Nút đăng nhập
         String btnStyle = "-fx-background-color: linear-gradient(to right, #00ff9d, #059669); " +
                           "-fx-text-fill: #064e3b; " +
                           "-fx-font-weight: 800; " +
@@ -72,7 +57,6 @@ public class LoginController {
                           "-fx-font-size: 18px;";
         btnLogin.setStyle(btnStyle);
         
-        // Hiệu ứng Hover nút
         btnLogin.setOnMouseEntered(e -> btnLogin.setStyle(btnStyle + "-fx-translate-y: -2; -fx-effect: dropshadow(three-pass-box, rgba(0,255,157,0.4), 15, 0, 0, 0);"));
         btnLogin.setOnMouseExited(e -> btnLogin.setStyle(btnStyle));
     }
@@ -102,7 +86,6 @@ public class LoginController {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
 
-        // Kiểm tra rỗng (Giữ nguyên của bà)
         if(username.isEmpty() && password.isEmpty()) {
             showError("Vui lòng nhập thông tin đăng nhập!");
             return;
@@ -120,83 +103,66 @@ public class LoginController {
         btnLogin.setDisable(true);
         btnLogin.setText("ĐANG XỬ LÝ...");
 
-        // --- LOGIC GỌI API BACKEND MỚI ---
         String jsonBody = String.format("{\"sdt\": \"%s\", \"password\": \"%s\"}", username, password);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/login")) // Địa chỉ API backend
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
-
-        httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> {
-                    Platform.runLater(() -> {
-                        if (response.statusCode() == 200) {
-                            try {
-                                JsonNode rootNode = objectMapper.readTree(response.body());
-                                JsonNode dataNode = rootNode.has("data") ? rootNode.get("data") : rootNode;
-                                
-                                // 1. Lấy Token và Vai trò
-                                String vaitro = dataNode.get("vaitro").asText();
-                                String token = dataNode.get("token").asText();
-                                
-                                // 2. Xử lý logic tên hiển thị (FullName)
-                                String sdt = txtUsername.getText().trim();
-                                
-                                // Lấy họ tên từ backend (nếu có và không bị null)
-                                String hotenBackend = (dataNode.has("hoten") && !dataNode.get("hoten").isNull()) 
-                                                    ? dataNode.get("hoten").asText().trim() 
-                                                    : "";
-                                
-                                String fullName;
-                                if (hotenBackend.isEmpty()) {
-                                    // Nếu tên rỗng, lấy chữ "user" + 5 số đầu của sdt
-                                    // Math.min để chống lỗi văng app nếu sdt lỡ nhập có 3-4 số
-                                    String prefix = sdt.substring(0, Math.min(sdt.length(), 5)); 
-                                    fullName = "user" + prefix;
-                                } else {
-                                    // Nếu có tên thì dùng luôn tên backend trả về
-                                    fullName = hotenBackend;
-                                }
-                                
-                                // 3. LƯU VÀO SESSION
-                                Session.setToken(token);
-                                Session.setCurrentUser(new User(sdt, fullName, vaitro));
-                                
-                                boolean isFirstLogin = dataNode.has("firstLogin") && dataNode.get("firstLogin").asBoolean();
-                                
-                                // Chuyển trang
-                                if (isFirstLogin) {
-                                    navigateToDashboard(vaitro);
-                                } else {
-                                    navigateToDashboard(vaitro);
-                                }
-                                
-                            } catch (Exception e) {
-                                showError("Lỗi đọc dữ liệu từ server!");
-                                resetLoginButton();
-                            }
+        // ĐÃ DÙNG APISERVICE
+        ApiService.postPublic("/api/login", jsonBody).thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode rootNode = ApiService.mapper.readTree(response.body());
+                        JsonNode dataNode = rootNode.has("data") ? rootNode.get("data") : rootNode;
+                        
+                        String vaitro = dataNode.get("vaitro").asText();
+                        String token = dataNode.get("token").asText();
+                        String sdt = txtUsername.getText().trim();
+                        
+                        String hotenBackend = (dataNode.has("hoten") && !dataNode.get("hoten").isNull()) 
+                                            ? dataNode.get("hoten").asText().trim() 
+                                            : "";
+                        
+                        String fullName;
+                        if (hotenBackend.isEmpty()) {
+                            String prefix = sdt.substring(0, Math.min(sdt.length(), 5)); 
+                            fullName = "user" + prefix;
                         } else {
-                            showError("Tài khoản hoặc mật khẩu không chính xác!");
-                            resetLoginButton();
+                            fullName = hotenBackend;
                         }
-                    });
-                })
-                .exceptionally(e -> {
-                    Platform.runLater(() -> {
-                        showError("Lỗi kết nối máy chủ backend!");
+                        
+                        Session.setToken(token);
+                        Session.setCurrentUser(new User(sdt, fullName, vaitro));
+                        
+                        boolean isFirstLogin = dataNode.has("firstLogin") && dataNode.get("firstLogin").asBoolean();
+                        
+                        if (isFirstLogin) {
+                            System.out.println("Tài khoản đăng nhập lần đầu - Chuyển sang trang kích hoạt");
+                            SceneManager.switchScene("/com/pharmacy/views/FirstLogin.fxml");
+                        } else {
+                            navigateToDashboard(vaitro);
+                        }
+                        
+                    } catch (Exception e) {
+                        showError("Lỗi đọc dữ liệu từ server!");
                         resetLoginButton();
-                    });
-                    return null;
-                });
+                    }
+                } else {
+                    showError("Tài khoản hoặc mật khẩu không chính xác!");
+                    resetLoginButton();
+                }
+            });
+        }).exceptionally(e -> {
+            Platform.runLater(() -> {
+                showError("Lỗi kết nối máy chủ backend!");
+                resetLoginButton();
+            });
+            return null;
+        });
     }
 
     private void navigateToDashboard(String role) {
         String path = "";
         String roleLower = role.toLowerCase();
 
-        // Xác định đúng file FXML tổng (Main Dashboard) của từng bộ phận - Giữ nguyên của bà
         switch (roleLower) {
             case "admin":
                 path = "/com/pharmacy/views/admin/admin-main.fxml"; 
@@ -212,17 +178,16 @@ public class LoginController {
         }
 
         try {
-            System.out.println("🚀 Đang chuyển đến: " + path);
+            System.out.println("Đang chuyển đến: " + path);
             SceneManager.switchScene(path);
         } catch (Exception e) {
-            System.err.println("❌ Lỗi chuyển trang cho role: " + role);
+            System.err.println("Lỗi chuyển trang cho role: " + role);
             e.printStackTrace();
             showError("Không tìm thấy giao diện cho quyền: " + role);
             resetLoginButton();
         }
     }
 
-    // Hàm phụ trợ để khôi phục nút bấm khi có lỗi xảy ra
     private void resetLoginButton() {
         btnLogin.setDisable(false);
         btnLogin.setText("VÀO HỆ THỐNG");
