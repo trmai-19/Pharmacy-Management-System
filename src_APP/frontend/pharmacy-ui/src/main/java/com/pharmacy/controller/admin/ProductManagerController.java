@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -15,6 +16,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ProductManagerController {
@@ -160,23 +162,40 @@ public class ProductManagerController {
             return matchCat && matchText;
         });
     }
+    
 
+    
     private void loadData() {
-        // Đúng theo tham số Model Product của m
-        productList = FXCollections.observableArrayList(
-            new Product("SP001", "Panadol Extra", "Paracetamol", "Giảm đau - Hạ sốt", "Vỉ", "500", "01/01/2027", "Bình thường"),
-            new Product("SP002", "Augmentin 625mg", "Amoxicillin", "Kháng sinh", "Hộp", "120", "15/05/2026", "Tốt")
-        );
+        ProductApiClient apiClient = new ProductApiClient();
 
-        categoryList = FXCollections.observableArrayList(
-            new Category("DM01", "Kháng sinh", "Các loại thuốc trị nhiễm khuẩn"),
-            new Category("DM02", "Giảm đau - Hạ sốt", "Thuốc giảm đau thông thường")
-        );
-        tableCategory.setItems(categoryList);
-        
-        lblTotalProducts.setText(String.valueOf(productList.size()));
-        lblLowStock.setText("5");
-    }
+        // Dùng Task để gọi API ngầm, không làm đơ giao diện (image_872fb4.png)
+        Task<List<Product>> task = new Task<>() {
+            @Override
+            protected List<Product> call() throws Exception {
+                return apiClient.fetchAllProducts();
+            }
+        };
+
+        // Khi lấy dữ liệu thành công
+        task.setOnSucceeded(e -> {
+            List<Product> productsFromServer = task.getValue();
+            
+            // Xóa dữ liệu cũ, nạp dữ liệu mới từ Database vào bảng
+            productList.setAll(productsFromServer); 
+            
+            // Cập nhật con số "TỔNG SẢN PHẨM" trên Card màu xanh (ảnh image_872fb4.png)
+            lblTotalProducts.setText(String.valueOf(productList.size()));
+        });
+
+        // Khi xảy ra lỗi (ví dụ Backend chưa bật)
+        task.setOnFailed(e -> {
+    Throwable error = task.getException();
+    error.printStackTrace(); // Xem chi tiết lỗi ở Console (màu đỏ)
+    showAlert("Lỗi hệ thống", "Nguyên nhân: " + error.getMessage());
+});
+
+        new Thread(task).start();
+}
 
     private void loadBatchesForProduct(String productId) {
         ObservableList<Batch> batches = FXCollections.observableArrayList(
@@ -189,7 +208,7 @@ public class ProductManagerController {
     // ==========================================
     // --- XỬ LÝ SỰ KIỆN SẢN PHẨM ---
     // ==========================================
-    
+
     @FXML
     void handleAddProduct(ActionEvent event) {
         Dialog<Product> dialog = new Dialog<>();
