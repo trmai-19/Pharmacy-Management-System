@@ -76,3 +76,88 @@
 .default-color1.chart-legend-item-symbol { -fx-background-color: #9c27b0; }
 .default-color2.chart-legend-item-symbol { -fx-background-color: #2979ff; }
 .default-color3.chart-legend-item-symbol { -fx-background-color: #b0bec5; }
+
+/* Phong cách thẻ KPI có viền cứng cáp, hiện đại */
+.kpi-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;  /* Bo góc nền */
+    
+    /* Thiết lập viền */
+    -fx-border-color: #d1d5db; /* Màu viền xám nhạt (chuẩn UI hiện đại) */
+    -fx-border-width: 1.5px;   /* Độ dày của viền (1.5px nhìn rất sắc nét) */
+    -fx-border-radius: 8;      /* QUAN TRỌNG: Viền cũng phải bo góc bằng với nền */
+    
+    /* Đổ bóng cực nhẹ chỉ để thẻ hơi tách khỏi nền, không bị lố */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 3, 0, 0, 2); 
+}
+
+/* Hiệu ứng khi di chuột qua: Đổi màu viền sang xanh ngọc để người dùng biết thẻ có thể click */
+.kpi-card:hover {
+    -fx-border-color: #00bfa5;
+    -fx-cursor: hand;
+}
+
+/* --- STYLE CHO CỤM SLICER (COMBOBOX) --- */
+.combo-box {
+    -fx-background-color: white; /* Nền trắng sạch sẽ */
+    -fx-border-color: #d1d5db;   /* Viền xám cực nhạt */
+    -fx-border-radius: 0;        /* Bo góc nhẹ */
+    -fx-background-radius: 4;
+    -fx-padding: 2;              /* Khoảng không thở bên trong */
+}
+
+/* Xóa cái hiệu ứng nổi khối (gradient) khi ấn vào ComboBox */
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #374151;      /* Chữ màu xám đậm, sang hơn đen tuyền */
+}
+
+/* Đổi màu mũi tên xổ xuống cho hợp tone xanh ngọc */
+.combo-box .arrow-button .arrow {
+    -fx-background-color: #00bfa5;
+}
+
+/* (Bonus) Khi rê chuột vào ComboBox, viền đổi màu xanh ngọc mờ */
+.combo-box:hover {
+    -fx-border-color: rgba(0, 191, 165, 0.5); 
+}
+
+/* --- STYLE CHO CỤM NÚT BẤM (BUTTON) --- */
+/* Đảm bảo cậu bọc 5 cái nút này trong một cái HBox và set Spacing = 10 trong Scene Builder để chúng cách nhau ra nhé! */
+
+/* TRẠNG THÁI CHÍ MẠNG: Khi nút ĐANG ĐƯỢC CHỌN (Lún xuống) */
+/* JavaFX tự động kích hoạt pseudo-class này khi dùng ToggleGroup */
+/* Style trạng thái bình thường của ToggleButton */
+.toggle-button {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 20;      /* Ép bo tròn góc viền */
+    -fx-background-radius: 20;  /* Ép bo tròn góc nền */
+    -fx-text-fill: #6b7280;
+    -fx-font-weight: bold;
+    -fx-padding: 8 15 8 15;
+    -fx-cursor: hand;
+    
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Khi di chuột qua nút */
+.toggle-button:hover {
+    -fx-background-color: #f3f4f6;
+    -fx-border-color: #00bfa5;
+}
+
+/* Khi nút ĐANG ĐƯỢC CHỌN (Lún xuống) */
+.toggle-button:selected {
+    -fx-background-color: #00bfa5; /* Đổi nền xanh ngọc */
+    -fx-text-fill: white;          /* Chữ trắng */
+    -fx-border-color: #00bfa5;     /* Viền xanh ngọc */
+}
+/* Hiệu ứng khi Nút đang được chọn (Active) */
+/* (Sau này trong code Java, khi người dùng click vào nút nào, cậu sẽ add thêm class "active-btn" cho nút đó) */
+.active-btn {
+    -fx-background-color: #00bfa5; /* Nền xanh ngọc */
+    -fx-text-fill: white;          /* Chữ trắng */
+    -fx-border-color: #00bfa5;
+}

@@ -2,11 +2,16 @@ package com.pharmacy.controller.admin;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.*;
+import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
 
 import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ReportController implements Initializable {
@@ -17,6 +22,11 @@ public class ReportController implements Initializable {
     @FXML private PieChart genderPieChart;
     @FXML private PieChart agePieChart;
 
+    // 1. Khai báo 3 cái "lá bài" (3 AnchorPane)
+    @FXML private AnchorPane panePerformance;
+    @FXML private AnchorPane paneInventory;
+    @FXML private AnchorPane paneCustomer;
+
     // 2. HÀM KHỞI CHẠY (Chạy ngay khi mở Tab Báo cáo)
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -24,6 +34,13 @@ public class ReportController implements Initializable {
         loadTopProductsBarChart();
         loadGenderPieChart();
         loadAgePieChart();
+    }
+
+    // 2. Viết sự kiện khi bấm nút Performance
+    @FXML
+    public void onPerformanceClick(ActionEvent event) {
+        // Lôi pane Performance lên trên cùng
+        panePerformance.toFront();
     }
 
     // 3. CÁC HÀM ĐỔ DỮ LIỆU CHO TỪNG BIỂU ĐỒ
@@ -77,5 +94,23 @@ public class ReportController implements Initializable {
                 new PieChart.Data("45+", 20)
         );
         agePieChart.setData(pieChartData);
+    }
+
+
+
+
+
+    // 3. Sự kiện khi bấm nút Inventory
+    @FXML
+    public void onInventoryClick(ActionEvent event) {
+        // Lôi pane Inventory lên trên cùng
+        paneInventory.toFront();
+    }
+
+    // 4. Sự kiện khi bấm nút Customer
+    @FXML
+    public void onCustomerClick(ActionEvent event) {
+        // Lôi pane Customer lên trên cùng
+        paneCustomer.toFront();
     }
 }
