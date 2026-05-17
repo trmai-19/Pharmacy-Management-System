@@ -113,6 +113,7 @@ public class LoginController {
                         JsonNode rootNode = ApiService.mapper.readTree(response.body());
                         JsonNode dataNode = rootNode.has("data") ? rootNode.get("data") : rootNode;
                         
+                        String manv = dataNode.get("manv").asText();
                         String vaitro = dataNode.get("vaitro").asText();
                         String token = dataNode.get("token").asText();
                         String sdt = txtUsername.getText().trim();
@@ -130,7 +131,7 @@ public class LoginController {
                         }
                         
                         Session.setToken(token);
-                        Session.setCurrentUser(new User(sdt, fullName, vaitro));
+                        Session.setCurrentUser(new User(manv, sdt, fullName, vaitro));
                         
                         boolean isFirstLogin = dataNode.has("firstLogin") && dataNode.get("firstLogin").asBoolean();
                         

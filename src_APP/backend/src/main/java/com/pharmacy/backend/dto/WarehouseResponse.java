@@ -6,9 +6,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryResponse {
+public class WarehouseResponse {
     private String makho;
-    private String malo;
-    private Integer slton;
-    private String dvsp;
+    private String loaikho;
 }

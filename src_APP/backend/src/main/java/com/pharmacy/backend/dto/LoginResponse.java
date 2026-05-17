@@ -6,6 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
+    private String manv;
     private String vaitro;
     private String token;
     private String hoten;

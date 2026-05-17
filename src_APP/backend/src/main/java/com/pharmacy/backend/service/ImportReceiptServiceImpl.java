@@ -89,4 +89,9 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
 
         return warehouseMapper.toImportReceiptResponse(savedReceipt);
     }
+
+    @Override
+    public List<ImportReceiptDetail> getDetailsByMapn(String mapn) {
+        return importReceiptDetailRepository.findByMapn(mapn);
+    }
 }

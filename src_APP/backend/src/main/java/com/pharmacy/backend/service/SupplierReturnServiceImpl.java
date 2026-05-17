@@ -92,4 +92,16 @@ public class SupplierReturnServiceImpl implements SupplierReturnService {
 
         return supplierReturnMapper.toResponse(savedHeader, savedDetails);
     }
+
+    @Override
+    public List<SupplierReturnResponse> getReturnsByReceiptId(String mapn) {
+        // Tìm tất cả phiếu trả có mã mapn gốc này
+        List<SupplierReturn> returns = supplierReturnRepository.findByMapn(mapn);
+        
+        return returns.stream().map(phieuTra -> {
+            // Lấy chi tiết từng phiếu trả
+            List<SupplierReturnDetail> details = supplierReturnDetailRepository.findByMaptNcc(phieuTra.getMaptNcc());
+            return supplierReturnMapper.toResponse(phieuTra, details);
+        }).collect(Collectors.toList());
+    }
 }

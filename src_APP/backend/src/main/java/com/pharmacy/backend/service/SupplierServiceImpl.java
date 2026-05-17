@@ -18,12 +18,6 @@ public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
     private final WarehouseMapper warehouseMapper;
-    @Override
-    public List<SupplierResponse> getAllSuppliers() {
-        return supplierRepository.findAll().stream()
-                .map(warehouseMapper::toSupplierResponse)
-                .toList();
-    }
 
     @Override
     public SupplierResponse createSupplier(SupplierRequest request) {
@@ -51,5 +45,24 @@ public class SupplierServiceImpl implements SupplierService {
         
         Supplier updatedSupplier = supplierRepository.save(supplier);
         return warehouseMapper.toSupplierResponse(updatedSupplier);
+    }
+
+    @Override
+    public List<SupplierResponse> searchSuppliers(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return supplierRepository.findAll().stream()
+                    .map(s -> SupplierResponse.builder()
+                            .mancc(s.getMancc())
+                            .tenncc(s.getTenncc())
+                            .build())
+                    .toList();
+        }
+        
+        return supplierRepository.searchSuppliers(keyword.trim()).stream()
+                .map(s -> SupplierResponse.builder()
+                        .mancc(s.getMancc())
+                        .tenncc(s.getTenncc())
+                        .build())
+                .toList();
     }
 }

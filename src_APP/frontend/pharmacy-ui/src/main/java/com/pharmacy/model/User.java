@@ -1,18 +1,24 @@
 package com.pharmacy.model;
 
 public class User {
-
-    private String username;
+    private String manv;     // Trường mới thêm để lưu Mã nhân viên (VD: NV001)
+    private String username; // Số điện thoại hoặc tên tài khoản đăng nhập
     private String fullName;
-    private String role;   // ADMIN, SALES, WAREHOUSE
+    private String role;     // ADMIN, SALES, WAREHOUSE
 
-    public User(String username, String fullName, String role) {
+    // Constructor cập nhật lên 4 tham số để hứng đủ dữ liệu từ API Login
+    public User(String manv, String username, String fullName, String role) {
+        this.manv = manv;
         this.username = username;
         this.fullName = fullName;
         this.role = role;
     }
 
-    // Getters
+    // Getter lấy Mã nhân viên để truyền vào phiếu nhập kho
+    public String getManv() {
+        return manv;
+    }
+
     public String getUsername() {
         return username;
     }
