@@ -20,8 +20,6 @@ import com.pharmacy.model.Medicine;
 import javafx.scene.control.TableView; // Thêm import
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 public class ReportController implements Initializable {
 
@@ -61,6 +59,15 @@ public class ReportController implements Initializable {
     @FXML private Label lblCustReturnRate;   // Tỉ lệ quay lại (%)
     @FXML private Label lblCustVip;          // Khách VIP
     @FXML private Label lblCustLost;         // Khách rời bỏ
+
+    @FXML private AreaChart<String, Number> areaChartCustGrowth;
+    @FXML private CheckBox chkTotal;
+    @FXML private CheckBox chkNew;
+    @FXML private CheckBox chkReturning;
+
+    private XYChart.Series<String, Number> seriesTotal = new XYChart.Series<>();
+    private XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
+    private XYChart.Series<String, Number> seriesReturning = new XYChart.Series<>();
     
 
 
@@ -76,6 +83,7 @@ public class ReportController implements Initializable {
         loadInventoryBarChart();
         loadInventoryPieChart();
         loadCustomerKPIs();
+        initGrowthChartData();
     }
 
     // 2. Viết sự kiện khi bấm nút Performance
@@ -227,6 +235,33 @@ public class ReportController implements Initializable {
         if (lblCustLost != null) lblCustLost.setText("89");
     }
 
+    private void initGrowthChartData() {
+        if (areaChartCustGrowth == null) return;
+
+        // Đặt tên cho từng đường dây
+        seriesTotal.setName("Tổng khách");
+        seriesNew.setName("Khách mới");
+        seriesReturning.setName("Khách quay lại");
+
+        // Trục X (Tháng)
+        String[] months = {"T1", "T2", "T3", "T4", "T5", "T6"};
+        // Trục Y (Số lượng)
+        int[] totalData = {1000, 1200, 1150, 1400, 1600, 1800};
+        int[] newData = {200, 300, 150, 400, 350, 500};
+        int[] returnData = {800, 900, 1000, 1000, 1250, 1300};
+
+        // Bơm data vào Series
+        for (int i = 0; i < 6; i++) {
+            seriesTotal.getData().add(new XYChart.Data<>(months[i], totalData[i]));
+            seriesNew.getData().add(new XYChart.Data<>(months[i], newData[i]));
+            seriesReturning.getData().add(new XYChart.Data<>(months[i], returnData[i]));
+        }
+
+        // Mặc định lúc mới mở lên là check sẵn vào "Tổng khách"
+        chkTotal.setSelected(true);
+        areaChartCustGrowth.getData().add(seriesTotal);
+    }
+
 
 
 
@@ -243,5 +278,22 @@ public class ReportController implements Initializable {
     public void onCustomerClick(ActionEvent event) {
         // Lôi pane Customer lên trên cùng
         paneCustomer.toFront();
+    }
+
+    @FXML
+    public void handleToggleGrowth(ActionEvent event) {
+        // Xóa toàn bộ đường trên biểu đồ
+        areaChartCustGrowth.getData().clear();
+
+        // Kiểm tra xem CheckBox nào đang được tick thì nhét Series đó vào lại
+        if (chkTotal.isSelected()) {
+            areaChartCustGrowth.getData().add(seriesTotal);
+        }
+        if (chkNew.isSelected()) {
+            areaChartCustGrowth.getData().add(seriesNew);
+        }
+        if (chkReturning.isSelected()) {
+            areaChartCustGrowth.getData().add(seriesReturning);
+        }
     }
 }

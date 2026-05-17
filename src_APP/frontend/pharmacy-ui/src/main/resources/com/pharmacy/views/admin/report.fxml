@@ -6,6 +6,7 @@
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -241,9 +242,9 @@
             </AnchorPane>
             <AnchorPane fx:id="paneCustomer" prefHeight="706.0" prefWidth="1242.0" style="-fx-background-color: FAFCFC;">
                <children>
-                  <Pane layoutX="16.0" layoutY="207.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="16.0" layoutY="207.0" prefHeight="238.0" prefWidth="635.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <AreaChart fx:id="trendAreaChart1" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="246.0" prefWidth="807.0" title="Area chart: Trend Overtime" verticalGridLinesVisible="false">
+                        <AreaChart fx:id="areaChartCustGrowth" alternativeRowFillVisible="false" animated="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="235.0" prefWidth="635.0" title="Area chart: Customer Growth Trend" verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="BOTTOM" />
                            </xAxis>
@@ -251,7 +252,6 @@
                               <NumberAxis side="LEFT" />
                            </yAxis>
                         </AreaChart>
-                        <AnchorPane fx:id="lblProfit" layoutX="331.0" layoutY="20.0" prefHeight="100.0" prefWidth="239.0" />
                      </children>
                   </Pane>
                   <HBox layoutX="208.0" layoutY="10.0" prefHeight="30.0" prefWidth="1011.0" style="-fx-background-color: white; -fx-border-color: black;">
@@ -263,18 +263,16 @@
                         <ComboBox prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
-                  <HBox layoutX="16.0" layoutY="176.0" prefHeight="30.0" prefWidth="807.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
+                  <HBox layoutX="16.0" layoutY="176.0" prefHeight="30.0" prefWidth="635.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="144.0" text="Doanh Thu" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="154.0" text="Lợi Nhuận" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Số tiền thua lỗ " />
-                        <Button mnemonicParsing="false" prefHeight="31.0" prefWidth="190.0" text="Số tiền bỏ ra" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="171.0" text="Số lượng đơn hàng" />
+                        <CheckBox fx:id="chkTotal" mnemonicParsing="false" onAction="#handleToggleGrowth" prefHeight="29.0" prefWidth="212.0" text="Tổng số khách hàng" />
+                        <CheckBox fx:id="chkNew" mnemonicParsing="false" onAction="#handleToggleGrowth" prefHeight="29.0" prefWidth="212.0" text="Số khách hàng mới" />
+                        <CheckBox fx:id="chkReturning" mnemonicParsing="false" onAction="#handleToggleGrowth" prefHeight="29.0" prefWidth="212.0" text="Số khách hàng quay lại" textAlignment="JUSTIFY" />
                      </children>
                   </HBox>
-                  <Pane layoutX="833.0" layoutY="178.0" prefHeight="504.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="664.0" layoutY="176.0" prefHeight="196.0" prefWidth="554.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="topProductsBarChart1" horizontalGridLinesVisible="false" layoutY="1.0" legendVisible="false" prefHeight="505.0" prefWidth="384.0" title="Bar chart: TOP 5 nhóm SP lớn nhất" verticalGridLinesVisible="false">
+                        <BarChart fx:id="topProductsBarChart1" horizontalGridLinesVisible="false" layoutY="1.0" legendVisible="false" prefHeight="202.0" prefWidth="556.0" title="Top 10 Customers chi tiền nhiều nhất: Horizontal Bar Chart" verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="LEFT" />
                            </xAxis>
@@ -284,15 +282,15 @@
                         </BarChart>
                      </children>
                   </Pane>
-                  <Pane layoutX="438.0" layoutY="466.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="16.0" layoutY="457.0" prefHeight="215.0" prefWidth="310.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <PieChart fx:id="agePieChart1" labelsVisible="false" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
+                        <PieChart fx:id="agePieChart" labelsVisible="false" layoutX="-8.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
                         <Circle fill="WHITE" layoutX="132.0" layoutY="117.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
                   </Pane>
-                  <Pane layoutX="16.0" layoutY="466.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="342.0" layoutY="457.0" prefHeight="215.0" prefWidth="309.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <PieChart fx:id="genderPieChart1" labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Gender" />
+                        <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="310.0" title="Pie chart: Gender" />
                         <Circle fill="WHITE" layoutX="116.0" layoutY="118.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
                   </Pane>
@@ -371,6 +369,18 @@
                         </Label>
                      </children>
                   </AnchorPane>
+                  <Pane layoutX="664.0" layoutY="381.0" prefHeight="288.0" prefWidth="546.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                     <children>
+                        <BarChart prefHeight="288.0" prefWidth="546.0" title="Customer Segmentation (Loyal/New/Lost): Bar Chart">
+                          <xAxis>
+                            <CategoryAxis side="BOTTOM" />
+                          </xAxis>
+                          <yAxis>
+                            <NumberAxis side="LEFT" />
+                          </yAxis>
+                        </BarChart>
+                     </children>
+                  </Pane>
                </children>
             </AnchorPane>
          </children>
