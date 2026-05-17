@@ -2,7 +2,6 @@ package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.CategoryRequest;
 import com.pharmacy.backend.dto.CategoryResponse;
-import com.pharmacy.backend.dto.CategoryResponseStaff;
 
 import java.util.List;
 
@@ -11,6 +10,4 @@ public interface CategoryService {
     CategoryResponse createCategory(CategoryRequest request);
     CategoryResponse updateCategory(String id, CategoryRequest request);
     void deleteCategory(String id);
-
-    List<CategoryResponseStaff> getAllCategoriesForStaff();
 }

@@ -18,6 +18,9 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 public class ReturnWarehouseController {
 
     @FXML private Button btnCreateReturn;
@@ -64,10 +67,26 @@ public class ReturnWarehouseController {
 
     @FXML
     public void initialize() {
-        System.out.println("🔄 Đã nạp giao diện Quản Lý Đổi Trả - Bổ sung tính năng View Chi Tiết (Mắt 👁)");
+        System.out.println("🔄 Đã nạp giao diện Quản Lý Đổi Trả Kho - Tích hợp Tìm kiếm Real-time");
 
         setupTableColumns();
         hideAllModals();
+        
+        // ========================================================
+        // GẮN SỰ KIỆN TÌM KIẾM CHO THANH SEARCH MÀ KHÔNG CẦN FXML
+        // ========================================================
+        
+        // 1. Khi ấn Enter trong thanh tìm kiếm
+        txtSearchImport.setOnAction(e -> loadImportReceipts());
+        
+        // 2. Khi người dùng xóa trắng (Backspace) -> Tự load lại full
+        txtSearchImport.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                loadImportReceipts();
+            }
+        });
+
+        // Load dữ liệu ban đầu
         loadImportReceipts();
 
         tableImportReceipts.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -144,7 +163,7 @@ public class ReturnWarehouseController {
         colRetAction.setCellFactory(param -> new TableCell<>() {
             private final Button deleteBtn = new Button("✕");
             {
-                deleteBtn.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 4; -fx-cursor: hand;");
+                deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand;");
                 deleteBtn.setOnAction(e -> temporaryReturnList.remove(getTableView().getItems().get(getIndex())));
             }
             @Override protected void updateItem(String item, boolean empty) {
@@ -195,7 +214,10 @@ public class ReturnWarehouseController {
 
     private void loadImportReceipts() {
         importList.clear();
-        ApiService.get("/api/warehouse/import-receipts").thenAccept(response -> {
+        String search = txtSearchImport.getText() != null ? txtSearchImport.getText().trim() : "";
+        String url = "/api/warehouse/import-receipts" + (search.isEmpty() ? "" : "?search=" + URLEncoder.encode(search, StandardCharsets.UTF_8));
+
+        ApiService.get(url).thenAccept(response -> {
             Platform.runLater(() -> {
                 if (response.statusCode() == 200) {
                     try {

@@ -3,15 +3,23 @@ package com.pharmacy.backend.service;
 import com.pharmacy.backend.dto.ReturnReceiptRequest;
 import com.pharmacy.backend.dto.ReturnReceiptResponse;
 import com.pharmacy.backend.mapper.ReturnReceiptMapper;
+import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.model.Invoice;
 import com.pharmacy.backend.model.InvoiceDetail;
+import com.pharmacy.backend.model.Product;
 import com.pharmacy.backend.model.ReturnReceipt;
 import com.pharmacy.backend.model.ReturnReceiptDetail;
+import com.pharmacy.backend.repository.BatchRepository;
+import com.pharmacy.backend.repository.CustomerRepository;
 import com.pharmacy.backend.repository.InvoiceDetailRepository;
 import com.pharmacy.backend.repository.InvoiceRepository;
+import com.pharmacy.backend.repository.ProductRepository;
 import com.pharmacy.backend.repository.ReturnReceiptDetailRepository;
 import com.pharmacy.backend.repository.ReturnReceiptRepository;
+import com.pharmacy.backend.dto.ReturnItemDetailResponse;
 import com.pharmacy.backend.dto.ReturnItemRequest;
+import com.pharmacy.backend.dto.ReturnReceiptListResponse;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.pharmacy.backend.model.Batch;
+
 /**
  * ┌─────────────────────────────────────────────────────────────────────────────┐
  * │  PHÂN CHIA TRÁCH NHIỆM: Java vs Oracle Triggers                             │
@@ -32,7 +42,7 @@ import java.util.stream.Collectors;
  * ├──────────────────────────────────────┼──────────────────────────────────────┤
  * │ • Validate đầu vào (30 ngày, KH...)  │ • CTPT_KH.THANHTIEN = SL*DONGIAHOAN │
  * │ • Tính DONGIAHOAN (phân bổ giảm giá) │ • PHIEUTRA_KH.TONGTIENHOAN (tổng)   │
- * │ • Insert 1 dòng CONG_DIEM (hoàn X)  │ • Thu hồi điểm Y (TRG_RETURN_DIEMTL)│
+ * │ • Insert 1 dòng CONG_DIEM (hoàn X)   │ • Thu hồi điểm Y (TRG_RETURN_DIEMTL)│
  * │                                      │ • Cộng/trừ DIEMTICHLUY (TRG_DIEMTL) │
  * │                                      │ • Cập nhật TONGDOANHTHU + HANGTV    │
  * │                                      │ • Hoàn tồn kho (TRG_CTPT_KH_KHO)   │
@@ -40,22 +50,24 @@ import java.util.stream.Collectors;
  * └──────────────────────────────────────┴──────────────────────────────────────┘
  *
  * CHÍNH SÁCH ĐIỂM (đọc từ trigger TRG_HOADON_AUTO_LOG_DIEM & TRG_RETURN_DIEMTL):
- *   Tích điểm : FLOOR(TONGTIEN  × 0.01)  →  1 điểm mỗi 100 VNĐ
- *   Quy đổi   : 1 điểm = 1 VNĐ giảm giá →  TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG
- *   Thu hồi Y : FLOOR(TONGTIENHOAN × 0.01) do trigger tự xử lý khi insert CTPT_KH
- *   Hoàn X    : FLOOR(tỷLệMónHàng × DIEMSUDUNG) — Java insert CONG_DIEM vào DIEMTL
+ * Tích điểm : FLOOR(TONGTIEN  × 0.01)  →  1 điểm mỗi 100 VNĐ
+ * Quy đổi   : 1 điểm = 1 VNĐ giảm giá →  TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG
+ * Thu hồi Y : FLOOR(TONGTIENHOAN × 0.01) do trigger tự xử lý khi insert CTPT_KH
+ * Hoàn X    : FLOOR(tỷLệMónHàng × DIEMSUDUNG) — Java insert CONG_DIEM vào DIEMTL
  */
 @Service
 @RequiredArgsConstructor
 public class ReturnReceiptServiceImpl implements ReturnReceiptService {
 
-    /** Giới hạn ngày được phép trả hàng kể từ ngày mua */
     private static final int MAX_RETURN_DAYS = 30;
 
     private final ReturnReceiptRepository returnReceiptRepository;
     private final ReturnReceiptDetailRepository returnReceiptDetailRepository;
     private final InvoiceRepository invoiceRepository;
     private final InvoiceDetailRepository invoiceDetailRepository;
+    private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final BatchRepository batchRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -112,9 +124,6 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
         Map<String, InvoiceDetail> originalMap = cthdList.stream()
                 .collect(Collectors.toMap(InvoiceDetail::getMalo, d -> d));
 
-        //  TONGTIEN     = Tổng giá trị hóa đơn TRƯỚC khi giảm  → dùng làm mẫu số tỷ lệ
-        //  DIEMSUDUNG   = Số điểm đã dùng = Số VNĐ được giảm   (vì 1 điểm = 1 VNĐ)
-        //  TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG                (do trigger TRG_HOADON_CHECK_DIEM)
         double tongTienTruocGiam = invoice.getTongtien()      != null ? invoice.getTongtien()      : 0.0;
         double tienThanhToan     = invoice.getTienthanhtoan() != null ? invoice.getTienthanhtoan() : 0.0;
         int    diemDaTieu        = invoice.getDiemsudung()    != null ? invoice.getDiemsudung()    : 0;
@@ -123,15 +132,10 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
             throw new RuntimeException("Lỗi: Dữ liệu hóa đơn không hợp lệ (tổng tiền = 0)!");
         }
 
-        //  Tỷ lệ thanh toán thực tế:
-        //    tyLeThanhToan = TIENTHANHTOAN / TONGTIEN
-        //  → donGiaHoan = donGia × tyLeThanhToan
-        //    (công thức rút gọn của phân bổ giảm giá theo tỷ lệ từng món hàng)
         double tyLeThanhToan = tienThanhToan / tongTienTruocGiam;
 
         // =====================================================================
         // BƯỚC 3: TẠO VỎ PHIẾU TRẢ (HEADER)
-        // flush ngay → Oracle sinh MAPT_KH trước khi insert các dòng chi tiết
         // =====================================================================
 
         ReturnReceipt phieuTra = new ReturnReceipt();
@@ -147,20 +151,16 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
         // =====================================================================
 
         List<ReturnReceiptDetail> detailsToSave = new ArrayList<>();
-
-        // Tích lũy điểm X cần hoàn trả dạng raw (làm tròn một lần sau cùng → tránh dồn sai số)
         double tongDiemXHoanRaw = 0.0;
 
         for (ReturnItemRequest item : request.getItems()) {
             InvoiceDetail origDetail = originalMap.get(item.getMalo());
 
-            // Validate: lô hàng có trong hóa đơn gốc không?
             if (origDetail == null) {
                 throw new RuntimeException(
                     "Lỗi: Lô '" + item.getMalo() + "' không có trong hóa đơn gốc!");
             }
 
-            // Validate: số lượng trả hợp lệ
             if (item.getSl() <= 0) {
                 throw new RuntimeException(
                     "Lỗi: Số lượng trả của lô '" + item.getMalo() + "' phải lớn hơn 0!");
@@ -173,35 +173,11 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
 
             double donGia  = origDetail.getDongia();
             int    soLuong = item.getSl();
-
-            // -----------------------------------------------------------------
-            // TÍNH ĐƠN GIÁ HOÀN
-            //
-            // Nguyên tắc: khách đã dùng điểm giảm giá trên toàn bộ hóa đơn,
-            // nên khi trả 1 món, phần giảm giá tương ứng phải được trừ lại.
-            //
-            //   Tỷ lệ món hàng    = (donGia × sl) / TONGTIEN
-            //   Giảm giá phân bổ  = tỷLệ × DIEMSUDUNG
-            //   Đơn giá hoàn/đơn  = donGia - giảmPhânBổ / sl
-            //
-            // Rút gọn: donGiaHoan = donGia × (TIENTHANHTOAN / TONGTIEN)
-            //
-            // Trigger TRG_CTPT_KH_THANHTIEN sẽ tính: THANHTIEN = SL × DONGIAHOAN
-            // -----------------------------------------------------------------
             double donGiaHoan = donGia * tyLeThanhToan;
 
-            // -----------------------------------------------------------------
-            // TÍCH LŨY ĐIỂM X CẦN HOÀN (raw, làm tròn sau)
-            //
-            //   tiLeMonHang = (donGia × sl) / TONGTIEN
-            //   Điểm X của món này = tiLeMonHang × diemDaTieu
-            //
-            // (Điểm Y — thu hồi điểm đã tặng — sẽ do trigger TRG_RETURN_DIEMTL xử lý)
-            // -----------------------------------------------------------------
             double tiLeMonHang = (donGia * soLuong) / tongTienTruocGiam;
             tongDiemXHoanRaw += tiLeMonHang * diemDaTieu;
 
-            // Tạo dòng chi tiết phiếu trả
             ReturnReceiptDetail detail = new ReturnReceiptDetail();
             detail.setMaptKh(savedHeader.getMaptKh());
             detail.setMalo(item.getMalo());
@@ -210,29 +186,9 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
             detailsToSave.add(detail);
         }
 
-        // =====================================================================
-        // BƯỚC 5: LƯU CHI TIẾT → KÍCH HOẠT CHUỖI TRIGGER ORACLE
-        //
-        // Sau lệnh saveAllAndFlush này, Oracle tự động kích hoạt:
-        //   TRG_CTPT_KH_THANHTIEN     → THANHTIEN = SL × DONGIAHOAN (từng dòng)
-        //   TRG_CTPT_KH_HOAN_KHO      → cộng lại tồn kho cho từng lô
-        //   TRG_CTPT_KH_SYNC_TOTAL    → cộng dồn TONGTIENHOAN lên header
-        //   TRG_RETURN_DIEMTL         → thu hồi Y điểm → insert TRU_DIEM vào DIEMTL
-        //   TRG_DIEMTL_SYNC_KHACHHANG → trừ Y điểm khỏi KHACHHANG.DIEMTICHLUY
-        //   TRG_PHIEUTRA_KH_UPDATE_*  → trừ TONGDOANHTHU, cập nhật HANGTV
-        // =====================================================================
         List<ReturnReceiptDetail> savedDetails =
                 returnReceiptDetailRepository.saveAllAndFlush(detailsToSave);
 
-        // =====================================================================
-        // BƯỚC 6: HOÀN X ĐIỂM CHO KHÁCH (việc duy nhất Java phải tự làm cho điểm)
-        //
-        // Trigger chỉ tự thu hồi điểm tặng (Y), không tự hoàn điểm đã tiêu (X).
-        // → Java insert 1 dòng CONG_DIEM vào DIEMTL.
-        // → TRG_AUTO_ID_DIEMTL sẽ tự sinh MADTL (vì truyền null).
-        // → TRG_DIEMTL_SYNC_KHACHHANG sẽ tự cộng vào KHACHHANG.DIEMTICHLUY.
-        // → KHÔNG gọi customerRepository.save() — trigger đã lo việc đó.
-        // =====================================================================
         int diemXHoan = (int) Math.floor(tongDiemXHoanRaw);
 
         if (diemXHoan > 0) {
@@ -244,21 +200,121 @@ public class ReturnReceiptServiceImpl implements ReturnReceiptService {
                     .setParameter(3, diemXHoan)
                     .setParameter(4, "Hoàn điểm tích lũy do trả hàng đơn " + request.getMahd())
                     .executeUpdate();
-            // TRG_AUTO_ID_DIEMTL          → sinh MADTL tự động
-            // TRG_DIEMTL_SYNC_KHACHHANG   → cộng diemXHoan vào DIEMTICHLUY
         }
 
-        // =====================================================================
-        // BƯỚC 7: REFRESH — lấy giá trị trigger đã tính về entity (THANHTIEN, TONGTIENHOAN)
-        // =====================================================================
         for (ReturnReceiptDetail d : savedDetails) {
             entityManager.refresh(d);
         }
         entityManager.refresh(savedHeader);
 
-        // =====================================================================
-        // BƯỚC 8: TRẢ KẾT QUẢ
-        // =====================================================================
         return ReturnReceiptMapper.toResponse(savedHeader, savedDetails);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReturnReceiptListResponse> getAllReturnReceipts(String search) {
+        List<ReturnReceipt> receipts = returnReceiptRepository.searchReturnReceipts(search);
+        List<ReturnReceiptListResponse> responseList = new ArrayList<>();
+
+        for (ReturnReceipt r : receipts) {
+            String tenkh = "Khách lẻ";
+            Invoice invoice = invoiceRepository.findById(r.getMahd()).orElse(null);
+            if (invoice != null && invoice.getMakh() != null && !invoice.getMakh().equals("KHACH_LE")) {
+                Customer customer = customerRepository.findById(invoice.getMakh()).orElse(null);
+                if (customer != null) {
+                    tenkh = customer.getTenkh();
+                }
+            }
+
+            List<ReturnReceiptDetail> details = returnReceiptDetailRepository.findByMaptKh(r.getMaptKh());
+            List<InvoiceDetail> origDetails = invoiceDetailRepository.findByMahd(r.getMahd()); 
+            
+            int tongSl = 0;
+            List<String> productNames = new ArrayList<>();
+            double tongDiemXHoanRaw = 0.0;
+            
+            double tongTienTruocGiam = (invoice != null && invoice.getTongtien() != null) ? invoice.getTongtien() : 0.0;
+            int diemDaTieu = (invoice != null && invoice.getDiemsudung() != null) ? invoice.getDiemsudung() : 0;
+
+            for (ReturnReceiptDetail d : details) {
+                tongSl += d.getSl();
+                Batch batch = batchRepository.findById(d.getMalo()).orElse(null);
+                if (batch != null) {
+                    Product product = productRepository.findById(batch.getMasp()).orElse(null);
+                    if (product != null && !productNames.contains(product.getTensanpham())) {
+                        productNames.add(product.getTensanpham());
+                    }
+                }
+                
+                // TÍNH TOÁN ĐIỂM HOÀN ĐỂ TRẢ VỀ FRONTEND (KHÔNG GHI DATABASE Ở ĐÂY)
+                if (tongTienTruocGiam > 0 && diemDaTieu > 0) {
+                    for (InvoiceDetail od : origDetails) {
+                        if (od.getMalo().equals(d.getMalo())) {
+                            double tiLeMonHang = (od.getDongia() * d.getSl()) / tongTienTruocGiam;
+                            tongDiemXHoanRaw += tiLeMonHang * diemDaTieu;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            String sanPhamTomTat = String.join(", ", productNames);
+
+            responseList.add(ReturnReceiptListResponse.builder()
+                    .maptKh(r.getMaptKh())
+                    .ngaytra(r.getNgaytra())
+                    .mahd(r.getMahd())
+                    .tenkh(tenkh)
+                    .sanPhamTomTat(sanPhamTomTat)
+                    .tongSl(tongSl)
+                    .lydotra(r.getLydotra())
+                    .tongtienhoan(r.getTongtienhoan())
+                    .diemhoan((int) Math.floor(tongDiemXHoanRaw)) // <-- MAP ĐIỂM HOÀN VÀO ĐÂY
+                    .build());
+        }
+        return responseList;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReturnReceiptResponse getReturnReceiptById(String maptKh) {
+        ReturnReceipt r = returnReceiptRepository.findById(maptKh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu trả hàng với mã: " + maptKh));
+
+        List<ReturnReceiptDetail> details = returnReceiptDetailRepository.findByMaptKh(maptKh);
+        List<ReturnItemDetailResponse> itemResponses = new ArrayList<>();
+
+        for (ReturnReceiptDetail d : details) {
+            String masp = "";
+            String tensanpham = "Chưa rõ";
+            
+            Batch batch = batchRepository.findById(d.getMalo()).orElse(null);
+            if (batch != null) {
+                masp = batch.getMasp();
+                Product product = productRepository.findById(masp).orElse(null);
+                if (product != null) {
+                    tensanpham = product.getTensanpham();
+                }
+            }
+
+            itemResponses.add(ReturnItemDetailResponse.builder()
+                    .masp(masp)
+                    .tensanpham(tensanpham)
+                    .malo(d.getMalo())
+                    .sl(d.getSl())
+                    .dongiahoan(d.getDongiahoan())
+                    .thanhtien(d.getThanhtien())
+                    .build());
+        }
+
+        return ReturnReceiptResponse.builder()
+                .maptKh(r.getMaptKh())
+                .mahd(r.getMahd())
+                .manv(r.getManv())
+                .ngaytra(r.getNgaytra())
+                .lydotra(r.getLydotra())
+                .tongtienhoan(r.getTongtienhoan())
+                .items(itemResponses)
+                .build();
     }
 }

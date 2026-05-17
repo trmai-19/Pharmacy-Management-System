@@ -1,6 +1,7 @@
 package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.ImportItemRequest;
+import com.pharmacy.backend.dto.ImportReceiptDetailResponse;
 import com.pharmacy.backend.dto.ImportReceiptRequest;
 import com.pharmacy.backend.dto.ImportReceiptResponse;
 import com.pharmacy.backend.mapper.WarehouseMapper;
@@ -31,8 +32,19 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     private EntityManager entityManager;
 
     @Override
-    public List<ImportReceiptResponse> getAllImportReceipts() {
+    public List<ImportReceiptResponse> getAllImportReceipts(String search) {
         return importReceiptRepository.findAll().stream()
+                .filter(r -> {
+                    // Nếu không có chữ gì trong ô search -> Cho qua hết (true)
+                    if (search == null || search.trim().isEmpty()) {
+                        return true;
+                    }
+                    // Nếu có chữ -> Dò xem nó có nằm trong Mã phiếu nhập hoặc Nhà CC không
+                    String s = search.toLowerCase();
+                    boolean matchMapn = r.getMapn() != null && r.getMapn().toLowerCase().contains(s);
+                    boolean matchMancc = r.getMancc() != null && r.getMancc().toLowerCase().contains(s);
+                    return matchMapn || matchMancc;
+                })
                 .map(warehouseMapper::toImportReceiptResponse)
                 .toList();
     }
@@ -91,7 +103,16 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     }
 
     @Override
-    public List<ImportReceiptDetail> getDetailsByMapn(String mapn) {
-        return importReceiptDetailRepository.findByMapn(mapn);
+    public List<ImportReceiptDetailResponse> getDetailsByMapn(String mapn) {
+        // ImportReceiptDetail là Entity của ông
+        List<ImportReceiptDetail> details = importReceiptDetailRepository.findByMapn(mapn);
+        
+        // Đóng gói dữ liệu vào DTO
+        return details.stream().map(d -> ImportReceiptDetailResponse.builder()
+                .malo(d.getMalo())
+                .sl(d.getSl())
+                .gianhap(d.getGianhap())
+                .build()
+        ).collect(java.util.stream.Collectors.toList());
     }
 }

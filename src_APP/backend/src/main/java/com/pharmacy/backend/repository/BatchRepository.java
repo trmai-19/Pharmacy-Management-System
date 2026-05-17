@@ -23,4 +23,6 @@ public interface BatchRepository extends JpaRepository<Batch, String> {
     List<BatchResponse> findBatchesWithPriceByMasp(@Param("masp") String masp);
 
     List<Batch> findBySlspBetween(Integer min, Integer max);
+
+    java.util.List<Batch> findByMaspOrderByHsdAsc(String masp);
 }

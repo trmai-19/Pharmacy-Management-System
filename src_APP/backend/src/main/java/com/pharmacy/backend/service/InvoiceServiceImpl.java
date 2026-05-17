@@ -3,11 +3,13 @@ package com.pharmacy.backend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pharmacy.backend.dto.InvoiceItemResponse;
+import com.pharmacy.backend.dto.InvoiceListResponse;
 import com.pharmacy.backend.dto.InvoiceRequest;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.mapper.InvoiceMapper;
@@ -120,7 +122,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                             : 0;
         }
         
-
         // 6. Ép cập nhật TIENTHANHTOAN = TONGTIEN - DIEMSUDUNG (an toàn)
         if (finalInvoice.getTongtien() != null) {
             double tienthanhtoan = finalInvoice.getTongtien() - 
@@ -142,7 +143,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với mã: " + mahd));
 
         List<InvoiceDetail> details = invoiceDetailRepository.findByMahd(mahd);
-
         List<InvoiceItemResponse> itemResponses = new ArrayList<>();
 
         for (InvoiceDetail detail : details) {
@@ -166,5 +166,57 @@ public class InvoiceServiceImpl implements InvoiceService {
         return InvoiceMapper.toResponse(invoice).toBuilder()
                 .items(itemResponses)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvoiceListResponse> getAllInvoices(String search) {
+        // Lấy tất cả hóa đơn
+        List<Invoice> invoices = invoiceRepository.findAll();
+
+        // Lọc tìm kiếm theo mã HĐ hoặc mã KH
+        if (search != null && !search.trim().isEmpty()) {
+            String s = search.toLowerCase();
+            invoices = invoices.stream()
+                    .filter(i -> i.getMahd().toLowerCase().contains(s) || 
+                                (i.getMakh() != null && i.getMakh().toLowerCase().contains(s)))
+                    .collect(Collectors.toList());
+        }
+
+        List<InvoiceListResponse> result = new ArrayList<>();
+
+        for (Invoice i : invoices) {
+            String ten = "Khách lẻ";
+            String sdt = "";
+            
+            // Lấy thêm thông tin khách hàng nếu không phải khách lẻ
+            if (i.getMakh() != null && !i.getMakh().equals("KHACH_LE")) {
+                Customer c = customerRepository.findById(i.getMakh()).orElse(null);
+                if (c != null) {
+                    ten = c.getTenkh();
+                    sdt = c.getSdt();
+                }
+            }
+
+            result.add(InvoiceListResponse.builder()
+                    .mahd(i.getMahd())
+                    .ngayban(i.getNgayban())
+                    .tenkh(ten)
+                    .sdt(sdt)
+                    .tongtien(i.getTongtien())
+                    .trangthai(i.getTrangthai())
+                    // TRẢ VỀ ĐIỂM SỬ DỤNG CHO FRONTEND
+                    .diemsudung(i.getDiemsudung() != null ? i.getDiemsudung() : 0) 
+                    .build());
+        }
+
+        // Sắp xếp ngày mới nhất lên đầu để dễ theo dõi
+        result.sort((a, b) -> {
+            if (a.getNgayban() == null) return 1;
+            if (b.getNgayban() == null) return -1;
+            return b.getNgayban().compareTo(a.getNgayban());
+        });
+
+        return result;
     }
 }

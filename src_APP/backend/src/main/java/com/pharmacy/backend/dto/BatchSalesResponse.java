@@ -4,16 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Date;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReturnItemDetailResponse {
-    private String masp;
-    private String tensanpham; // Thêm trường này để Frontend không phải lôi masp ra hiển thị tạm
+public class BatchSalesResponse {
     private String malo;
+    private Date nsx; 
+    private Date hsd;
     private Integer sl;
-    private Double dongiahoan;
-    private Double thanhtien;
+    private String trangthai;
 }

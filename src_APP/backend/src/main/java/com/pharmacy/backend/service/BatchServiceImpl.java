@@ -4,7 +4,6 @@ import com.pharmacy.backend.dto.BatchResponse;
 import com.pharmacy.backend.dto.WarehouseResponse;
 import com.pharmacy.backend.mapper.WarehouseMapper;
 import com.pharmacy.backend.repository.BatchRepository;
-import com.pharmacy.backend.repository.SupplierRepository;
 import com.pharmacy.backend.repository.WarehouseRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +19,6 @@ public class BatchServiceImpl implements BatchService {
 
     private final BatchRepository batchRepository;
     private final WarehouseMapper warehouseMapper;
-    
-    // ĐÂY NÈ: Phải có 2 dòng này thì ở dưới mới gọi warehouseRepository.findAll() được
-    private final SupplierRepository supplierRepository;
     private final WarehouseRepository warehouseRepository;
 
     @Override
