@@ -5,7 +5,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+// Nhớ kiểm tra xem có import cái này chưa nhé
 import javafx.scene.chart.*;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 
@@ -18,6 +20,8 @@ import com.pharmacy.model.Medicine;
 import javafx.scene.control.TableView; // Thêm import
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class ReportController implements Initializable {
 
@@ -46,6 +50,18 @@ public class ReportController implements Initializable {
     @FXML private TableColumn<Medicine, String> colMedExpiry;
     @FXML private TableColumn<Medicine, String> colMedStatus;
 
+    @FXML private BarChart<String, Number> barChartInventory;
+
+    @FXML private PieChart pieChartInventory;
+
+
+    // ============ KHU VỰC 5 KPI KHÁCH HÀNG ============
+    @FXML private Label lblCustTotal;        // Tổng khách hàng
+    @FXML private Label lblCustNew;          // Khách hàng mới
+    @FXML private Label lblCustReturnRate;   // Tỉ lệ quay lại (%)
+    @FXML private Label lblCustVip;          // Khách VIP
+    @FXML private Label lblCustLost;         // Khách rời bỏ
+    
 
 
     // 2. HÀM KHỞI CHẠY (Chạy ngay khi mở Tab Báo cáo)
@@ -57,6 +73,9 @@ public class ReportController implements Initializable {
         loadAgePieChart();
         loadInventoryKPIData();
         initInventoryTable();
+        loadInventoryBarChart();
+        loadInventoryPieChart();
+        loadCustomerKPIs();
     }
 
     // 2. Viết sự kiện khi bấm nút Performance
@@ -159,6 +178,53 @@ public class ReportController implements Initializable {
         if (tableInventory != null) {
             tableInventory.setItems(inventoryList);
         }
+    }
+
+    private void loadInventoryBarChart() {
+        // Kiểm tra an toàn kẻo dính NullPointerException
+        if (barChartInventory == null) return;
+
+        barChartInventory.getData().clear(); // Xóa sạch dữ liệu cũ nếu có
+
+        // Tạo 1 chuỗi dữ liệu (Series)
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Số lượng tồn (Hộp)");
+
+        // Nhét dữ liệu giả vào (Tên thuốc, Số lượng)
+        series.getData().add(new XYChart.Data<>("Panadol Extra", 150));
+        series.getData().add(new XYChart.Data<>("Vitamin C", 80));
+        series.getData().add(new XYChart.Data<>("Augmentin 1g", 45));
+        series.getData().add(new XYChart.Data<>("Amoxicillin", 8));
+        series.getData().add(new XYChart.Data<>("Paracetamol", 0));
+
+        // Ném chuỗi dữ liệu vào biểu đồ
+        barChartInventory.getData().add(series);
+    }
+
+    private void loadInventoryPieChart() {
+        if (pieChartInventory == null) return;
+
+        pieChartInventory.getData().clear();
+
+        // Tạo dữ liệu giả: Tên danh mục + Tỉ lệ %
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data("Kháng sinh", 40),
+                new PieChart.Data("Thuốc giảm đau", 25),
+                new PieChart.Data("Vitamin & TPCN", 20),
+                new PieChart.Data("Vật tư y tế", 10),
+                new PieChart.Data("Khác", 5)
+        );
+
+        // Ném dữ liệu vào biểu đồ
+        pieChartInventory.setData(pieChartData);
+    }
+
+    private void loadCustomerKPIs() {
+        if (lblCustTotal != null) lblCustTotal.setText("2,450");
+        if (lblCustNew != null) lblCustNew.setText("120");
+        if (lblCustReturnRate != null) lblCustReturnRate.setText("68%");
+        if (lblCustVip != null) lblCustVip.setText("315");
+        if (lblCustLost != null) lblCustLost.setText("89");
     }
 
 
