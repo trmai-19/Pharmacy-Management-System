@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pharmacy.backend.dto.ApiResponse;
@@ -15,7 +16,8 @@ import com.pharmacy.backend.service.InvoiceService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
+import java.util.List;
+import com.pharmacy.backend.dto.InvoiceListResponse;
 @RestController
 @RequestMapping("/api/sales/invoices") 
 @RequiredArgsConstructor
@@ -38,15 +40,30 @@ public class InvoiceController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{id}")
-public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable String id) {
-    InvoiceResponse data = invoiceService.getInvoiceById(id);
+    public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable String id) {
+        InvoiceResponse data = invoiceService.getInvoiceById(id);
 
-    ApiResponse<InvoiceResponse> response = ApiResponse.<InvoiceResponse>builder()
-            .status(200)
-            .message("Lấy chi tiết hóa đơn thành công")
-            .data(data)
-            .build();
+        ApiResponse<InvoiceResponse> response = ApiResponse.<InvoiceResponse>builder()
+                .status(200)
+                .message("Lấy chi tiết hóa đơn thành công")
+                .data(data)
+                .build();
 
-    return ResponseEntity.ok(response);
-}
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<InvoiceListResponse>>> getAllInvoices(
+            @RequestParam(required = false) String search) {
+        
+        List<InvoiceListResponse> data = invoiceService.getAllInvoices(search);
+        
+        ApiResponse<List<InvoiceListResponse>> response = ApiResponse.<List<InvoiceListResponse>>builder()
+                .status(200)
+                .message("Lấy danh sách tóm tắt hóa đơn thành công")
+                .data(data)
+                .build();
+                
+        return ResponseEntity.ok(response);
+    }
 }

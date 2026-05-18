@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,6 @@ public class CreateCustomerRequest {
     @NotBlank(message = "Số điện thoại không được để trống")
     @Size(max = 10, message = "Số điện thoại tối đa 10 ký tự")
     private String sdt;
+
+    private Date ngaysinh;
 }

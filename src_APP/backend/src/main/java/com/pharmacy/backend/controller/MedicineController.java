@@ -17,13 +17,20 @@ public class MedicineController {
 
     private final MedicineService medicineService;
 
+    // --- API MỚI THÊM: Lấy toàn bộ danh sách sản phẩm ---
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<MedicineResponse>>> getAllMedicines() {
+        List<MedicineResponse> data = medicineService.getAllMedicines();
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy toàn bộ danh sách thuốc thành công", data));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<MedicineResponse>>> getMedicines(
             @RequestParam(required = false) String search) {
         
         List<MedicineResponse> data = medicineService.searchMedicines(search);
         
-        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách thuốc thành công", data));
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách thuốc theo từ khóa thành công", data));
     }
 
     @GetMapping("/{id}")

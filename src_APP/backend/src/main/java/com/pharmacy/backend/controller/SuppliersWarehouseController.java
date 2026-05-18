@@ -19,9 +19,9 @@ public class SuppliersWarehouseController {
 
 
     @GetMapping("/suppliers")
-    public ResponseEntity<ApiResponse<List<SupplierResponse>>> getAllSuppliers() {
-        List<SupplierResponse> data = supplierService.getAllSuppliers();
-        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách nhà cung cấp thành công", data));
+    public ResponseEntity<ApiResponse<List<SupplierResponse>>> searchSuppliers(@RequestParam(required = false) String search) {
+        List<SupplierResponse> data = supplierService.searchSuppliers(search);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Thành công", data));
     }
 
     @PostMapping("/suppliers")

@@ -10,5 +10,5 @@ public class CategoryResponse {
     private String madm;
     private String tendm;
     private String mota;
-    private Double tyleloinhuan;
+    private String trangthai;
 }

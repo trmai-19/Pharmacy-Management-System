@@ -1,15 +1,23 @@
 package com.pharmacy.controller.sales;
 
-import javafx.beans.property.SimpleIntegerProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.pharmacy.model.BatchSelectRow;
+import com.pharmacy.model.CartItem;
+import com.pharmacy.util.ApiService;
+import com.pharmacy.util.Session;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.converter.IntegerStringConverter;
 
 import java.text.DecimalFormat;
@@ -19,20 +27,37 @@ import java.time.format.DateTimeFormatter;
 public class POSController {
 
     // --- CÁC THÀNH PHẦN GIAO DIỆN CHÍNH ---
-    @FXML private TextField txtSearch, txtCustomerPhone, txtModalCustomerName, txtModalAvailablePoints, txtPointsToUse;
+    @FXML private ComboBox<String> cbSearchProduct; 
+    @FXML private TextField txtCustomerPhone;
     @FXML private TextArea txtOrderNote;
     
-    // Bảng và các cột
+    // Bảng Giỏ Hàng
     @FXML private TableView<CartItem> posTable;
     @FXML private TableColumn<CartItem, String> colProductName, colPrice, colTotal;
     @FXML private TableColumn<CartItem, Integer> colQuantity;
     @FXML private TableColumn<CartItem, Void> colAction;
 
-    // Tóm tắt thanh toán
-    @FXML private Label lblSubtotal, lblDiscount, lblTotalAmount;
+    // Khu vực Khách Hàng (Right Panel)
+    @FXML private VBox boxCustomerInfo;
+    @FXML private Label lblCustomerName, lblAvailablePoints;
+    @FXML private TextField txtPointsToUse;
+    @FXML private Label lblCartSubtotal;
     
-    // Modal Khách hàng
-    @FXML private StackPane modalOverlay;
+    // Modal CHỌN LÔ HÀNG
+    @FXML private StackPane modalBatchSelection;
+    @FXML private Label lblSelectProductName;
+    @FXML private TableView<BatchSelectRow> tableBatchSelection;
+    @FXML private TableColumn<BatchSelectRow, String> colBatchMalo, colBatchNsx, colBatchHsd, colBatchStatus;
+    @FXML private TableColumn<BatchSelectRow, Integer> colBatchStock;
+    @FXML private TextField txtSelectQuantity;
+    private String tempSelectedMasp = "";
+    private String tempSelectedTensp = "";
+    private double tempSelectedPrice = 0.0;
+
+    // Modal Khách hàng MỚI (Tạo nhanh)
+    @FXML private StackPane modalQuickCreate;
+    @FXML private TextField txtQuickCreatePhone, txtQuickCreateName;
+    @FXML private ComboBox<String> cbQuickCreateGender;
 
     // Modal Tổng Kết Hóa Đơn
     @FXML private StackPane summaryModalOverlay;
@@ -41,24 +66,29 @@ public class POSController {
     @FXML private ListView<String> listSumProducts;
 
     private ObservableList<CartItem> cartItems = FXCollections.observableArrayList();
+    private ObservableList<BatchSelectRow> batchList = FXCollections.observableArrayList();
     private final DecimalFormat formatter = new DecimalFormat("#,### đ");
 
+    private String currentCustomerId = "KHACH_LE";
+    private String currentCustomerName = "Khách lẻ";
+    private String currentCustomerPhone = "";
     private int currentCustomerPoints = 0;
-    private int pointsUsed = 0;
 
     @FXML
     public void initialize() {
-        System.out.println("✅ POS System Full Version Ready!");
+        System.out.println("✅ POS System: Khởi động với Code chuẩn MVC (Đã tách Model)!");
 
-        // Cho phép chỉnh sửa số lượng trực tiếp trên bảng
+        if (cbQuickCreateGender != null) {
+            cbQuickCreateGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
+            cbQuickCreateGender.getSelectionModel().selectFirst();
+        }
+
         posTable.setEditable(true);
 
-        // 1. Ánh xạ dữ liệu cột
+        // Map cột Giỏ hàng
         colProductName.setCellValueFactory(cellData -> cellData.getValue().productNameProperty());
         colPrice.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedPrice()));
         colTotal.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedTotal()));
-
-        // 2. Xử lý chỉnh sửa số lượng
         colQuantity.setCellValueFactory(cellData -> cellData.getValue().quantityProperty().asObject());
         colQuantity.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
         colQuantity.setOnEditCommit(event -> {
@@ -72,48 +102,243 @@ public class POSController {
             }
             updateTotals();
         });
-
-        // 3. Setup cột Xóa
         setupActionColumn();
-
-        // 4. Data Demo ban đầu
-        cartItems.addAll(
-            new CartItem("Panadol Extra 500mg", 2, 35000),
-            new CartItem("Vitamin C 1000mg", 1, 95000)
-        );
-
         posTable.setItems(cartItems);
-        updateTotals();
-        
-        if (modalOverlay != null) modalOverlay.setVisible(false);
-        if (summaryModalOverlay != null) summaryModalOverlay.setVisible(false);
+
+        // Map cột Modal Bảng chọn Lô
+        colBatchMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
+        colBatchNsx.setCellValueFactory(new PropertyValueFactory<>("nsx"));
+        colBatchHsd.setCellValueFactory(new PropertyValueFactory<>("hsd"));
+        colBatchStock.setCellValueFactory(new PropertyValueFactory<>("sl"));
+        colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("trangthai"));
+        tableBatchSelection.setItems(batchList);
+
+        // Lắng nghe gõ tìm kiếm Thuốc
+        setupProductSearch();
+
+        // Ẩn tất cả Modal và Box Customer
+        modalBatchSelection.setVisible(false);
+        modalQuickCreate.setVisible(false);
+        summaryModalOverlay.setVisible(false);
+        boxCustomerInfo.setVisible(false);
+        boxCustomerInfo.setManaged(false);
+
+        // Ràng buộc ô nhập điểm chỉ nhận số
+        if (txtPointsToUse != null) {
+            txtPointsToUse.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (!newVal.matches("\\d*")) {
+                    txtPointsToUse.setText(newVal.replaceAll("[^\\d]", ""));
+                }
+            });
+        }
     }
 
-    // ====================== LOGIC SẢN PHẨM ======================
+    // ====================== TÌM SẢN PHẨM & CHỌN LÔ ======================
+
+    private void setupProductSearch() {
+        cbSearchProduct.getEditor().setOnKeyReleased(event -> {
+            String keyword = cbSearchProduct.getEditor().getText().trim();
+            if (keyword.length() >= 2) {
+                ApiService.get("/api/products?search=" + keyword).thenAccept(res -> {
+                    Platform.runLater(() -> {
+                        try {
+                            if (res.statusCode() == 200) {
+                                JsonNode dataNode = ApiService.mapper.readTree(res.body()).get("data");
+                                ObservableList<String> list = FXCollections.observableArrayList();
+                                for (JsonNode node : dataNode) {
+                                    list.add(node.get("masp").asText() + " - " + node.get("tensanpham").asText() + " - " + node.get("giaban").asText());
+                                }
+                                String current = cbSearchProduct.getEditor().getText();
+                                cbSearchProduct.setItems(list);
+                                cbSearchProduct.getEditor().setText(current);
+                                cbSearchProduct.getEditor().positionCaret(current.length());
+                                cbSearchProduct.show();
+                            }
+                        } catch (Exception e) { e.printStackTrace(); }
+                    });
+                });
+            }
+        });
+    }
 
     @FXML
-    void handleSearchProduct(ActionEvent event) {
-        String keyword = txtSearch.getText().trim().toLowerCase();
-        if (keyword.isEmpty()) return;
+    void handleSelectProduct(ActionEvent event) {
+        String selected = cbSearchProduct.getValue();
+        if (selected == null || !selected.contains(" - ")) return;
 
-        CartItem newItem = switch (keyword) {
-            case "panadol" -> new CartItem("Panadol Extra", 1, 35000);
-            case "vitc" -> new CartItem("Vitamin C 1000mg", 1, 95000);
-            case "khẩu trang" -> new CartItem("Khẩu trang Y tế 4 lớp", 1, 50000);
-            default -> new CartItem("Thuốc: " + keyword, 1, 20000);
-        };
+        String[] parts = selected.split(" - ");
+        tempSelectedMasp = parts[0].trim();
+        tempSelectedTensp = parts[1].trim();
+        tempSelectedPrice = Double.parseDouble(parts[2].trim());
+
+        lblSelectProductName.setText("Sản phẩm: " + tempSelectedTensp);
+        txtSelectQuantity.clear();
+
+        // Kéo lô hàng lên Modal
+        batchList.clear();
+        ApiService.get("/api/sales/batches/" + tempSelectedMasp).thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) {
+                        JsonNode dataNode = ApiService.mapper.readTree(res.body()).get("data");
+                        for (JsonNode node : dataNode) {
+                            String nsxStr = node.has("nsx") && !node.get("nsx").isNull() ? node.get("nsx").asText().split("T")[0] : "";
+                            String hsdStr = node.has("hsd") && !node.get("hsd").isNull() ? node.get("hsd").asText().split("T")[0] : "";
+                            batchList.add(new BatchSelectRow(
+                                node.get("malo").asText(),
+                                nsxStr,
+                                hsdStr,
+                                node.get("sl").asInt(),
+                                node.get("trangthai").asText()
+                            ));
+                        }
+                        modalBatchSelection.setVisible(true);
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            });
+        });
+    }
+
+    @FXML void handleCloseBatchSelection() { 
+        modalBatchSelection.setVisible(false); 
+        cbSearchProduct.getSelectionModel().clearSelection();
+        cbSearchProduct.getEditor().clear();
+    }
+
+    @FXML
+    void handleConfirmBatchSelection() {
+        BatchSelectRow selectedBatch = tableBatchSelection.getSelectionModel().getSelectedItem();
+        if (selectedBatch == null) {
+            showAlert("Nhắc nhở", "Vui lòng chọn 1 Lô hàng trong bảng để bán!", Alert.AlertType.WARNING);
+            return;
+        }
+
+        String qtyStr = txtSelectQuantity.getText().trim();
+        if (qtyStr.isEmpty()) {
+            showAlert("Nhắc nhở", "Vui lòng nhập số lượng bán!", Alert.AlertType.WARNING);
+            return;
+        }
+
+        int qty = 0;
+        try { qty = Integer.parseInt(qtyStr); } 
+        catch (Exception e) { showAlert("Lỗi", "Số lượng không hợp lệ!", Alert.AlertType.ERROR); return; }
+
+        if (qty <= 0) {
+            showAlert("Lỗi", "Số lượng phải lớn hơn 0!", Alert.AlertType.ERROR); return;
+        }
+        if (qty > selectedBatch.getSl()) {
+            showAlert("Lỗi", "Vượt quá Tồn kho của lô này (" + selectedBatch.getSl() + ")!", Alert.AlertType.ERROR); return;
+        }
+
+        final String finalMalo = selectedBatch.getMalo();
+        final int finalQty = qty;
 
         cartItems.stream()
-            .filter(item -> item.getProductName().equalsIgnoreCase(newItem.getProductName()))
+            .filter(item -> item.getMalo().equals(finalMalo))
             .findFirst()
             .ifPresentOrElse(
-                item -> item.setQuantity(item.getQuantity() + 1),
-                () -> cartItems.add(newItem)
+                item -> item.setQuantity(item.getQuantity() + finalQty),
+                () -> cartItems.add(new CartItem(tempSelectedMasp, finalMalo, tempSelectedTensp, finalQty, tempSelectedPrice))
             );
-
+        
         posTable.refresh();
-        txtSearch.clear();
         updateTotals();
+        handleCloseBatchSelection();
+    }
+
+    // ====================== LOGIC KHÁCH HÀNG ======================
+
+    @FXML
+    void handleSearchCustomer(ActionEvent event) {
+        String phone = txtCustomerPhone.getText().trim();
+        if (phone.isEmpty()) {
+            showAlert("Nhắc nhở", "Vui lòng nhập Số điện thoại khách hàng!", Alert.AlertType.INFORMATION);
+            return;
+        }
+
+        ApiService.get("/api/sales/customers?sdt=" + phone).thenAccept(response -> {
+            Platform.runLater(() -> {
+                try {
+                    if (response.statusCode() == 200) {
+                        JsonNode root = ApiService.mapper.readTree(response.body());
+                        if (root.has("data") && !root.get("data").isNull()) {
+                            JsonNode data = root.get("data");
+                            currentCustomerId = data.has("makh") ? data.get("makh").asText() : "";
+                            currentCustomerName = data.has("tenkh") ? data.get("tenkh").asText() : "";
+                            currentCustomerPhone = phone;
+                            currentCustomerPoints = data.has("diemtichluy") ? data.get("diemtichluy").asInt() : 0;
+                            
+                            lblCustomerName.setText(currentCustomerName);
+                            lblAvailablePoints.setText(formatter.format(currentCustomerPoints));
+                            txtPointsToUse.clear();
+                            
+                            boxCustomerInfo.setVisible(true);
+                            boxCustomerInfo.setManaged(true);
+                        } else {
+                            openQuickCreateModal(phone);
+                        }
+                    } else {
+                        openQuickCreateModal(phone);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showAlert("Lỗi", "Không thể lấy thông tin khách hàng!", Alert.AlertType.ERROR);
+                }
+            });
+        });
+    }
+
+    private void openQuickCreateModal(String phone) {
+        txtQuickCreatePhone.setText(phone); 
+        txtQuickCreateName.clear();         
+        if(cbQuickCreateGender != null) cbQuickCreateGender.getSelectionModel().selectFirst();
+        modalQuickCreate.setVisible(true);
+    }
+
+    @FXML void handleCloseQuickCreate(ActionEvent event) { modalQuickCreate.setVisible(false); }
+
+    @FXML
+    void handleSubmitQuickCreate(ActionEvent event) {
+        String phone = txtQuickCreatePhone.getText().trim();
+        String name = txtQuickCreateName.getText().trim();
+        String gender = cbQuickCreateGender.getValue();
+
+        if (name.isEmpty()) {
+            showAlert("Cảnh báo", "Vui lòng không để trống Tên khách hàng!", Alert.AlertType.WARNING);
+            return;
+        }
+
+        try {
+            ObjectNode json = ApiService.mapper.createObjectNode();
+            json.put("tenkh", name);
+            json.put("sdt", phone);
+            json.put("gioitinh", gender);
+
+            ApiService.post("/api/sales/customers/quick-create", json.toString()).thenAccept(response -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (response.statusCode() == 200 || response.statusCode() == 201) {
+                            JsonNode data = ApiService.mapper.readTree(response.body()).get("data");
+                            currentCustomerId = data.has("makh") ? data.get("makh").asText() : "";
+                            currentCustomerName = name;
+                            currentCustomerPhone = phone;
+                            currentCustomerPoints = data.has("diemtichluy") ? data.get("diemtichluy").asInt() : 0;
+                            
+                            modalQuickCreate.setVisible(false); 
+                            
+                            lblCustomerName.setText(currentCustomerName);
+                            lblAvailablePoints.setText(formatter.format(currentCustomerPoints));
+                            txtPointsToUse.clear();
+                            boxCustomerInfo.setVisible(true);
+                            boxCustomerInfo.setManaged(true);
+                            
+                        } else {
+                            showAlert("Thất bại", "Không thể tạo nhanh khách hàng. Mã lỗi: " + response.statusCode(), Alert.AlertType.ERROR);
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                });
+            });
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -121,72 +346,24 @@ public class POSController {
         cartItems.clear();
         if (txtOrderNote != null) txtOrderNote.clear();
         if (txtCustomerPhone != null) txtCustomerPhone.clear();
-        pointsUsed = 0;
+        
+        currentCustomerId = "KHACH_LE";
+        currentCustomerName = "Khách lẻ";
+        currentCustomerPhone = "";
         currentCustomerPoints = 0;
+        
+        boxCustomerInfo.setVisible(false);
+        boxCustomerInfo.setManaged(false);
+        
+        if(txtPointsToUse != null) txtPointsToUse.clear();
         updateTotals();
-        System.out.println("🗑️ Đã xóa đơn hàng.");
     }
-
-    // ====================== LOGIC KHÁCH HÀNG & ĐIỂM ======================
-
-    @FXML
-    void handleSearchCustomer(ActionEvent event) {
-        String phone = txtCustomerPhone.getText().trim();
-        if (phone.isEmpty()) {
-            showAlert("Nhắc nhở", "Chưa nhập SĐT", Alert.AlertType.INFORMATION);
-            return;
-        }
-
-        // Demo tìm kiếm khách hàng
-        if (phone.equals("0988123456")) {
-            txtModalCustomerName.setText("Nguyễn Thu Hà");
-            currentCustomerPoints = 150000; 
-        } else {
-            txtModalCustomerName.setText("Khách hàng mới");
-            currentCustomerPoints = 0;
-        }
-
-        txtModalAvailablePoints.setText(formatter.format(currentCustomerPoints));
-        txtPointsToUse.clear();
-        modalOverlay.setVisible(true);
-    }
-
-    @FXML
-    void handleConfirmPoints(ActionEvent event) {
-        try {
-            String input = txtPointsToUse.getText().replaceAll("[^0-9]", "");
-            int points = input.isEmpty() ? 0 : Integer.parseInt(input);
-
-            if (points > currentCustomerPoints) {
-                showAlert("Lỗi", "Khách không đủ điểm! Tối đa: " + currentCustomerPoints, Alert.AlertType.ERROR);
-                return;
-            }
-
-            pointsUsed = points;
-            modalOverlay.setVisible(false);
-            updateTotals();
-        } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập số điểm hợp lệ!", Alert.AlertType.ERROR);
-        }
-    }
-
-    @FXML void handleCloseCustomerModal(ActionEvent event) { modalOverlay.setVisible(false); }
 
     // ====================== TÍNH TOÁN & THANH TOÁN ======================
 
     private void updateTotals() {
         double subtotal = cartItems.stream().mapToDouble(CartItem::getTotalPrice).sum();
-
-        // Điểm sử dụng không được vượt quá tổng tiền hàng
-        if (pointsUsed > subtotal) {
-            pointsUsed = (int) subtotal;
-        }
-
-        double total = subtotal - pointsUsed;
-
-        lblSubtotal.setText(formatter.format(subtotal));
-        lblDiscount.setText("- " + formatter.format(pointsUsed)); // Hiển thị số điểm sử dụng
-        lblTotalAmount.setText(formatter.format(total));
+        lblCartSubtotal.setText(formatter.format(subtotal));
     }
 
     @FXML
@@ -195,64 +372,112 @@ public class POSController {
             showAlert("Thông báo", "Giỏ hàng đang trống!", Alert.AlertType.WARNING);
             return;
         }
-        
-        // --- Chuẩn bị dữ liệu hiển thị lên Bảng Tổng Kết ---
-        
-        // Tạo mã ID random
-        lblSumInvoiceId.setText("HD" + System.currentTimeMillis());
-        lblSumStaffId.setText("NV001");
-        
-        // Logic Khách hàng
-        String phone = txtCustomerPhone.getText().trim();
-        if (phone.isEmpty()) {
-            lblSumCustomerId.setText("Khách lẻ");
-            lblSumPhone.setText("Không có");
-        } else {
-            lblSumCustomerId.setText("KH" + phone.substring(Math.max(0, phone.length() - 4)));
-            lblSumPhone.setText(phone);
+
+        // 1. Tính toán điểm sử dụng
+        int points = 0;
+        if (boxCustomerInfo.isVisible() && txtPointsToUse.getText() != null && !txtPointsToUse.getText().isEmpty()) {
+            try { points = Integer.parseInt(txtPointsToUse.getText().trim()); } 
+            catch (Exception ignored) {}
         }
 
-        // Lấy ngày hiện tại
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        lblSumDate.setText(dtf.format(LocalDateTime.now()));
-        
-        // Gán tiền và điểm
+        if (points > currentCustomerPoints) {
+            showAlert("Lỗi Điểm", "Khách hàng không đủ điểm! Tối đa: " + currentCustomerPoints, Alert.AlertType.ERROR);
+            return;
+        }
+
         double subtotal = cartItems.stream().mapToDouble(CartItem::getTotalPrice).sum();
-        double finalAmount = subtotal - pointsUsed;
-        
-        lblSumTotalPoints.setText(formatter.format(currentCustomerPoints));
-        lblSumPointsUsed.setText("- " + formatter.format(pointsUsed));
-        lblSumSubtotal.setText(formatter.format(subtotal));
-        lblSumFinalAmount.setText(formatter.format(finalAmount));
-        
-        // Đổ danh sách sản phẩm vào ListView
-        listSumProducts.getItems().clear();
-        for (CartItem item : cartItems) {
-            String productDetail = String.format("%d x %s - %s", 
-                item.getQuantity(), 
-                item.getProductName(), 
-                item.getFormattedTotal());
-            listSumProducts.getItems().add(productDetail);
-        }
+        if (points > subtotal) { points = (int) subtotal; }
+        int finalPointsUsed = points;
 
-        // Hiện modal
-        summaryModalOverlay.setVisible(true);
+        // 2. GỌI API LƯU XUỐNG DATABASE TRƯỚC TIÊN
+        try {
+            ObjectNode rootJson = ApiService.mapper.createObjectNode();
+            
+            String manv = Session.getCurrentUser() != null ? Session.getCurrentUser().getManv() : "NV001";
+            rootJson.put("manv", manv);
+            
+            if (currentCustomerId != null && !currentCustomerId.isEmpty() && !currentCustomerId.equals("KHACH_LE")) {
+                rootJson.put("makh", currentCustomerId);
+            }
+            rootJson.put("diemsudung", finalPointsUsed);
+
+            ArrayNode itemsArray = ApiService.mapper.createArrayNode();
+            for (CartItem item : cartItems) {
+                ObjectNode itemNode = ApiService.mapper.createObjectNode();
+                itemNode.put("masp", item.getMasp());
+                itemNode.put("malo", item.getMalo());
+                itemNode.put("sl", item.getQuantity());
+                itemsArray.add(itemNode);
+            }
+            rootJson.set("items", itemsArray);
+
+            ApiService.post("/api/sales/invoices", rootJson.toString()).thenAccept(response -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (response.statusCode() == 200) {
+                            JsonNode resRoot = ApiService.mapper.readTree(response.body());
+                            
+                            // BẮT MÃ HÓA ĐƠN THẬT TỪ DATABASE TRẢ VỀ
+                            String mahd = resRoot.path("data").path("mahd").asText();
+                            String ngayban = resRoot.path("data").path("ngayban").asText(); 
+                            if (ngayban != null && ngayban.contains("T")) {
+                                ngayban = ngayban.replace("T", " ").substring(0, 19);
+                            }
+                            
+                            // 3. ĐIỀN DỮ LIỆU LÊN BIÊN LAI THANH TOÁN
+                            lblSumInvoiceId.setText(mahd);
+                            lblSumStaffId.setText(manv);
+                            
+                            if (currentCustomerPhone.isEmpty()) {
+                                lblSumCustomerId.setText("Khách lẻ");
+                                lblSumPhone.setText("Không có");
+                            } else {
+                                lblSumCustomerId.setText(currentCustomerId.isEmpty() ? currentCustomerPhone : currentCustomerId);
+                                lblSumPhone.setText(currentCustomerPhone);
+                            }
+
+                            lblSumDate.setText(ngayban != null && !ngayban.isEmpty() ? ngayban : DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(LocalDateTime.now()));
+                            
+                            double finalAmount = subtotal - finalPointsUsed;
+                            
+                            lblSumTotalPoints.setText(formatter.format(currentCustomerPoints));
+                            lblSumPointsUsed.setText("- " + formatter.format(finalPointsUsed));
+                            lblSumSubtotal.setText(formatter.format(subtotal));
+                            lblSumFinalAmount.setText(formatter.format(finalAmount));
+                            
+                            listSumProducts.getItems().clear();
+                            for (CartItem item : cartItems) {
+                                String productDetail = String.format("%d x %s - %s", 
+                                    item.getQuantity(), item.getProductName(), item.getFormattedTotal());
+                                listSumProducts.getItems().add(productDetail);
+                            }
+
+                            // 4. HIỆN BIÊN LAI LÊN MÀN HÌNH
+                            summaryModalOverlay.setVisible(true);
+                            
+                        } else {
+                            JsonNode errNode = ApiService.mapper.readTree(response.body());
+                            String errMsg = errNode.has("message") ? errNode.get("message").asText() : "Lỗi hệ thống";
+                            showAlert("Thất bại", "Lỗi tạo hóa đơn: " + errMsg, Alert.AlertType.ERROR);
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                });
+            });
+
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML 
+    void handleCloseSummaryModal(ActionEvent event) { 
+        summaryModalOverlay.setVisible(false); 
+        handleClearOrder(null); 
     }
 
     @FXML
-    void handleCloseSummaryModal(ActionEvent event) {
-        // Đóng bảng nếu muốn kiểm tra lại đơn
+    void handlePrintInvoice(ActionEvent event) {
+        showAlert("Đang in...", "Hệ thống đang kết nối máy in để in hóa đơn: " + lblSumInvoiceId.getText(), Alert.AlertType.INFORMATION);
         summaryModalOverlay.setVisible(false);
-    }
-
-    @FXML
-    void handleConfirmFinalize(ActionEvent event) {
-        // Xử lý lưu hóa đơn xuống Database ở đây
-        System.out.println("💰 Lưu hóa đơn thành công. Tổng tiền: " + lblSumFinalAmount.getText());
-        
-        summaryModalOverlay.setVisible(false);
-        showAlert("Thành công", "Đã xuất hóa đơn thành công!", Alert.AlertType.INFORMATION);
-        handleClearOrder(null); // Reset lại trạng thái
+        handleClearOrder(null); 
     }
 
     // ====================== HELPER ======================
@@ -280,28 +505,5 @@ public class POSController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.show();
-    }
-
-    // Inner Class Model
-    public static class CartItem {
-        private final SimpleStringProperty productName;
-        private final SimpleIntegerProperty quantity;
-        private final double price;
-
-        public CartItem(String name, int qty, double price) {
-            this.productName = new SimpleStringProperty(name);
-            this.quantity = new SimpleIntegerProperty(qty);
-            this.price = price;
-        }
-
-        public String getProductName() { return productName.get(); }
-        public SimpleStringProperty productNameProperty() { return productName; }
-        public int getQuantity() { return quantity.get(); }
-        public void setQuantity(int qty) { this.quantity.set(qty); }
-        public SimpleIntegerProperty quantityProperty() { return quantity; }
-        public double getPrice() { return price; }
-        public double getTotalPrice() { return price * getQuantity(); }
-        public String getFormattedPrice() { return new DecimalFormat("#,### đ").format(price); }
-        public String getFormattedTotal() { return new DecimalFormat("#,### đ").format(getTotalPrice()); }
     }
 }

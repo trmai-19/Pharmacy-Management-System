@@ -19,7 +19,18 @@ COMMIT;
 -- Xác nhận lưu toàn bộ thay đổi vào database
 COMMIT;
 
+select * from TAIKHOAN;
 select * from NHANVIEN;
 SELECT * FROM SANPHAM;
 select * from NHACUNGCAP;
 SELECT * FROM DANHMUC;
+select * from KHO;
+select * from PHIEUNHAP;
+select * from CTPN;
+select * from LOSANPHAM;
+select * from KHACHHANG;
+select * from HOADON;
+select * from CTHD;
+select * from PHIEUTRA_KH;
+select * from CTPT_KH;
+select * from DIEMTL;

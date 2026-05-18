@@ -39,14 +39,41 @@ public class SalesController {
     @FXML private Label lblNotificationCount;
 
     private Button currentActiveButton;
+    @FXML private Label lblRole;
 
     @FXML
     public void initialize() {
-        System.out.println("✅ Khởi tạo giao diện Sales (Nhân viên bán hàng)...");
-        
-        // Load trang mặc định là trang Bán hàng
+        System.out.println("✅ Khởi tạo giao diện Sales...");
+
+        // 1. Đổ tên thật đã xử lý ở bước Login
+        if (lblEmployeeName != null) {
+            lblEmployeeName.setText(com.pharmacy.util.Session.getFullName());
+        }
+
+        // 2. Đổi chữ QUẢN TRỊ VIÊN thành đúng vai trò
+        if (lblRole != null && com.pharmacy.util.Session.getCurrentUser() != null) {
+            String role = com.pharmacy.util.Session.getCurrentUser().getRole();
+            String roleDisplay = "";
+
+            // Map từ mã role của backend sang tên hiển thị tiếng Việt (viết hoa cho đúng style UI của ông)
+            switch (role.toUpperCase()) {
+                case "ADMIN":
+                    roleDisplay = "QUẢN TRỊ VIÊN";
+                    break;
+                case "SALES_STAFF":
+                    roleDisplay = "NHÂN VIÊN BÁN HÀNG";
+                    break;
+                case "WAREHOUSE_STAFF":
+                    roleDisplay = "NHÂN VIÊN KHO";
+                    break;
+                default:
+                    roleDisplay = "NHÂN VIÊN";
+            }
+            lblRole.setText(roleDisplay);
+        }
+
         loadView("sales-pos.fxml", "LẬP HÓA ĐƠN BÁN HÀNG");
-        
+
         if (btnSales != null) {
             setActiveButtonStyle(btnSales);
         }

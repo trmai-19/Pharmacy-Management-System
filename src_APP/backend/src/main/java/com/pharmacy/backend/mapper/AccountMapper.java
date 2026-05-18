@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class AccountMapper {
     public LoginResponse toLoginResponse(Account account, Employee employee, String token) {
         return LoginResponse.builder()
+                .manv(employee.getManv())
                 .token(token)
                 .vaitro(employee.getChucvu())
                 .firstLogin(account.isFirstLogin())

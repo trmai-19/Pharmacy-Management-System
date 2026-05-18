@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReturnItemDetailResponse {
+    private String masp;
+    private String tensanpham; // Thêm trường này để Frontend không phải lôi masp ra hiển thị tạm
     private String malo;
     private Integer sl;
     private Double dongiahoan;

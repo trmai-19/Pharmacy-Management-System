@@ -43,10 +43,6 @@ public class SupplierReturnServiceImpl implements SupplierReturnService {
             throw new RuntimeException("Lỗi: Không tìm thấy phiếu nhập kho gốc có mã: " + request.getMapn());
         }
 
-        if (supplierReturnRepository.existsByMapn(request.getMapn())) {
-            throw new RuntimeException("Lỗi: Phiếu nhập này đã được hoàn trả trước đó. Chỉ được trả duy nhất 1 lần!");
-        }
-
         List<ImportReceiptDetail> originalDetails = importReceiptDetailRepository.findByMapn(request.getMapn());
         if (originalDetails.isEmpty()) {
             throw new RuntimeException("Lỗi: Phiếu nhập gốc không có dữ liệu sản phẩm để đối soát!");
@@ -95,5 +91,17 @@ public class SupplierReturnServiceImpl implements SupplierReturnService {
         entityManager.refresh(savedHeader);
 
         return supplierReturnMapper.toResponse(savedHeader, savedDetails);
+    }
+
+    @Override
+    public List<SupplierReturnResponse> getReturnsByReceiptId(String mapn) {
+        // Tìm tất cả phiếu trả có mã mapn gốc này
+        List<SupplierReturn> returns = supplierReturnRepository.findByMapn(mapn);
+        
+        return returns.stream().map(phieuTra -> {
+            // Lấy chi tiết từng phiếu trả
+            List<SupplierReturnDetail> details = supplierReturnDetailRepository.findByMaptNcc(phieuTra.getMaptNcc());
+            return supplierReturnMapper.toResponse(phieuTra, details);
+        }).collect(Collectors.toList());
     }
 }
