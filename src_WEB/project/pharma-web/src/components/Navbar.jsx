@@ -50,6 +50,7 @@ export default function Navbar() {
         {/* Desktop nav links */}
         <div className="hidden sm:flex items-center gap-5 text-sm">
           <Link to="/" className="hover:text-blue-200 transition">Trang chủ</Link>
+          <Link to="/san-pham" className="hover:text-blue-200 transition">Sản phẩm</Link>
           <Link to="/diem" className="hover:text-blue-200 transition">Điểm tích lũy</Link>
           <Link to="/chinh-sach-doi-tra" className="hover:text-blue-200 transition whitespace-nowrap">
             Chính sách đổi trả
@@ -76,6 +77,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="sm:hidden bg-blue-700 px-6 py-3 space-y-2 text-sm border-t border-blue-500">
           <Link to="/" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Trang chủ</Link>
+          <Link to="/san-pham" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Sản phẩm</Link>
           <Link to="/diem" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Điểm tích lũy</Link>
           <Link to="/chinh-sach-doi-tra" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Chính sách đổi trả</Link>
           <button onClick={handleLogout} className="block text-left text-red-300 hover:text-red-200">Đăng xuất</button>

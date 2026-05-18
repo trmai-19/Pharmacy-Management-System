@@ -2,7 +2,9 @@ package pharmaHMPP.cusapi.service;
 
 import pharmaHMPP.cusapi.dto.SanPhamSearchResponse;
 import pharmaHMPP.cusapi.dto.SanPhamSearchResponse.SanPhamDTO;
+import pharmaHMPP.cusapi.entity.DanhMuc;
 import pharmaHMPP.cusapi.entity.SanPham;
+import pharmaHMPP.cusapi.repository.DanhMucRepository;
 import pharmaHMPP.cusapi.repository.SanPhamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 public class SanPhamService {
 
     private final SanPhamRepository sanPhamRepo;
+    private final DanhMucRepository danhMucRepo;
 
     /** Tìm kiếm theo tên hoặc công dụng, trả kết quả + sản phẩm tương tự (cùng danh mục) */
     public SanPhamSearchResponse search(String keyword) {
@@ -51,6 +54,32 @@ public class SanPhamService {
         return toSingleDTO(sp);
     }
 
+    /** Lấy tất cả sản phẩm (browse), có thể filter theo danh mục và tìm kiếm */
+    public List<SanPhamDTO> browse(String keyword, String maDM) {
+        List<SanPham> products;
+
+        if ((keyword == null || keyword.isBlank()) && (maDM == null || maDM.isBlank())) {
+            // Không filter gì → lấy hết
+            products = sanPhamRepo.findAll();
+        } else if (maDM != null && !maDM.isBlank()) {
+            // Có filter danh mục (có thể kèm keyword)
+            products = sanPhamRepo.searchWithCategory(
+                    (keyword != null && !keyword.isBlank()) ? keyword : null,
+                    maDM
+            );
+        } else {
+            // Chỉ có keyword
+            products = sanPhamRepo.searchAll(keyword);
+        }
+
+        return toDTO(products);
+    }
+
+    /** Lấy danh sách tất cả danh mục */
+    public List<DanhMuc> getAllDanhMuc() {
+        return danhMucRepo.findAll();
+    }
+
     private List<SanPhamDTO> toDTO(List<SanPham> list) {
         return list.stream().map(this::toSingleDTO).collect(Collectors.toList());
     }
@@ -62,7 +91,8 @@ public class SanPhamService {
                 sp.getCongDung(),
                 sp.getDvt(),
                 sp.getGiaBan(),
-                sp.getMaDM()
+                sp.getMaDM(),
+                sp.getThanhPhan()
         );
     }
 }
