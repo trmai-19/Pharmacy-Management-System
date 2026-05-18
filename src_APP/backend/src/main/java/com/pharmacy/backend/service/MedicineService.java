@@ -6,4 +6,5 @@ import java.util.List;
 public interface MedicineService {
     List<MedicineResponse> searchMedicines(String keyword);
     MedicineResponse getMedicineDetail(String id);
+    List<MedicineResponse> getAllMedicines();
 }

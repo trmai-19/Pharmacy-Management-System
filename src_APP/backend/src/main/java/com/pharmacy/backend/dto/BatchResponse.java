@@ -15,4 +15,5 @@ public class BatchResponse {
     private Date hsd;
     private Integer slsp;
     private String trangthai;
+    private Double gianhap;
 }

@@ -8,10 +8,14 @@ import com.pharmacy.backend.service.SupplierReturnService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouse/supplier-returns")
@@ -33,5 +37,11 @@ public class SupplierReturnController {
                 .build();
                 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/receipt/{mapn}")
+    public ResponseEntity<ApiResponse<List<SupplierReturnResponse>>> getReturnsByReceipt(@PathVariable String mapn) {
+        List<SupplierReturnResponse> data = supplierReturnService.getReturnsByReceiptId(mapn);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Thành công", data));
     }
 }

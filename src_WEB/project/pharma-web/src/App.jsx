@@ -7,6 +7,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ChangePassword from './pages/ChangePassword'
 import SearchResult from './pages/SearchResult'
 import ProductDetail from './pages/ProductDetail'
+import BrowseProducts from './pages/BrowseProducts'
 import ReturnPolicy from './pages/ReturnPolicy'
 import Navbar from './components/Navbar'
 
@@ -34,7 +35,8 @@ function App() {
         <Route path="/quen-mat-khau" element={<ForgotPassword />} />
         <Route path="/chinh-sach-doi-tra" element={<ReturnPolicy />} />
 
-        {/* Tìm kiếm & chi tiết sản phẩm – public, nhưng có Navbar khi đã đăng nhập */}
+        {/* Tìm kiếm, duyệt & chi tiết sản phẩm – public */}
+        <Route path="/san-pham" element={<BrowseProducts />} />
         <Route path="/tim-kiem" element={<SearchResult />} />
         <Route path="/san-pham/:maSP" element={<ProductDetail />} />
 

@@ -11,6 +11,7 @@ public class MedicineMapper {
         
         return MedicineResponse.builder()
                 .masp(product.getMasp())
+                .madm(product.getMadm())
                 .tensanpham(product.getTensanpham())
                 .dvt(product.getDvt())
                 .congdung(product.getCongdung())

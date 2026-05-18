@@ -67,11 +67,11 @@ export default function Home() {
               <p className="font-medium text-gray-700 text-sm">Điểm tích lũy</p>
               <p className="text-xs text-gray-400 mt-1">Xem chi tiết</p>
             </Link>
-            <Link to="/tim-kiem"
+            <Link to="/san-pham"
               className="bg-white rounded-2xl p-5 shadow text-center hover:shadow-md transition">
-              <div className="text-3xl mb-2">🔍</div>
-              <p className="font-medium text-gray-700 text-sm">Tìm thuốc</p>
-              <p className="text-xs text-gray-400 mt-1">Tra cứu sản phẩm</p>
+              <div className="text-3xl mb-2">🏪</div>
+              <p className="font-medium text-gray-700 text-sm">Sản phẩm</p>
+              <p className="text-xs text-gray-400 mt-1">Xem tất cả</p>
             </Link>
             <Link to="/chinh-sach-doi-tra"
               className="bg-white rounded-2xl p-5 shadow text-center hover:shadow-md transition">

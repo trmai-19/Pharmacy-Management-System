@@ -16,6 +16,16 @@ public class MedicineServiceImpl implements MedicineService {
 
     private final ProductRepository productRepository;
     private final MedicineMapper medicineMapper;
+
+    // --- HÀM MỚI THÊM ---
+    @Override
+    public List<MedicineResponse> getAllMedicines() {
+        // Lấy tất cả từ DB và map sang DTO
+        return productRepository.findAll().stream()
+                .map(medicineMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<MedicineResponse> searchMedicines(String keyword) {
         List<Product> products = productRepository.searchProducts(keyword);

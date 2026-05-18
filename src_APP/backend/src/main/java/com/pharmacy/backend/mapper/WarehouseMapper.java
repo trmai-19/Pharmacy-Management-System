@@ -36,14 +36,6 @@ public class WarehouseMapper {
                 .build();
     }
 
-    public InventoryResponse toInventoryResponse(Warehouse warehouse) {
-        return InventoryResponse.builder()
-                .makho(warehouse.getMakho())
-                .slton(warehouse.getSlton())
-                .dvsp(warehouse.getDvsp())
-                .build();
-    }
-
     public ImportReceiptResponse toImportReceiptResponse(ImportReceipt receipt) {
         return ImportReceiptResponse.builder()
                 .mapn(receipt.getMapn())

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pharmacy.backend.dto.ApiResponse;
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
+import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
@@ -66,6 +67,20 @@ public class CustomerController {
                 .build();
                 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<CustomerStatsResponse>> getStats() {
+        CustomerStatsResponse data = customerService.getCustomerStats();
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy số liệu thống kê thành công", data));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<CustomerResponse>>> getList(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String tier) {
+        List<CustomerResponse> data = customerService.getCustomerList(search, tier);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách khách hàng thành công", data));
     }
 
 }

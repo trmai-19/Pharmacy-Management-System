@@ -18,5 +18,13 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
            "OR c.sdt LIKE CONCAT('%', :keyword, '%'))")
     List<Customer> searchByTenkhOrSdt(@Param("keyword") String keyword);
 
+    long countByHangtvIn(List<String> hangtv);
+
+    long countByHangtv(String hangtv);
+
+    @Query("SELECT c FROM Customer c WHERE " +
+           "(:search IS NULL OR :search = '' OR LOWER(c.tenkh) LIKE LOWER(CONCAT('%', :search, '%')) OR c.sdt LIKE CONCAT('%', :search, '%')) " +
+           "AND (:tier IS NULL OR :tier = '' OR :tier = 'Tất cả hạng mức' OR c.hangtv = :tier)")
+    List<Customer> searchAndFilterCustomers(@Param("search") String search, @Param("tier") String tier);
 }
 

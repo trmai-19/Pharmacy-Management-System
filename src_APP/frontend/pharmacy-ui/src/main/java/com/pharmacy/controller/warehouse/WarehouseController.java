@@ -29,7 +29,7 @@ public class WarehouseController {
     @FXML private VBox sideMenu;
     @FXML private Label lblWarehouseName;
     @FXML private Button btnInventory;
-    @FXML private Button btnReturn; // ĐÃ THÊM: Khai báo nút Quản lý đổi trả
+    @FXML private Button btnReturn; 
     @FXML private MenuButton avatarMenuButton; 
     
     private ContextMenu notificationMenu;   
@@ -43,7 +43,11 @@ public class WarehouseController {
     public void initialize() {
         System.out.println("✅ Khởi tạo giao diện Warehouse (Nhân viên kho)...");
         
-        // Load trang mặc định cho kho
+        // CẬP NHẬT TÊN LÊN HEADER
+        if (lblWarehouseName != null && com.pharmacy.util.Session.getCurrentUser() != null) {
+            lblWarehouseName.setText(com.pharmacy.util.Session.getFullName());
+        }
+
         loadView("inventory.fxml", "QUẢN LÝ KHO");
         
         if (btnInventory != null) {
@@ -51,20 +55,16 @@ public class WarehouseController {
         }
     }
 
-    // ====================== CÁC HÀM MENU BÊN TRÁI ======================
     @FXML
     void showInventoryManager(ActionEvent event) {
         handleMenuClick((Button) event.getSource(), "inventory.fxml", "QUẢN LÝ KHO");
     }
 
-    // ĐÃ THÊM: Hàm xử lý khi click nút Quản lý đổi trả
     @FXML
     void showReturnManager(ActionEvent event) {
-        // Thay "return-manager.fxml" bằng đúng tên file FXML đổi trả của bạn
         handleMenuClick((Button) event.getSource(), "return-manager.fxml", "QUẢN LÝ ĐỔI TRẢ");
     }
 
-    // ====================== LOGIC ĐỔI TRANG (NHÚNG VÀO CONTENT PANE) ======================
     private void handleMenuClick(Button clickedButton, String fxmlName, String title) {
         setActiveButtonStyle(clickedButton);
         loadView(fxmlName, title);
@@ -87,7 +87,6 @@ public class WarehouseController {
             lblTitle.setText(title);
         }
         
-        // Đổi đường dẫn trỏ về thư mục warehouse
         String path = "/com/pharmacy/views/warehouse/" + fxmlFileName;
         System.out.println("🔄 Đang chuyển sang trang: " + path);
         
@@ -104,13 +103,11 @@ public class WarehouseController {
             contentPane.getChildren().clear();
             contentPane.getChildren().add(view);
             
-            // Căn tràn viền cho view con
             AnchorPane.setTopAnchor(view, 0.0);
             AnchorPane.setBottomAnchor(view, 0.0);
             AnchorPane.setLeftAnchor(view, 0.0);
             AnchorPane.setRightAnchor(view, 0.0);
             
-            // Hiệu ứng fade mượt mà
             contentPane.setOpacity(0);
             javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
                 javafx.util.Duration.millis(400), contentPane);
@@ -124,16 +121,13 @@ public class WarehouseController {
         }
     }
 
-    // ====================== XỬ LÝ THÔNG BÁO (CHUÔNG) ======================
     @FXML
     void handleShowNotifications(MouseEvent event) {
-        // Ẩn badge thông báo
         if (lblNotificationCount != null) {
             lblNotificationCount.setText("0");
             lblNotificationCount.getParent().setVisible(false);
         }
 
-        // Toggle (Đóng mở menu)
         if (notificationMenu != null && notificationMenu.isShowing()) {
             notificationMenu.hide();
             notificationMenu = null;
@@ -147,7 +141,6 @@ public class WarehouseController {
         popupContainer.setFocusTraversable(false);
         popupContainer.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 15, 0, 0, 6); -fx-border-radius: 12; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
 
-        // Header thông báo
         HBox headerBox = new HBox();
         headerBox.setFocusTraversable(false);
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -157,12 +150,10 @@ public class WarehouseController {
         headerLabel.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: #0f766e;");
         headerBox.getChildren().add(headerLabel);
 
-        // Danh sách thông báo
         VBox notifList = new VBox(0);
         notifList.setFocusTraversable(false);
         notifList.setStyle("-fx-background-color: white;");
 
-        // Dữ liệu mẫu
         notifList.getChildren().add(createNotificationRow("CẢNH BÁO", "Thuốc Paracetamol 500mg sắp hết (Còn 3 hộp).", "Vừa xong", "WARNING"));
         notifList.getChildren().add(createNotificationRow("THÔNG TIN", "Nhà cung cấp đã giao lô hàng mới.", "15 phút trước", "INFO"));
         notifList.getChildren().add(createNotificationRow("CẢNH BÁO", "Lô hàng Vitamin C sẽ hết hạn sau 30 ngày nữa.", "2 giờ trước", "WARNING"));
@@ -175,7 +166,6 @@ public class WarehouseController {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background-color: white; -fx-background: white; -fx-border-color: transparent;");
 
-        // Footer thông báo
         HBox footerBox = new HBox();
         footerBox.setFocusTraversable(false);
         footerBox.setAlignment(Pos.CENTER);
@@ -243,11 +233,9 @@ public class WarehouseController {
         return container;
     }
 
-    // ====================== XỬ LÝ MENU AVATAR BÊN PHẢI ======================
     @FXML
     private void handleViewProfile(ActionEvent event) {
         System.out.println("👤 Mở Thông tin tài khoản kho");
-        // Reset lại hiệu ứng active bên menu trái (nếu muốn)
         setActiveButtonStyle(null); 
         loadView("profile.fxml", "THÔNG TIN TÀI KHOẢN");
     }
@@ -255,7 +243,6 @@ public class WarehouseController {
     @FXML
     private void handleChangePassword(ActionEvent event) {
         System.out.println("🔑 Mở Đổi mật khẩu kho");
-        // Reset lại hiệu ứng active bên menu trái (nếu muốn)
         setActiveButtonStyle(null);
         loadView("change-password.fxml", "ĐỔI MẬT KHẨU");
     }

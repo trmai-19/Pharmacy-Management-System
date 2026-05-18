@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
+import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
@@ -34,7 +35,6 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
-    private final InvoiceMapper invoiceMapper;
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
@@ -113,5 +113,39 @@ public class CustomerServiceImpl implements CustomerService {
                 .stream()
                 .map(InvoiceMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CustomerStatsResponse getCustomerStats() {
+        long total = customerRepository.count();
+        long diamond = customerRepository.countByHangtv("Kim Cương");
+        long gold = customerRepository.countByHangtv("Vàng");
+        long silver = customerRepository.countByHangtv("Bạc");
+
+        return CustomerStatsResponse.builder()
+                .totalCustomers(total)
+                .diamondCustomers(diamond)
+                .goldCustomers(gold)
+                .silverCustomers(silver)
+                .build();
+    }
+
+    @Override
+    public List<CustomerResponse> getCustomerList(String search, String tier) {
+        // Gọi thẳng query tìm kiếm + lọc từ DB
+        List<Customer> list = customerRepository.searchAndFilterCustomers(search, tier);
+        
+        // Đóng gói sang DTO (Dùng luôn CustomerResponse cũ của ông là quá đẹp)
+        return list.stream().map(c -> CustomerResponse.builder()
+                .makh(c.getMakh())
+                .tenkh(c.getTenkh())
+                .gioitinh(c.getGioitinh())
+                .ngaysinh(c.getNgaysinh())
+                .sdt(c.getSdt())
+                .tongdoanhthu(c.getTongdoanhthu())
+                .diemtichluy(c.getDiemtichluy())
+                .hangtv(c.getHangtv())
+                .build()
+        ).collect(java.util.stream.Collectors.toList());
     }
 }

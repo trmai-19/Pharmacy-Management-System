@@ -32,7 +32,4 @@ public class SanPham {
 
     @Column(name = "GIABAN")
     private Double giaBan;
-
-    @Column(name = "IS_MANUAL_PRICE")
-    private boolean isManualPrice = false;
 }

@@ -28,5 +28,5 @@ public class ImportReceipt {
     private Double tongtien;
 
     @Column(name = "TRANGTHAI")
-    private String trangthai = "KHOI TAO";
+    private String trangthai = "KHOI_TAO";
 }

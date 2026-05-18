@@ -58,3 +58,59 @@
     -fx-background-radius: 5;
 }
 
+/* =======================================================
+   CUSTOM COMBOBOX THÀNH THANH SEARCH BO TRÒN (SALES POS)
+   ======================================================= */
+.search-combo-box {
+    -fx-background-color: white;
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);
+}
+
+/* Bo góc cho khung nhập chữ */
+.search-combo-box .text-field {
+    -fx-background-color: transparent;
+    -fx-font-size: 15px;
+    -fx-padding: 0 20 0 20;
+    -fx-prompt-text-fill: #94a3b8;
+    -fx-text-fill: #1e293b;
+}
+
+/* Xóa background của nút mũi tên */
+.search-combo-box .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 15 0 0;
+}
+
+/* Tàng hình luôn cái mũi tên xổ xuống cho giống thanh search */
+.search-combo-box .arrow {
+    -fx-background-color: transparent; 
+}
+
+/* Làm đẹp cái menu danh sách xổ xuống */
+.search-combo-box .list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);
+    -fx-padding: 5;
+}
+
+/* Làm đẹp từng dòng gọi ý sản phẩm */
+.search-combo-box .list-cell {
+    -fx-font-size: 14px;
+    -fx-padding: 12 15;
+    -fx-text-fill: #334155;
+    -fx-background-radius: 5;
+}
+
+/* Hiệu ứng khi rê chuột vào gợi ý */
+.search-combo-box .list-cell:hover, 
+.search-combo-box .list-cell:filled:selected {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #09736a;
+    -fx-font-weight: bold;
+}

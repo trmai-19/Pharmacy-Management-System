@@ -21,7 +21,8 @@ public class SanPhamSearchResponse {
         private String tenSanPham;
         private String congDung;
         private String dvt;
-        private Long giaBan;
+        private Double giaBan;
         private String maDM;
+        private String thanhPhan;
     }
 }

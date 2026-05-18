@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 public class MedicineResponse {
     private String masp;      
+    private String madm;
     private String tensanpham; 
     private String dvt;        
     private String congdung;  
