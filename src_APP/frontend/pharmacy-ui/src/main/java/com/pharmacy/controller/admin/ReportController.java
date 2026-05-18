@@ -64,10 +64,14 @@ public class ReportController implements Initializable {
     @FXML private CheckBox chkTotal;
     @FXML private CheckBox chkNew;
     @FXML private CheckBox chkReturning;
+    @FXML private BarChart<Number, String> barChartTopSpenders;
+    
 
     private XYChart.Series<String, Number> seriesTotal = new XYChart.Series<>();
     private XYChart.Series<String, Number> seriesNew = new XYChart.Series<>();
     private XYChart.Series<String, Number> seriesReturning = new XYChart.Series<>();
+
+    @FXML private BarChart<String, Number> barChartCustSeg;
     
 
 
@@ -84,6 +88,8 @@ public class ReportController implements Initializable {
         loadInventoryPieChart();
         loadCustomerKPIs();
         initGrowthChartData();
+        loadTopSpendersChart();
+        loadCustomerSegmentationChart();
     }
 
     // 2. Viết sự kiện khi bấm nút Performance
@@ -262,6 +268,45 @@ public class ReportController implements Initializable {
         areaChartCustGrowth.getData().add(seriesTotal);
     }
 
+    private void loadTopSpendersChart() {
+        if (barChartTopSpenders == null) return;
+
+        barChartTopSpenders.getData().clear();
+
+        XYChart.Series<Number, String> series = new XYChart.Series<>();
+        series.setName("Tổng chi tiêu (VNĐ)");
+
+        // Mẹo: Add data từ số NHỎ đến số TO để thằng chi nhiều nhất trồi lên trên cùng
+        series.getData().add(new XYChart.Data<>(1500000, "Lê Văn C"));
+        series.getData().add(new XYChart.Data<>(2100000, "Phạm Thị D"));
+        series.getData().add(new XYChart.Data<>(2800000, "Hoàng Văn E"));
+        series.getData().add(new XYChart.Data<>(3500000, "Vũ Thị F"));
+        series.getData().add(new XYChart.Data<>(4200000, "Đặng Văn G"));
+        series.getData().add(new XYChart.Data<>(5100000, "Bùi Thị H"));
+        series.getData().add(new XYChart.Data<>(6500000, "Ngô Văn I"));
+        series.getData().add(new XYChart.Data<>(8200000, "Trần Thị B"));
+        series.getData().add(new XYChart.Data<>(10500000, "Nguyễn Văn A"));
+        series.getData().add(new XYChart.Data<>(15200000, "Khách VIP 001")); // Top 1
+
+        barChartTopSpenders.getData().add(series);
+    }
+
+
+    private void loadCustomerSegmentationChart() {
+        if (barChartCustSeg == null) return;
+
+        barChartCustSeg.getData().clear();
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Số lượng thành viên");
+
+        // Bơm data cho 3 phân khúc
+        series.getData().add(new XYChart.Data<>("Loyal (Thân thiết)", 1470));
+        series.getData().add(new XYChart.Data<>("New (Mới)", 680));
+        series.getData().add(new XYChart.Data<>("Lost (Rời bỏ)", 300));
+
+        barChartCustSeg.getData().add(series);
+    }
 
 
 

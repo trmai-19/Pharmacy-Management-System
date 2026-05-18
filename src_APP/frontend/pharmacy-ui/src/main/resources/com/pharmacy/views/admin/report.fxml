@@ -270,18 +270,6 @@
                         <CheckBox fx:id="chkReturning" mnemonicParsing="false" onAction="#handleToggleGrowth" prefHeight="29.0" prefWidth="212.0" text="Số khách hàng quay lại" textAlignment="JUSTIFY" />
                      </children>
                   </HBox>
-                  <Pane layoutX="664.0" layoutY="176.0" prefHeight="196.0" prefWidth="554.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
-                     <children>
-                        <BarChart fx:id="topProductsBarChart1" horizontalGridLinesVisible="false" layoutY="1.0" legendVisible="false" prefHeight="202.0" prefWidth="556.0" title="Top 10 Customers chi tiền nhiều nhất: Horizontal Bar Chart" verticalGridLinesVisible="false">
-                           <xAxis>
-                              <CategoryAxis side="LEFT" />
-                           </xAxis>
-                           <yAxis>
-                              <NumberAxis />
-                           </yAxis>
-                        </BarChart>
-                     </children>
-                  </Pane>
                   <Pane layoutX="16.0" layoutY="457.0" prefHeight="215.0" prefWidth="310.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="agePieChart" labelsVisible="false" layoutX="-8.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
@@ -369,15 +357,27 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <Pane layoutX="664.0" layoutY="381.0" prefHeight="288.0" prefWidth="546.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="672.0" layoutY="457.0" prefHeight="215.0" prefWidth="546.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart prefHeight="288.0" prefWidth="546.0" title="Customer Segmentation (Loyal/New/Lost): Bar Chart">
+                        <BarChart fx:id="barChartCustSeg" animated="false" legendVisible="false" prefHeight="215.0" prefWidth="546.0" title="Phân khúc khách hàng (Loyal/New/Lost)">
                           <xAxis>
                             <CategoryAxis side="BOTTOM" />
                           </xAxis>
                           <yAxis>
                             <NumberAxis side="LEFT" />
                           </yAxis>
+                        </BarChart>
+                     </children>
+                  </Pane>
+                  <Pane layoutX="672.0" layoutY="176.0" prefHeight="269.0" prefWidth="546.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                     <children>
+                        <BarChart fx:id="barChartTopSpenders" horizontalGridLinesVisible="false" legendVisible="false" prefHeight="270.0" prefWidth="546.0" title="Top 10 Customers chi tiền nhiều nhất:Bar Chart" verticalGridLinesVisible="false">
+            <xAxis>
+            <NumberAxis side="BOTTOM" /> 
+            </xAxis>
+            <yAxis>
+            <CategoryAxis side="LEFT" /> 
+            </yAxis>
                         </BarChart>
                      </children>
                   </Pane>
