@@ -125,14 +125,14 @@ public class CustomerManagerController {
     }
 
     private Customer toCustomerModel(CustomerResponse response) {
-        String formattedPoints = String.valueOf((int) response.getDiemtichluy());
+        String formattedPoints = response.getDiemtichluy() == 0 ? "0" : String.valueOf((int) response.getDiemtichluy());
         String formattedTotal = response.getTongdoanhthu() == null ? "0" : String.format("%.0f", response.getTongdoanhthu());
-        String tier = normalizeTier(response.getHangtv());
+        String tier = response.getHangtv() == null ? "Thành viên" : normalizeTier(response.getHangtv());
 
         return new Customer(
-                response.getMakh(),
-                response.getTenkh(),
-                response.getSdt(),
+                response.getMakh() != null ? response.getMakh() : "",
+                response.getTenkh() != null ? response.getTenkh() : "N/A",
+                response.getSdt() != null ? response.getSdt() : "",
                 tier,
                 formattedPoints,
                 formattedTotal,

@@ -4,6 +4,7 @@ public class CustomerResponse {
     private String makh;
     private String tenkh;
     private String gioitinh;
+    private String ngaysinh;
     private String sdt;
     private Double tongdoanhthu;
     private double diemtichluy;
@@ -19,6 +20,9 @@ public class CustomerResponse {
 
     public String getGioitinh() { return gioitinh; }
     public void setGioitinh(String gioitinh) { this.gioitinh = gioitinh; }
+
+    public String getNgaysinh() { return ngaysinh; }
+    public void setNgaysinh(String ngaysinh) { this.ngaysinh = ngaysinh; }
 
     public String getSdt() { return sdt; }
     public void setSdt(String sdt) { this.sdt = sdt; }
