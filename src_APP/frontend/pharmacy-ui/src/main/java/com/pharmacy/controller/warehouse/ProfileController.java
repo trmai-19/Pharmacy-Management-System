@@ -1,5 +1,8 @@
 package com.pharmacy.controller.warehouse;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.pharmacy.util.ApiService;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,35 +26,57 @@ public class ProfileController {
     @FXML
     public void initialize() {
         System.out.println("✅ Đang nạp dữ liệu vào trang Profile...");
-        try {
-            // Khởi tạo danh sách giới tính (Mặc dù bị disable nhưng vẫn phải có data để hiển thị)
-            cbGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
-            
-            // Set dữ liệu hiển thị mặc định
-            lblFullNameCard.setText("NGUYỄN VĂN PHÁT");
-            txtName.setText("Nguyễn Văn Phát");
-            cbGender.setValue("Nam");
-            dpBirthDate.setValue(LocalDate.of(2004, 1, 1));
-            txtPhone.setText("0987.654.321");
-            txtEmail.setText("admin.phat@pharmacy.com");
-            txtRole.setText("Quản trị viên (Admin)");
-            txtJoinDate.setText("15/10/2023");
-        } catch (Exception e) {
-            System.err.println("❌ Lỗi khi nạp dữ liệu Profile!");
+        cbGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
+        
+        ApiService.get("/api/profile/me").thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode data = ApiService.mapper.readTree(response.body()).get("data");
+
+                        String hoten = data.get("hoten").asText();
+                        lblFullNameCard.setText(hoten.toUpperCase());
+                        txtName.setText(hoten);
+                        txtPhone.setText(data.get("sdt").asText());
+                        txtRole.setText(data.get("vaitro").asText());
+                        
+                        if (data.has("email") && !data.get("email").isNull()) {
+                            txtEmail.setText(data.get("email").asText());
+                        }
+
+                        if (data.has("gioitinh") && !data.get("gioitinh").isNull()) {
+                            cbGender.setValue(data.get("gioitinh").asText());
+                        }
+
+                        if (data.has("ngaysinh") && !data.get("ngaysinh").isNull()) {
+                            String dobStr = data.get("ngaysinh").asText().split("T")[0];
+                            dpBirthDate.setValue(LocalDate.parse(dobStr));
+                        }
+
+                        if (data.has("ngayvaolam") && !data.get("ngayvaolam").isNull()) {
+                            txtJoinDate.setText(data.get("ngayvaolam").asText().split("T")[0]);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }).exceptionally(e -> {
             e.printStackTrace();
-        }
+            return null;
+        });
     }
 
     @FXML
     void goToEditProfile(ActionEvent event) {
         try {
-            // Tuyệt chiêu nhảy trang nội bộ không báo lỗi
             javafx.scene.Node source = (javafx.scene.Node) event.getSource();
             javafx.scene.layout.AnchorPane adminContentPane = 
                 (javafx.scene.layout.AnchorPane) source.getScene().lookup("#contentPane");
 
             if (adminContentPane != null) {
-                com.pharmacy.util.SceneManager.loadContent(adminContentPane, "/com/pharmacy/views/admin/edit-profile.fxml");
+                com.pharmacy.util.SceneManager.loadContent(adminContentPane, "/com/pharmacy/views/warehouse/edit-profile.fxml");
             } else {
                 System.err.println("❌ Không tìm thấy AnchorPane tổng để chuyển trang!");
             }

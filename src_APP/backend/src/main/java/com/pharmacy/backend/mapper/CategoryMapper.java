@@ -13,14 +13,14 @@ public class CategoryMapper {
                 .madm(category.getMadm())
                 .tendm(category.getTendm())
                 .mota(category.getMota())
-                .tyleloinhuan(category.getTyleloinhuan())
+                .trangthai(category.getTrangthai())
                 .build();
     }
     
     public void updateCategoryFromRequest(Category category, CategoryRequest request) {
         category.setTendm(request.getTendm());
         category.setMota(request.getMota());
-        category.setTyleloinhuan(request.getTyleloinhuan());
+        category.setTrangthai("KHA_DUNG");
     }
 
     public CategoryResponseStaff toStaffResponse(Category category) {

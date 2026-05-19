@@ -24,7 +24,6 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     private final ImportReceiptRepository importReceiptRepository;
     private final ImportReceiptDetailRepository importReceiptDetailRepository;
     private final BatchRepository batchRepository;
-    private final WarehouseRepository warehouseRepository;
     private final SupplierRepository supplierRepository;
     private final WarehouseMapper warehouseMapper;
 

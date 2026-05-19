@@ -17,6 +17,9 @@ public class Warehouse {
     @Column(name = "SLTON")
     private Integer slton;
 
+    @Column(name = "LOAIKHO")
+    private String loaikho;
+
     @Column(name = "DVSP")
     private String dvsp;
 }

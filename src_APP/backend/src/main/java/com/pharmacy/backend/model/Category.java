@@ -20,6 +20,6 @@ public class Category {
     @Column(name = "MOTA")
     private String mota;
 
-    @Column(name = "TYLELOINHUAN")
-    private Double tyleloinhuan;
+    @Column(name = "TRANGTHAI")
+    private String trangthai;
 }

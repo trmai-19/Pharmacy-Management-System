@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface WarehouseRepository extends JpaRepository<Warehouse, String> {
     List<Warehouse> findBySltonLessThan(Integer threshold);
+
+    boolean existsByLoaikho(String loaikho);
 }

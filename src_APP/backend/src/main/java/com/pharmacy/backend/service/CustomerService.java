@@ -8,6 +8,7 @@ import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import java.util.List;
 public interface CustomerService {
     CustomerResponse findBySdt(String sdt);
+    List<CustomerResponse> searchCustomers(String keyword);
     CustomerResponse createCustomer(CreateCustomerRequest request);
     CustomerResponse quickCreate(QuickCreateCustomerRequest request);
     void upgradeToAccount(String makh, UpgradeAccountRequest request);

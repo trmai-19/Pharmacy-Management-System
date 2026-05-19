@@ -2,9 +2,13 @@ package com.pharmacy.backend.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.mail.MailSender;
 
+import com.pharmacy.backend.dto.AccountResponse;
 import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.mapper.AccountMapper;
@@ -13,12 +17,19 @@ import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.EmployeeRepository;
 import com.pharmacy.backend.security.JwtUtils;
-
+import java.util.List; 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
+
+    private final JdbcTemplate jdbcTemplate;
+    private final MailSender mailSender;
 
     private final AccountRepository accountRepo;
     private final EmployeeRepository employeeRepo;
@@ -160,4 +171,25 @@ public class AccountServiceImpl implements AccountService {
         acc.setPassword(passwordEncoder.encode(newPassword));
         accountRepo.save(acc);
     }
+   
+
+   
+    @Override
+    public List<AccountResponse> getAllAccountsInSystem() {
+        String sql = "SELECT * FROM V_DANH_SACH_TAI_KHOAN";
+        
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> new AccountResponse(
+                    rs.getString("username"),
+                    rs.getString("ownerName"),
+                    rs.getString("role"),
+                    rs.getString("status"),
+                    rs.getString("email"),
+                    rs.getString("accountType")
+            ));
+            } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Lỗi khi đọc hoặc thực thi file SQL script: " + e.getMessage());
+    }
+        }
 }

@@ -60,6 +60,7 @@ public class AdminSeeder implements CommandLineRunner {
             System.out.println("==================================================");
         }
         else {
+            
             System.out.println("TAI KHOAN ADMIN MAC DINH DA TON TAI");
         }
     }

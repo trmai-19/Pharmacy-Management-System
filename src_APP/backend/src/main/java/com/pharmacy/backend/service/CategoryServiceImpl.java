@@ -54,7 +54,8 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với mã: " + id));
             
-        categoryRepository.delete(category);
+        category.setTrangthai("DA_XOA"); 
+        categoryRepository.save(category);
     }
 
     @Override

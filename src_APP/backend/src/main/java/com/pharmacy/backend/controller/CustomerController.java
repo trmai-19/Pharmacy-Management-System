@@ -28,6 +28,13 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<CustomerResponse>>> searchCustomers(
+            @RequestParam(required = false) String keyword) {
+        List<CustomerResponse> data = customerService.searchCustomers(keyword);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Lấy danh sách khách hàng thành công", data));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<CustomerResponse>> findBySdt(@RequestParam String sdt) {
         CustomerResponse data = customerService.findBySdt(sdt);

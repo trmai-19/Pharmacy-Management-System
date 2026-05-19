@@ -37,13 +37,6 @@
                         <Label fx:id="lblWebAccounts" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="1,540" />
                      </children>
                   </VBox>
-                  <VBox prefWidth="300.0" style="-fx-background-color: #FDE9B5; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5); -fx-padding: 20;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px; -fx-font-weight: bold;" text="TÀI KHOẢN BỊ KHÓA / CẢNH BÁO" />
-                        <Region prefHeight="10.0" />
-                        <Label fx:id="lblLockedAccounts" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #f59e0b;" text="8" />
-                     </children>
-                  </VBox>
                </children>
             </HBox>
 
@@ -80,10 +73,10 @@
                                     <TableView fx:id="tableEmployeeAcc" style="-fx-font-size: 14px; -fx-selection-bar: #ccfbf1; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">
                                       <columns>
                                         <TableColumn fx:id="colEmpUser" prefWidth="150.0" style="-fx-font-weight: bold;" text="Tên đăng nhập" />
+                                        <TableColumn fx:id="colEmpEmail" prefWidth="200.0" text="Email" />
                                         <TableColumn fx:id="colEmpName" prefWidth="200.0" text="Tên nhân viên" />
                                         <TableColumn fx:id="colEmpRole" prefWidth="120.0" style="-fx-alignment: CENTER;" text="Quyền hạn" />
                                         <TableColumn fx:id="colEmpStatus" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Trạng thái" />
-                                        <TableColumn fx:id="colEmpLastLogin" prefWidth="180.0" style="-fx-alignment: CENTER;" text="Lần truy cập cuối" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -122,9 +115,7 @@
                                         <TableColumn fx:id="colCustPhone" prefWidth="120.0" style="-fx-font-weight: bold;" text="Số điện thoại" />
                                         <TableColumn fx:id="colCustEmail" prefWidth="180.0" text="Email" />
                                         <TableColumn fx:id="colCustName" prefWidth="180.0" text="Tên Khách Hàng" />
-                                        <TableColumn fx:id="colCustRole" prefWidth="100.0" style="-fx-alignment: CENTER;" text="Nền Tảng" />
                                         <TableColumn fx:id="colCustStatus" prefWidth="130.0" style="-fx-alignment: CENTER;" text="Trạng Thái Xác Thực" />
-                                        <TableColumn fx:id="colCustLastLogin" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Hoạt Động Cuối" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

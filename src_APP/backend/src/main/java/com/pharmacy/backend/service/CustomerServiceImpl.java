@@ -34,7 +34,6 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
-    private final InvoiceMapper invoiceMapper;
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
@@ -80,6 +79,14 @@ public class CustomerServiceImpl implements CustomerService {
         customerRepository.save(customer);
 
         emailService.sendAccountCreationEmail(request.getEmail(), customer.getSdt(), rawPassword);
+    }
+
+    @Override
+    public List<CustomerResponse> searchCustomers(String keyword) {
+        List<Customer> customers = customerRepository.searchByTenkhOrSdt(keyword);
+        return customers.stream()
+                .map(customerMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
