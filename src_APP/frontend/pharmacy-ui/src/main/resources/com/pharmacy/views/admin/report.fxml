@@ -49,11 +49,11 @@
                   </HBox>
                   <HBox layoutX="16.0" layoutY="176.0" prefHeight="30.0" prefWidth="807.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="144.0" text="Doanh Thu" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="154.0" text="Lợi Nhuận" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Số tiền thua lỗ " />
-                        <Button mnemonicParsing="false" prefHeight="31.0" prefWidth="190.0" text="Số tiền bỏ ra" />
-                        <Button mnemonicParsing="false" prefHeight="30.0" prefWidth="171.0" text="Số lượng đơn hàng" />
+                        <Button fx:id="btnRevenue" mnemonicParsing="false" prefHeight="30.0" prefWidth="144.0" text="Doanh Thu" onAction="#handleMetricChange"/>
+                        <Button fx:id="btnProfit" mnemonicParsing="false" prefHeight="30.0" prefWidth="154.0" text="Lợi Nhuận" onAction="#handleMetricChange"/>
+                        <Button fx:id="btnLoss" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Số tiền thua lỗ " onAction="#handleMetricChange"/>
+                        <Button fx:id="btnSpend" mnemonicParsing="false" prefHeight="31.0" prefWidth="190.0" text="Số tiền bỏ ra" onAction="#handleMetricChange"/>
+                        <Button fx:id="btnOrders" mnemonicParsing="false" prefHeight="30.0" prefWidth="171.0" text="Số lượng đơn hàng" onAction="#handleMetricChange"/>
                      </children>
                   </HBox>
                   <Pane layoutX="833.0" layoutY="178.0" prefHeight="504.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
@@ -71,13 +71,13 @@
                   <Pane layoutX="438.0" layoutY="466.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="agePieChart" labelsVisible="false" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
-                        <Circle fill="WHITE" layoutX="132.0" layoutY="117.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="111.0" layoutY="118.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
                   </Pane>
                   <Pane layoutX="16.0" layoutY="466.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Gender" />
-                        <Circle fill="WHITE" layoutX="116.0" layoutY="118.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="112.0" layoutY="122.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
                   </Pane>
                   <Text layoutX="-1.0" layoutY="34.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="202.39999999999986">
@@ -92,9 +92,9 @@
                               <Font name="System Bold" size="28.0" />
                            </font>
                         </Label>
-                        <Label prefHeight="17.0" prefWidth="190.0" text="Total Orders">
+                        <Label layoutX="14.0" layoutY="10.0" prefHeight="17.0" prefWidth="190.0" text="Total Orders">
                            <font>
-                              <Font size="16.0" />
+                              <Font size="18.0" />
                            </font>
                         </Label>
                      </children>
@@ -106,9 +106,9 @@
                               <Font name="System Bold" size="28.0" />
                            </font>
                         </Label>
-                        <Label prefHeight="17.0" prefWidth="190.0" text="Profit">
+                        <Label layoutX="14.0" layoutY="8.0" prefHeight="17.0" prefWidth="190.0" text="Profit">
                            <font>
-                              <Font size="16.0" />
+                              <Font size="18.0" />
                            </font>
                         </Label>
                      </children>
@@ -120,26 +120,30 @@
                               <Font name="System Bold" size="28.0" />
                            </font>
                         </Label>
-                        <Label prefHeight="17.0" prefWidth="190.0" text="Spend">
+                        <Label layoutX="14.0" layoutY="7.0" prefHeight="17.0" prefWidth="190.0" text="Spend">
                            <font>
-                              <Font size="16.0" />
+                              <Font size="18.0" />
                            </font>
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="979.0" layoutY="49.0" prefHeight="124.0" prefWidth="239.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="977.0" layoutY="51.0" prefHeight="124.0" prefWidth="239.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblLoss" layoutX="38.0" layoutY="18.0" prefHeight="102.0" prefWidth="178.0" text="Label Loss" textAlignment="JUSTIFY" textFill="#e17055">
                            <font>
                               <Font name="System Bold" size="28.0" />
                            </font>
                         </Label>
-                        <Label layoutX="14.0" layoutY="5.0" prefHeight="17.0" prefWidth="190.0" text="Loss" />
+                        <Label layoutX="14.0" layoutY="14.0" prefHeight="17.0" prefWidth="190.0" text="Loss">
+                           <font>
+                              <Font size="18.0" />
+                           </font>
+                        </Label>
                      </children>
                   </AnchorPane>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneInventory" prefHeight="952.0" prefWidth="1404.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="paneInventory" prefHeight="952.0" prefWidth="1404.0" style="-fx-background-color: FAFCFC;" visible="false">
                <children>
                   <HBox layoutX="208.0" layoutY="10.0" prefHeight="30.0" prefWidth="1011.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
@@ -240,7 +244,7 @@
                   </TableView>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneCustomer" prefHeight="706.0" prefWidth="1242.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="paneCustomer" prefHeight="706.0" prefWidth="1242.0" style="-fx-background-color: FAFCFC;" visible="false">
                <children>
                   <Pane layoutX="16.0" layoutY="207.0" prefHeight="238.0" prefWidth="635.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
@@ -272,14 +276,14 @@
                   </HBox>
                   <Pane layoutX="16.0" layoutY="457.0" prefHeight="215.0" prefWidth="310.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <PieChart fx:id="agePieChart" labelsVisible="false" layoutX="-8.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
-                        <Circle fill="WHITE" layoutX="132.0" layoutY="117.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <PieChart labelsVisible="false" layoutX="-8.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="326.0" title="Pie chart: Age" />
+                        <Circle fill="DODGERBLUE" layoutX="116.0" layoutY="127.0" radius="52.0" stroke="BLACK" strokeType="INSIDE" />
                      </children>
                   </Pane>
                   <Pane layoutX="342.0" layoutY="457.0" prefHeight="215.0" prefWidth="309.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="310.0" title="Pie chart: Gender" />
-                        <Circle fill="WHITE" layoutX="116.0" layoutY="118.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <PieChart labelsVisible="false" layoutX="-1.0" layoutY="2.0" legendSide="RIGHT" prefHeight="215.0" prefWidth="310.0" title="Pie chart: Gender" />
+                        <Circle fill="DODGERBLUE" layoutX="110.0" layoutY="128.0" radius="52.0" stroke="BLACK" strokeType="INSIDE" />
                      </children>
                   </Pane>
                   <Text layoutX="-1.0" layoutY="34.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="202.39999999999986">

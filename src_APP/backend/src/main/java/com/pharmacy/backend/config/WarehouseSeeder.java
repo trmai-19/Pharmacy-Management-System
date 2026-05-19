@@ -17,7 +17,6 @@ public class WarehouseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        
         // 1. Kiểm tra và khởi tạo KHO THUỐC
         if (!warehouseRepo.existsByLoaikho("THUOC")) {
             Warehouse khoThuoc = new Warehouse();
