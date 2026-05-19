@@ -25,33 +25,32 @@
     -fx-background-radius: 3 3 0 0;
 }
 
-/* Màu cho đường Line (Area) */
-.chart-series-area-line {
-    -fx-stroke: #00bfa5;
-    -fx-stroke-width: 3px; 
-}
-
-/* Màu cho vùng đổ bóng dưới Line (Area) */
-.chart-series-area-fill {
-    -fx-fill: rgba(0, 191, 165, 0.2); /* Độ trong suốt nhẹ nhàng */
-}
 
 /* 🌟 QUAN TRỌNG: NÚT TRÒN (MARKER) - KHÓA KÍCH THƯỚC NHỎ XINH */
 .chart-area-symbol {
 
     -fx-background-color:
-        #111111,
         white,
         #00bfa5;
 
-    -fx-background-insets:
-        0,
-        1.5,
-        4;
+    -fx-background-insets:0, 2;
 
     -fx-background-radius: 100em;
 
-    -fx-padding: 7;
+    -fx-padding: 5;
+}
+.chart-area-symbol {
+    -fx-cursor: hand;
+}
+
+.chart-series-area-line {
+
+    -fx-stroke-width: 2.5px;
+}
+
+.chart-series-area-fill {
+
+    -fx-fill: rgba(0,191,165,0.10);
 }
 /* =========================================================
    PIE CHART
@@ -70,24 +69,6 @@
 
 .chart-pie-label-line {
     -fx-stroke: transparent;
-}
-
-/* slice colors */
-
-.default-color0.chart-pie {
-    -fx-pie-color: #14b8a6;
-}
-
-.default-color1.chart-pie {
-    -fx-pie-color: #4c1d95;
-}
-
-.default-color2.chart-pie {
-    -fx-pie-color: #2563eb;
-}
-
-.default-color3.chart-pie {
-    -fx-pie-color: #b0bec5;
 }
 
 /* legend */
@@ -112,11 +93,7 @@
 
     -fx-padding: 7;
 }
-/* Đồng bộ màu Legend (Chú thích) */
-.default-color0.chart-legend-item-symbol { -fx-background-color: #00bfa5; }
-.default-color1.chart-legend-item-symbol { -fx-background-color: #460aad; }
-.default-color2.chart-legend-item-symbol { -fx-background-color: #2979ff; }
-.default-color3.chart-legend-item-symbol { -fx-background-color: #b0bec5; }
+
 
 /* ========================================================================
    4. KPI CARDS & UI COMPONENTS
@@ -138,8 +115,8 @@
 .combo-box {
     -fx-background-color: white;
     -fx-border-color: #d1d5db;
-    -fx-background-radius: 4;
-    -fx-border-radius: 4;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
 }
 
 .combo-box .arrow-button .arrow {
@@ -205,3 +182,17 @@
     -fx-border-radius: 6;
 }
 
+.chart-tooltip {
+
+    -fx-background-color: #111827;
+
+    -fx-text-fill: white;
+
+    -fx-font-size: 12px;
+
+    -fx-font-weight: 600;
+
+    -fx-padding: 8 12 8 12;
+
+    -fx-background-radius: 8;
+}
