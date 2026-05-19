@@ -251,6 +251,13 @@ public class ReportController implements Initializable {
 
 
         trendAreaChart.getData().add(series);
+        NumberAxis yAxis = (NumberAxis) trendAreaChart.getYAxis();
+
+        configureDynamicAxis(yAxis, series);
+
+        trendAreaChart.applyCss();
+        trendAreaChart.layout();
+
         trendAreaChart.applyCss();
         trendAreaChart.layout();    
 
@@ -375,6 +382,15 @@ public class ReportController implements Initializable {
         }
 
         topProductsBarChart.getData().add(series);
+        NumberAxis yAxis =
+                (NumberAxis) topProductsBarChart.getYAxis();
+
+        configureDynamicAxis(yAxis, series);
+
+        trendAreaChart.applyCss();
+        trendAreaChart.layout();
+
+
 
         Platform.runLater(() -> {
 
@@ -407,6 +423,7 @@ public class ReportController implements Initializable {
         );
 
         genderPieChart.setData(pieChartData);
+        
         genderPieChart.applyCss();
         genderPieChart.layout();
 
@@ -840,7 +857,118 @@ public class ReportController implements Initializable {
                 return "rgba(0,191,165,0.18)";
         }
     }
+    private double roundNiceNumber(double value) {
 
+        double exponent =
+                Math.pow(
+                        10,
+                        Math.floor(
+                                Math.log10(value)
+                        )
+                );
+
+        double fraction = value / exponent;
+
+        double niceFraction;
+
+        if (fraction <= 1) {
+            niceFraction = 1;
+        }
+        else if (fraction <= 1.1) {
+            niceFraction = 1.1;
+        }
+        else if (fraction <= 1.2) {
+            niceFraction = 1.2;
+        }
+        else if (fraction <= 1.25) {
+            niceFraction = 1.25;
+        }
+        else if (fraction <= 1.5) {
+            niceFraction = 1.5;
+        }
+        else if (fraction <= 1.75) {
+            niceFraction = 1.75;
+        }
+        else if (fraction <= 2) {
+            niceFraction = 2;
+        }
+        else if (fraction <= 2.25) {
+            niceFraction = 2.25;
+        }
+        else if (fraction <= 2.5) {
+            niceFraction = 2.5;
+        }
+        else if (fraction <= 3) {
+            niceFraction = 3;
+        }
+        else if (fraction <= 3.5) {
+            niceFraction = 3.5;
+        }
+        else if (fraction <= 4) {
+            niceFraction = 4;
+        }
+        else if (fraction <= 4.5) {
+            niceFraction = 4.5;
+        }
+        else if (fraction <= 5) {
+            niceFraction = 5;
+        }
+        else if (fraction <= 6) {
+            niceFraction = 6;
+        }
+        else if (fraction <= 7) {
+            niceFraction = 7;
+        }
+        else if (fraction <= 7.5) {
+            niceFraction = 7.5;
+        }
+        else if (fraction <= 8) {
+            niceFraction = 8;
+        }
+        else if (fraction <= 9) {
+            niceFraction = 9;
+        }
+        else {
+            niceFraction = 10;
+        }
+
+        return niceFraction * exponent;
+    }
+
+    private void configureDynamicAxis(
+            NumberAxis yAxis,
+            XYChart.Series<String, Number> series
+    ) {
+
+        double maxValue = 0;
+
+        for (XYChart.Data<String, Number> data : series.getData()) {
+
+            double value =
+                    data.getYValue().doubleValue();
+
+            if (value > maxValue) {
+                maxValue = value;
+            }
+        }
+
+        // thêm khoảng trống phía trên
+        double upperBound = maxValue * 1.03;
+
+        // làm tròn đẹp
+        upperBound = roundNiceNumber(upperBound);
+
+        // chia trục thành 5 đoạn
+        double tickUnit = upperBound / 5;
+
+        yAxis.setAutoRanging(false);
+
+        yAxis.setLowerBound(0);
+
+        yAxis.setUpperBound(upperBound);
+
+        yAxis.setTickUnit(tickUnit);
+    }
     @FXML
     public void onInventoryClick(ActionEvent event) {
         paneInventory.toFront();
