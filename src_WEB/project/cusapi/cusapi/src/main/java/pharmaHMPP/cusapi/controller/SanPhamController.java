@@ -5,7 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pharmaHMPP.cusapi.dto.SanPhamSearchResponse;
 import pharmaHMPP.cusapi.dto.SanPhamSearchResponse.SanPhamDTO;
+import pharmaHMPP.cusapi.entity.DanhMuc;
 import pharmaHMPP.cusapi.service.SanPhamService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/sanpham")
@@ -29,5 +32,19 @@ public class SanPhamController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /** GET /api/sanpham/browse?q={keyword}&maDM={maDM} – duyệt toàn bộ sản phẩm (public) */
+    @GetMapping("/browse")
+    public ResponseEntity<List<SanPhamDTO>> browse(
+            @RequestParam(name = "q", required = false) String keyword,
+            @RequestParam(name = "maDM", required = false) String maDM) {
+        return ResponseEntity.ok(sanPhamService.browse(keyword, maDM));
+    }
+
+    /** GET /api/sanpham/danhmuc – lấy danh sách danh mục (public) */
+    @GetMapping("/danhmuc")
+    public ResponseEntity<List<DanhMuc>> getDanhMuc() {
+        return ResponseEntity.ok(sanPhamService.getAllDanhMuc());
     }
 }

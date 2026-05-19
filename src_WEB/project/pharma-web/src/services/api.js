@@ -33,6 +33,13 @@ export const khachHangService = {
 export const sanPhamService = {
   search: (keyword) => api.get(`/sanpham/search?q=${encodeURIComponent(keyword)}`),
   getDetail: (maSP) => api.get(`/sanpham/${maSP}`),
+  browse: (keyword, maDM) => {
+    const params = new URLSearchParams()
+    if (keyword) params.append('q', keyword)
+    if (maDM) params.append('maDM', maDM)
+    return api.get(`/sanpham/browse?${params.toString()}`)
+  },
+  getDanhMuc: () => api.get('/sanpham/danhmuc'),
 }
 
 export default api

@@ -95,7 +95,7 @@ export default function ProductDetail() {
               🧪 Thành phần / Hoạt chất
             </h2>
             <p className="text-gray-500 bg-gray-50 rounded-xl px-4 py-3 text-sm">
-              {product.hoatChat || 'Vui lòng hỏi nhân viên tư vấn để biết thêm chi tiết về thành phần.'}
+              {product.thanhPhan || 'Vui lòng hỏi nhân viên tư vấn để biết thêm chi tiết về thành phần.'}
             </p>
           </div>
 

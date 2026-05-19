@@ -2,7 +2,6 @@ package com.pharmacy.backend.mapper;
 
 import com.pharmacy.backend.dto.CategoryRequest;
 import com.pharmacy.backend.dto.CategoryResponse;
-import com.pharmacy.backend.dto.CategoryResponseStaff;
 import com.pharmacy.backend.model.Category;
 import org.springframework.stereotype.Component;
 
@@ -21,13 +20,5 @@ public class CategoryMapper {
         category.setTendm(request.getTendm());
         category.setMota(request.getMota());
         category.setTrangthai("KHA_DUNG");
-    }
-
-    public CategoryResponseStaff toStaffResponse(Category category) {
-        CategoryResponseStaff dto = new CategoryResponseStaff();
-        dto.setMadm(category.getMadm());
-        dto.setTendm(category.getTendm());
-        dto.setMota(category.getMota());
-        return dto;
     }
 }

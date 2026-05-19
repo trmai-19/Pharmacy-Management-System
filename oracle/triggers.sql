@@ -1,21 +1,10 @@
--- TRIGGER Cập nhật giá bán
 CREATE OR REPLACE TRIGGER TRG_CAPNHAT_GIABAN
 AFTER INSERT OR UPDATE OF GIANHAP ON CTPN
 FOR EACH ROW
 DECLARE
-    v_masp      VARCHAR2(20);
-    v_new_price NUMBER;
-    v_trangthai VARCHAR2(20); 
+    v_masp VARCHAR2(50);
 BEGIN
-    BEGIN
-        SELECT TRANGTHAI INTO v_trangthai
-        FROM PHIEUNHAP WHERE MAPN = :NEW.MAPN;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN RETURN;
-    END;
-
-    IF v_trangthai != 'HOANTAT' THEN RETURN; END IF;
-
+    -- 1. Tìm MASP từ lô tương ứng
     BEGIN
         SELECT MASP INTO v_masp 
         FROM LOSANPHAM 
@@ -24,16 +13,12 @@ BEGIN
         WHEN NO_DATA_FOUND THEN RETURN; 
     END;
 
-    -- Tính giá bán mặc định (giá nhập + 20%)
-    v_new_price := ROUND(:NEW.GIANHAP * 1.2, 0);
-
-    IF v_new_price <= 0 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Lỗi: Giá bán tính toán phải lớn hơn 0!');
+    -- 2. Update thẳng giá bán luôn, kệ xừ cái trạng thái PHIEUNHAP
+    IF :NEW.GIANHAP > 0 THEN
+        UPDATE SANPHAM 
+        SET GIABAN = ROUND(:NEW.GIANHAP * 1.2, 0)
+        WHERE MASP = v_masp;
     END IF;
-
-    UPDATE SANPHAM 
-    SET GIABAN = v_new_price 
-    WHERE MASP = v_masp;
 END;
 /
 

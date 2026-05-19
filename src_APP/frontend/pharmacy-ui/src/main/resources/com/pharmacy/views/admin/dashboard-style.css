@@ -1,0 +1,207 @@
+/* ========================================================================
+   1. CẤU HÌNH TRỤC BIỂU ĐỒ (AXIS) - ĐEN ĐẬM DỄ ĐỌC
+   ======================================================================== */
+.axis-tick-label {
+    -fx-fill: #1a1a1a;        /* Màu đen tuyền */
+    -fx-font-family: "Segoe UI", sans-serif; 
+    -fx-font-weight: bold;    
+    -fx-font-size: 11px;
+}
+
+.axis-minor-tick-mark,
+.axis-tick-mark {
+    -fx-stroke: #1a1a1a;      
+    -fx-stroke-width: 1px;
+}
+
+/* ========================================================================
+   2. CẤU HÌNH CHUNG CHO AREA & BAR CHART (MÀU XANH NGỌC)
+   ======================================================================== */
+/* Màu cho cột (Bar) */
+.default-color0.chart-bar {
+    -fx-bar-fill: #00bfa5; 
+    -fx-border-color: #111111; 
+    -fx-border-width: 1px;
+    -fx-background-radius: 3 3 0 0;
+}
+
+/* Màu cho đường Line (Area) */
+.chart-series-area-line {
+    -fx-stroke: #00bfa5;
+    -fx-stroke-width: 3px; 
+}
+
+/* Màu cho vùng đổ bóng dưới Line (Area) */
+.chart-series-area-fill {
+    -fx-fill: rgba(0, 191, 165, 0.2); /* Độ trong suốt nhẹ nhàng */
+}
+
+/* 🌟 QUAN TRỌNG: NÚT TRÒN (MARKER) - KHÓA KÍCH THƯỚC NHỎ XINH */
+.chart-area-symbol {
+
+    -fx-background-color:
+        #111111,
+        white,
+        #00bfa5;
+
+    -fx-background-insets:
+        0,
+        1.5,
+        4;
+
+    -fx-background-radius: 100em;
+
+    -fx-padding: 7;
+}
+/* =========================================================
+   PIE CHART
+========================================================= */
+
+.chart-pie {
+
+    -fx-border-width: 0;
+
+    -fx-background-insets: 0;
+
+    -fx-pie-label-visible: false;
+}
+
+/* donut hole */
+
+.chart-pie-label-line {
+    -fx-stroke: transparent;
+}
+
+/* slice colors */
+
+.default-color0.chart-pie {
+    -fx-pie-color: #14b8a6;
+}
+
+.default-color1.chart-pie {
+    -fx-pie-color: #4c1d95;
+}
+
+.default-color2.chart-pie {
+    -fx-pie-color: #2563eb;
+}
+
+.default-color3.chart-pie {
+    -fx-pie-color: #b0bec5;
+}
+
+/* legend */
+
+.chart-legend {
+
+    -fx-background-color: transparent;
+
+    -fx-padding: 0 0 0 20;
+}
+
+.chart-legend-item {
+
+    -fx-text-fill: #374151;
+
+    -fx-font-size: 13px;
+}
+
+.chart-legend-item-symbol {
+
+    -fx-background-radius: 100;
+
+    -fx-padding: 7;
+}
+/* Đồng bộ màu Legend (Chú thích) */
+.default-color0.chart-legend-item-symbol { -fx-background-color: #00bfa5; }
+.default-color1.chart-legend-item-symbol { -fx-background-color: #460aad; }
+.default-color2.chart-legend-item-symbol { -fx-background-color: #2979ff; }
+.default-color3.chart-legend-item-symbol { -fx-background-color: #b0bec5; }
+
+/* ========================================================================
+   4. KPI CARDS & UI COMPONENTS
+   ======================================================================== */
+.kpi-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 3, 0, 0, 2); 
+}
+
+.kpi-card:hover {
+    -fx-border-color: #00bfa5;
+    -fx-cursor: hand;
+}
+
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.combo-box .arrow-button .arrow {
+    -fx-background-color: #00bfa5;
+}
+
+/* ========================================================================
+   5. TOGGLE BUTTONS (DASHBOARD NAVIGATION)
+   ======================================================================== */
+.toggle-button {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-text-fill: #6b7280;
+    -fx-font-weight: bold;
+    -fx-padding: 8 15;
+    -fx-cursor: hand;
+}
+
+.toggle-button:hover {
+    -fx-background-color: #f3f4f6;
+    -fx-border-color: #00bfa5;
+}
+
+.toggle-button:selected, .active-btn {
+    -fx-background-color: #00bfa5;
+    -fx-text-fill: white;
+    -fx-border-color: #00bfa5;
+}
+
+.chart-point-label {
+
+    -fx-text-fill: #111111;
+
+    -fx-font-size: 11px;
+
+    -fx-font-weight: bold;
+
+    -fx-background-color: white;
+
+    -fx-padding: 2 5 2 5;
+
+    -fx-background-radius: 6;
+}
+
+.bar-value-label {
+
+    -fx-text-fill: #111111;
+
+    -fx-font-size: 11px;
+
+    -fx-font-weight: 800;
+
+    -fx-background-color: white;
+
+    -fx-padding: 2 6 2 6;
+
+    -fx-background-radius: 6;
+
+    -fx-border-color: #d1d5db;
+
+    -fx-border-radius: 6;
+}
+

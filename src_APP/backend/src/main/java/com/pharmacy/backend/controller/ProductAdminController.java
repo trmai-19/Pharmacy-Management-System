@@ -11,7 +11,7 @@ import com.pharmacy.backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/admin/products")
+@RequestMapping("/api/warehouse/products")
 @RequiredArgsConstructor
 public class ProductAdminController {
 
