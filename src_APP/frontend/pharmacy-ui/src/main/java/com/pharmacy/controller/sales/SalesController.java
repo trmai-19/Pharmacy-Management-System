@@ -5,20 +5,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton; 
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.MenuButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.layout.HBox;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
-import javafx.scene.input.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 
@@ -30,15 +22,11 @@ public class SalesController {
     @FXML private Label lblEmployeeName;
     @FXML private Button btnSales;
     @FXML private Button btnCustomers;
-    @FXML private Button btnReturns; // Nút Đổi Trả được thêm vào
+    @FXML private Button btnReturns; 
     @FXML private MenuButton avatarMenuButton; 
     
-    private ContextMenu notificationMenu;   
-
     @FXML private StackPane bellIcon;
     @FXML private Label lblNotificationCount;
-
-    private Button currentActiveButton;
     @FXML private Label lblRole;
 
     @FXML
@@ -55,7 +43,7 @@ public class SalesController {
             String role = com.pharmacy.util.Session.getCurrentUser().getRole();
             String roleDisplay = "";
 
-            // Map từ mã role của backend sang tên hiển thị tiếng Việt (viết hoa cho đúng style UI của ông)
+            // Map từ mã role của backend sang tên hiển thị tiếng Việt
             switch (role.toUpperCase()) {
                 case "ADMIN":
                     roleDisplay = "QUẢN TRỊ VIÊN";
@@ -111,7 +99,6 @@ public class SalesController {
         }
         if (clickedButton != null) {
             clickedButton.setStyle("-fx-background-color: rgba(28, 201, 183, 0.85); -fx-text-fill: white; -fx-font-size: 14px; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20; -fx-font-weight: bold;");
-            currentActiveButton = clickedButton;
         }
     }
 
@@ -122,7 +109,7 @@ public class SalesController {
         try {
             URL resource = getClass().getResource(path);
             if (resource == null) {
-                System.err.println("❌ LỖI: KHÔNG TÌM THẤY FILE " + fxmlFileName);
+                System.err.println("LỖI: KHÔNG TÌM THẤY FILE " + fxmlFileName);
                 return;
             }
             
@@ -146,17 +133,6 @@ public class SalesController {
         }
     }
 
-    // ====================== THÔNG BÁO & AVATAR (Giữ nguyên như Warehouse) ======================
-    @FXML
-    void handleShowNotifications(MouseEvent event) {
-        // ... (Copy logic handleShowNotifications của Warehouse qua đây)
-    }
-
-    private HBox createNotificationRow(String title, String content, String timeStr, String type) {
-        // ... (Copy logic createNotificationRow của Warehouse qua đây)
-        return new HBox(); 
-    }
-
     @FXML
     private void handleViewProfile(ActionEvent event) {
         setActiveButtonStyle(null); 
@@ -173,6 +149,8 @@ public class SalesController {
     void handleLogout(ActionEvent event) {
         try {
             SceneManager.switchScene("/com/pharmacy/views/login.fxml");
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
     }
 }

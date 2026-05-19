@@ -13,7 +13,6 @@ BEGIN
         WHEN NO_DATA_FOUND THEN RETURN; 
     END;
 
-    -- 2. Update thẳng giá bán luôn, kệ xừ cái trạng thái PHIEUNHAP
     IF :NEW.GIANHAP > 0 THEN
         UPDATE SANPHAM 
         SET GIABAN = ROUND(:NEW.GIANHAP * 1.2, 0)
