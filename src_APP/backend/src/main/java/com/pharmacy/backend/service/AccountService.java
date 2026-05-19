@@ -1,6 +1,10 @@
 package com.pharmacy.backend.service;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.pharmacy.backend.dto.AccountResponse;
 import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
+import java.util.List;
 
 public interface AccountService {
     
@@ -15,4 +19,7 @@ public interface AccountService {
     void changePasswordSetting(String sdt, String oldPassword, String newPassword);
 
     void resetPassword(String sdt, String email);
+
+    public List<AccountResponse> getAllAccountsInSystem();
+    
 }

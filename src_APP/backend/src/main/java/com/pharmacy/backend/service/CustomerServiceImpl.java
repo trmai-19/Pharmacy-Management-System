@@ -83,6 +83,14 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public List<CustomerResponse> searchCustomers(String keyword) {
+        List<Customer> customers = customerRepository.searchByTenkhOrSdt(keyword);
+        return customers.stream()
+                .map(customerMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public CustomerResponse findBySdt(String sdt) {
         Customer customer = customerRepository.findBySdt(sdt)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với SĐT: " + sdt));

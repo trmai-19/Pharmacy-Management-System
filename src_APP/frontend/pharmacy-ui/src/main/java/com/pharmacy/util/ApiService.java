@@ -12,7 +12,6 @@ public class ApiService {
     public static final ObjectMapper mapper = new ObjectMapper();
     private static final String BASE_URL = "http://localhost:8080";
 
-    // Hàm gọi GET (Ví dụ: Lấy tồn kho, tìm khách hàng)
     public static CompletableFuture<HttpResponse<String>> get(String endpoint) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
@@ -22,7 +21,15 @@ public class ApiService {
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    // Hàm gọi POST (Ví dụ: Lập hóa đơn, Nhập kho)
+    public static CompletableFuture<HttpResponse<String>> getPublic(String endpoint) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                // Không gắn token Bearer ở đây
+                .GET()
+                .build();
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+    
     public static CompletableFuture<HttpResponse<String>> post(String endpoint, String jsonBody) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
@@ -33,7 +40,6 @@ public class ApiService {
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    // Hàm gọi PUT
     public static CompletableFuture<HttpResponse<String>> put(String endpoint, String jsonBody) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
@@ -48,8 +54,17 @@ public class ApiService {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
                 .header("Content-Type", "application/json")
-                // KHÔNG gắn header Authorization ở đây
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public static CompletableFuture<HttpResponse<String>> postText(String endpoint, String plainTextBody) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Content-Type", "text/plain; charset=UTF-8")
+                .header("Authorization", "Bearer " + Session.getToken()) 
+                .POST(HttpRequest.BodyPublishers.ofString(plainTextBody))
                 .build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }

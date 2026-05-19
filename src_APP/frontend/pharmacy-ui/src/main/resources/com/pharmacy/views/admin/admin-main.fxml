@@ -81,12 +81,7 @@
                                  <!-- ==================== ICON CHUÔNG THÔNG BÁO ==================== -->
 <StackPane fx:id="bellIcon" focusTraversable="false" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;                    -fx-background-color: transparent;                    -fx-focus-color: transparent;                    -fx-faint-focus-color: transparent;">
     <children>
-        <Label style="-fx-font-size: 24px; -fx-text-fill: white;" text="🔔" />
-        <AnchorPane>
-            <children>
-                <Label fx:id="lblNotificationCount" alignment="CENTER" layoutX="24.0" layoutY="27.0" minHeight="18.0" minWidth="18.0" style="-fx-background-color: #ef4444;                                -fx-background-radius: 10;                                -fx-text-fill: white;                                -fx-font-size: 11px;                                -fx-font-weight: bold;                                -fx-padding: 1 5;" text="3" />
-            </children>
-        </AnchorPane>
+        <Label style="-fx-font-size: 24px; -fx-text-fill: white;" />
     </children>
 </StackPane>
 

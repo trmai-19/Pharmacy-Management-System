@@ -1,6 +1,12 @@
 package com.pharmacy.controller.admin;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.pharmacy.dto.ApiResponse;
+import com.pharmacy.dto.CustomerResponse;
+import com.pharmacy.dto.QuickCreateCustomerRequest;
 import com.pharmacy.model.Customer;
+import com.pharmacy.util.ApiService;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -10,21 +16,23 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 
+import java.net.URLEncoder;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomerManagerController {
 
-    // Các nhãn thống kê
     @FXML private Label lblTotalCustomers;
     @FXML private Label lblVIPCustomers;
     @FXML private Label lblSpecialNotes;
+    
 
-    // Thanh công cụ
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbTier;
 
-    // Bảng và Cột
     @FXML private TableView<Customer> tableCustomer;
     @FXML private TableColumn<Customer, String> colId;
     @FXML private TableColumn<Customer, String> colName;
@@ -32,9 +40,7 @@ public class CustomerManagerController {
     @FXML private TableColumn<Customer, String> colTier;
     @FXML private TableColumn<Customer, String> colPoints;
     @FXML private TableColumn<Customer, String> colTotalSpent;
-    @FXML private TableColumn<Customer, String> colLastVisit;
 
-    // --- CÁC THÀNH PHẦN CHO FORM TẠO HỒ SƠ (MODAL) ---
     @FXML private StackPane modalOverlay;
     @FXML private TextField txtNewName;
     @FXML private TextField txtNewPhone;
@@ -48,49 +54,100 @@ public class CustomerManagerController {
     public void initialize() {
         System.out.println("🤝 CustomerManagerController đang tải...");
 
-        // 1. Liên kết TableColumn với Model
         colId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
         colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneProperty());
         colTier.setCellValueFactory(cellData -> cellData.getValue().tierProperty());
         colPoints.setCellValueFactory(cellData -> cellData.getValue().pointsProperty());
         colTotalSpent.setCellValueFactory(cellData -> cellData.getValue().totalSpentProperty());
-        colLastVisit.setCellValueFactory(cellData -> cellData.getValue().lastVisitProperty());
 
-        // 2. Khởi tạo Dropdown Lọc Hạng Thành Viên
         cbTier.setItems(FXCollections.observableArrayList(
                 "Tất cả hạng mức", "Thành viên", "Bạc", "Vàng", "Kim Cương"
         ));
         cbTier.getSelectionModel().selectFirst();
 
-        // 3. Nạp dữ liệu giả lập (Mock Data)
-        loadMockData();
-
-        // 4. Thiết lập bộ lọc kép Real-time
+        customerList = FXCollections.observableArrayList();
         setupSearchAndFilter();
 
-        // 5. Khởi tạo dữ liệu cho Form Tạo Hồ Sơ
+        loadCustomerData("");
+
         cbNewGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
     }
 
-    private void loadMockData() {
-        customerList = FXCollections.observableArrayList(
-                new Customer("KH001", "Nguyễn Thu Hà", "0988123456", "Vàng", "1,250", "12,500,000", "15/04/2026"),
-                new Customer("KH002", "Trần Văn Luân", "0905999888", "Thành viên", "120", "1,200,000", "02/04/2026"),
-                new Customer("KH003", "Lê Thị Lan Anh", "0912333444", "Kim Cương", "5,400", "54,000,000", "18/04/2026"),
-                new Customer("KH004", "Phạm Trọng Đạt", "0944555777", "Bạc", "650", "6,500,000", "10/03/2026"),
-                new Customer("KH005", "Hoàng Kim Liên", "0977888111", "Vàng", "2,100", "21,000,000", "17/04/2026")
+    private void loadCustomerData(String keyword) {
+        if (customerList == null) {
+            customerList = FXCollections.observableArrayList();
+        }
+
+        String encodedKeyword = "";
+        try {
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                encodedKeyword = URLEncoder.encode(keyword.trim(), StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            encodedKeyword = "";
+        }
+
+        String endpoint = "/api/sales/customers/search" + (encodedKeyword.isEmpty() ? "" : "?keyword=" + encodedKeyword);
+
+        ApiService.get(endpoint)
+                .thenApply(HttpResponse::body)
+                .thenAccept(jsonResponseBody -> {
+                    try {
+                        ApiResponse<List<CustomerResponse>> apiRes = ApiService.mapper.readValue(
+                                jsonResponseBody,
+                                new TypeReference<ApiResponse<List<CustomerResponse>>>() {}
+                        );
+
+                        if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
+                            List<Customer> serverCustomers = apiRes.getData().stream()
+                                    .map(this::toCustomerModel)
+                                    .collect(Collectors.toList());
+
+                            Platform.runLater(() -> {
+                                customerList.setAll(serverCustomers);
+                                updateStats();
+                            });
+                        } else {
+                            String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
+                            Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", msg));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi xử lý", "Không thể đọc dữ liệu khách hàng từ Backend."));
+                    }
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối đến Backend để tải khách hàng!"));
+                    return null;
+                });
+    }
+
+    private Customer toCustomerModel(CustomerResponse response) {
+        String formattedPoints = response.getDiemtichluy() == 0 ? "0" : String.valueOf((int) response.getDiemtichluy());
+        String formattedTotal = response.getTongdoanhthu() == null ? "0" : String.format("%.0f", response.getTongdoanhthu());
+        String tier = response.getHangtv() == null ? "Thành viên" : normalizeTier(response.getHangtv());
+
+        return new Customer(
+                response.getMakh() != null ? response.getMakh() : "",
+                response.getTenkh() != null ? response.getTenkh() : "N/A",
+                response.getSdt() != null ? response.getSdt() : "",
+                tier,
+                formattedPoints,
+                formattedTotal,
+                ""
         );
-        tableCustomer.setItems(customerList);
     }
 
     private void setupSearchAndFilter() {
-        filteredData = new FilteredList<>(customerList, b -> true);
+        filteredData = new FilteredList<>(customerList, this::matchesCurrentFilter);
 
-        // Lắng nghe text thay đổi
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> updateFilter());
+        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
+            loadCustomerData(newValue);
+            updateFilter();
+        });
 
-        // Lắng nghe hạng mục thay đổi
         cbTier.valueProperty().addListener((observable, oldValue, newValue) -> updateFilter());
 
         SortedList<Customer> sortedData = new SortedList<>(filteredData);
@@ -99,30 +156,61 @@ public class CustomerManagerController {
     }
 
     private void updateFilter() {
-        String searchText = txtSearch.getText().toLowerCase();
-        String selectedTier = cbTier.getValue();
-
-        filteredData.setPredicate(customer -> {
-            // Lọc theo hạng mức
-            boolean matchesTier = true;
-            if (selectedTier != null && !selectedTier.equals("Tất cả hạng mức")) {
-                matchesTier = customer.getTier().equals(selectedTier);
-            }
-
-            // Lọc theo tên hoặc số điện thoại
-            boolean matchesSearch = true;
-            if (searchText != null && !searchText.isEmpty()) {
-                matchesSearch = customer.getName().toLowerCase().contains(searchText) ||
-                                customer.getPhone().contains(searchText); 
-            }
-
-            return matchesTier && matchesSearch;
-        });
+        filteredData.setPredicate(this::matchesCurrentFilter);
     }
 
-    // ==========================================
-    // LOGIC CHO FORM TẠO HỒ SƠ KHÁCH HÀNG MỚI
-    // ==========================================
+    private boolean matchesCurrentFilter(Customer customer) {
+        String searchText = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
+        String selectedTier = cbTier.getValue();
+
+        boolean matchesTier = selectedTier == null || selectedTier.equals("Tất cả hạng mức") || customer.getTier().equals(selectedTier);
+        boolean matchesSearch = searchText.isEmpty() || customer.getName().toLowerCase().contains(searchText) || customer.getPhone().contains(searchText);
+
+        return matchesTier && matchesSearch;
+    }
+
+    private String normalizeTier(String rawTier) {
+        if (rawTier == null || rawTier.isBlank()) {
+            return "Thành viên";
+        }
+        String normalized = rawTier.trim().toUpperCase();
+        if (normalized.contains("THANH")) {
+            return "Thành viên";
+        }
+        if (normalized.contains("BAC")) {
+            return "Bạc";
+        }
+        if (normalized.contains("VANG")) {
+            return "Vàng";
+        }
+        if (normalized.contains("KIM")) {
+            return "Kim Cương";
+        }
+        return Character.toUpperCase(rawTier.charAt(0)) + rawTier.substring(1).toLowerCase();
+    }
+
+    private void updateStats() {
+        if (lblTotalCustomers != null) {
+            lblTotalCustomers.setText(String.valueOf(customerList.size()));
+        }
+        if (lblVIPCustomers != null) {
+            long vipCount = customerList.stream()
+                    .filter(c -> c.getTier() != null && (c.getTier().equalsIgnoreCase("Vàng") || c.getTier().equalsIgnoreCase("Kim Cương")))
+                    .count();
+            lblVIPCustomers.setText(String.valueOf(vipCount));
+        }
+        if (lblSpecialNotes != null) {
+            lblSpecialNotes.setText("Hiển thị " + customerList.size() + " khách hàng");
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 
     @FXML
     void handleShowCreateForm(ActionEvent event) {
@@ -142,7 +230,6 @@ public class CustomerManagerController {
         String gender = cbNewGender.getValue();
         LocalDate dob = dpNewDOB.getValue();
 
-        // 1. Kiểm tra bắt buộc điền ĐẦY ĐỦ 4 trường
         if (name == null || name.trim().isEmpty() || 
             phone == null || phone.trim().isEmpty() || 
             gender == null || 
@@ -153,13 +240,11 @@ public class CustomerManagerController {
             alert.setHeaderText("Thông tin không đầy đủ");
             alert.setContentText("Vui lòng nhập đầy đủ: Họ tên, Số điện thoại, Giới tính và Ngày sinh!");
             alert.showAndWait();
-            return; // Dừng lại, không chạy tiếp code bên dưới
+            return; 
         }
 
-        // 2. Validate (Kiểm tra) tính hợp lệ của ngày sinh ở Frontend
         LocalDate today = LocalDate.now();
         
-        // Lỗi 1: Ngày sinh ở tương lai
         if (dob.isAfter(today)) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Cảnh báo");
@@ -169,7 +254,6 @@ public class CustomerManagerController {
             return;
         }
         
-        // Lỗi 2: Nhập số năm sinh quá xa (ví dụ > 120 tuổi)
         if (today.getYear() - dob.getYear() > 120) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Cảnh báo");
@@ -179,27 +263,76 @@ public class CustomerManagerController {
             return;
         }
 
-        // 3. Nếu qua hết các bài kiểm tra thì bắt đầu tạo dữ liệu giả lập
-        String newId = String.format("KH%03d", customerList.size() + 1);
+        QuickCreateCustomerRequest request = new QuickCreateCustomerRequest(name, phone, gender);
+        String requestBody;
+        try {
+            requestBody = ApiService.mapper.writeValueAsString(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi nội bộ");
+            alert.setHeaderText(null);
+            alert.setContentText("Không thể tạo dữ liệu request gửi lên backend.");
+            alert.showAndWait();
+            return;
+        }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String todayStr = today.format(formatter);
+        ApiService.post("/api/sales/customers/quick-create", requestBody)
+                .thenApply(HttpResponse::body)
+                .thenAccept(jsonResponseBody -> {
+                    try {
+                        ApiResponse<CustomerResponse> apiRes = ApiService.mapper.readValue(
+                                jsonResponseBody,
+                                new com.fasterxml.jackson.core.type.TypeReference<ApiResponse<CustomerResponse>>() {}
+                        );
 
-        // Thêm khách hàng mới vào danh sách (Khởi tạo: Hạng Thành viên, 0 điểm, 0 đồng)
-        // Lưu ý: Nếu Model Customer của bạn có thêm thuộc tính Gender và DOB, bạn có thể truyền thêm vào đây
-        Customer newCustomer = new Customer(newId, name, phone, "Thành viên", "0", "0", todayStr);
-        customerList.add(newCustomer);
+                        if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
+                            Customer created = toCustomerModel(apiRes.getData());
+                            Platform.runLater(() -> {
+                                customerList.add(created);
+                                updateStats();
 
-        // 4. Hiển thị thông báo thành công
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thành công");
-        alert.setHeaderText(null);
-        alert.setContentText("Đã tạo hồ sơ thành công cho khách hàng: " + name);
-        alert.showAndWait();
+                                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                                successAlert.setTitle("Thành công");
+                                successAlert.setHeaderText(null);
+                                successAlert.setContentText("Đã tạo hồ sơ thành công cho khách hàng: " + name);
+                                successAlert.showAndWait();
 
-        // 5. Đóng Form và Xóa trắng trường nhập liệu
-        modalOverlay.setVisible(false);
-        clearCreateForm();
+                                modalOverlay.setVisible(false);
+                                clearCreateForm();
+                            });
+                        } else {
+                            String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
+                            Platform.runLater(() -> {
+                                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                                errorAlert.setTitle("Lỗi backend");
+                                errorAlert.setHeaderText(null);
+                                errorAlert.setContentText(msg);
+                                errorAlert.showAndWait();
+                            });
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
+                            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                            errorAlert.setTitle("Lỗi xử lý");
+                            errorAlert.setHeaderText(null);
+                            errorAlert.setContentText("Không thể đọc phản hồi từ backend.");
+                            errorAlert.showAndWait();
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    Platform.runLater(() -> {
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Lỗi kết nối");
+                        errorAlert.setHeaderText(null);
+                        errorAlert.setContentText("Không thể liên hệ với backend để tạo khách hàng.");
+                        errorAlert.showAndWait();
+                    });
+                    return null;
+                });
     }
 
     private void clearCreateForm() {

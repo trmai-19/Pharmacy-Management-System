@@ -1,33 +1,39 @@
 package com.pharmacy.controller.admin;
 
 import com.pharmacy.model.Product;
+import com.pharmacy.util.ApiService;
 import com.pharmacy.model.Batch;
 import com.pharmacy.model.Category;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.pharmacy.dto.ApiResponse;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 
+import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Optional;
 
 public class ProductManagerController {
 
-    // --- THỐNG KÊ ---
     @FXML private Label lblTotalProducts;
     @FXML private Label lblLowStock;
 
-    // --- TAB SẢN PHẨM ---
     @FXML private TextField txtSearchProduct;
     @FXML private ComboBox<String> cbCategoryFilter;
     
-    // Nút chức năng Sản phẩm
     @FXML private Button btnConfirmEditProduct;
     @FXML private Button btnAddProduct;
     @FXML private Button btnEditProduct;
@@ -40,7 +46,6 @@ public class ProductManagerController {
     @FXML private TableColumn<Product, String> colProdUnit;
     @FXML private TableColumn<Product, String> colProdQty;
 
-    // Bảng Lô hàng (Detail)
     @FXML private TableView<Batch> tableBatch;
     @FXML private TableColumn<Batch, String> colBatchId;
     @FXML private TableColumn<Batch, String> colBatchMfg;
@@ -49,10 +54,8 @@ public class ProductManagerController {
     @FXML private TableColumn<Batch, String> colBatchQty;
     @FXML private TableColumn<Batch, String> colBatchStatus;
 
-    // --- TAB DANH MỤC ---
     @FXML private TextField txtSearchCategory;
     
-    // Nút chức năng Danh mục
     @FXML private Button btnConfirmEditCategory;
     @FXML private Button btnAddCategory;
     @FXML private Button btnEditCategory;
@@ -62,7 +65,6 @@ public class ProductManagerController {
     @FXML private TableColumn<Category, String> colCatName;
     @FXML private TableColumn<Category, String> colCatNote;
 
-    // --- DANH SÁCH DỮ LIỆU ---
     private ObservableList<Product> productList;
     private ObservableList<Category> categoryList;
     private FilteredList<Product> filteredProducts;
@@ -94,7 +96,6 @@ public class ProductManagerController {
         colProdUnit.setCellValueFactory(cell -> cell.getValue().unitProperty());
         colProdQty.setCellValueFactory(cell -> cell.getValue().quantityProperty());
 
-        // Cấu hình Edit-in-place. Dùng .property().set() vì Model không có hàm Setter
         colProdName.setCellFactory(TextFieldTableCell.forTableColumn());
         colProdName.setOnEditCommit(e -> e.getRowValue().nameProperty().set(e.getNewValue()));
 
@@ -160,23 +161,56 @@ public class ProductManagerController {
             return matchCat && matchText;
         });
     }
+    
 
+    
     private void loadData() {
-        // Đúng theo tham số Model Product của m
-        productList = FXCollections.observableArrayList(
-            new Product("SP001", "Panadol Extra", "Paracetamol", "Giảm đau - Hạ sốt", "Vỉ", "500", "01/01/2027", "Bình thường"),
-            new Product("SP002", "Augmentin 625mg", "Amoxicillin", "Kháng sinh", "Hộp", "120", "15/05/2026", "Tốt")
-        );
-
-        categoryList = FXCollections.observableArrayList(
-            new Category("DM01", "Kháng sinh", "Các loại thuốc trị nhiễm khuẩn"),
-            new Category("DM02", "Giảm đau - Hạ sốt", "Thuốc giảm đau thông thường")
-        );
-        tableCategory.setItems(categoryList);
-        
-        lblTotalProducts.setText(String.valueOf(productList.size()));
-        lblLowStock.setText("5");
+    if (productList == null) {
+        productList = FXCollections.observableArrayList();
     }
+    productList.clear();
+
+    if (categoryList == null) {
+        categoryList = FXCollections.observableArrayList();
+    }
+    tableCategory.setItems(categoryList);
+
+    ApiService.get("/api/products")
+        .thenApply(HttpResponse::body)
+        .thenAccept(jsonResponseBody -> {
+            try {
+                ApiResponse<List<Product>> apiRes = ApiService.mapper.readValue(
+                    jsonResponseBody,
+                    new TypeReference<ApiResponse<List<Product>>>() {}
+                );
+
+                if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
+                    List<Product> serverProducts = apiRes.getData();
+
+                    Platform.runLater(() -> {
+                        productList.setAll(serverProducts);
+                        tableProduct.setItems(productList); // Đổ vào bảng sản phẩm
+                        if (lblTotalProducts != null) {
+                            lblTotalProducts.setText(String.valueOf(productList.size()));
+                        }
+                        setupSearchFilter(); // Chạy hàm lọc tìm kiếm của bạn
+                    });
+                } else {
+                    String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
+                    Platform.runLater(() -> showAlert("Thông báo hệ thống", "Không thể lấy dữ liệu: " + msg));
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi cấu trúc", "Đọc dữ liệu sản phẩm thất bại (Lỗi JSON)."));
+            }
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể lấy dữ liệu ngầm từ Backend!"));
+            return null;
+        });
+}
 
     private void loadBatchesForProduct(String productId) {
         ObservableList<Batch> batches = FXCollections.observableArrayList(
@@ -189,7 +223,7 @@ public class ProductManagerController {
     // ==========================================
     // --- XỬ LÝ SỰ KIỆN SẢN PHẨM ---
     // ==========================================
-    
+
     @FXML
     void handleAddProduct(ActionEvent event) {
         Dialog<Product> dialog = new Dialog<>();
@@ -219,7 +253,6 @@ public class ProductManagerController {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
-                // Constructor y xì Model của m: id, name, activeIngredient, category, unit, quantity, expiryDate, status
                 return new Product(txtId.getText(), txtName.getText(), txtActive.getText(), 
                                    txtCat.getText(), txtUnit.getText(), "0", "Chưa cập nhật", "Mới");
             }
@@ -266,9 +299,6 @@ public class ProductManagerController {
         }
     }
 
-    // ==========================================
-    // --- XỬ LÝ SỰ KIỆN DANH MỤC ---
-    // ==========================================
     
     @FXML
     void handleAddCategory(ActionEvent event) {
