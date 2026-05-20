@@ -15,7 +15,7 @@ public class App extends Application {
     public void start(Stage stage) throws IOException {
         SceneManager.setPrimaryStage(stage);
 
-        FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/pharmacy/views/login.fxml"));
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/pharmacy/views/admin/report.fxml"));
         
         if (loader.getLocation() == null) {
             System.err.println("Không tìm thấy login.fxml!");

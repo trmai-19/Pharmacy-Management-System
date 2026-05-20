@@ -108,6 +108,10 @@ public class ReportController implements Initializable {
 
     @FXML private BarChart<String, Number> barChartCustSeg;
 
+    @FXML private Button btnTabPerformance;
+    @FXML private Button btnTabInventory;
+    @FXML private Button btnTabCustomer;
+
     private enum MetricType {
         REVENUE,
         PROFIT,
@@ -135,12 +139,29 @@ public class ReportController implements Initializable {
         loadCustomerSegmentationChart();
         loadPerformanceKPIs();
         initFilters();
+    }
+    
+    private void setActiveTab(Button activeBtn) {
 
+        btnTabPerformance.getStyleClass()
+                .remove("dashboard-tab-active");
+
+        btnTabInventory.getStyleClass()
+                .remove("dashboard-tab-active");
+
+        btnTabCustomer.getStyleClass()
+                .remove("dashboard-tab-active");
+
+        activeBtn.getStyleClass()
+                .add("dashboard-tab-active");
     }
 
     @FXML
     public void onPerformanceClick(ActionEvent event) {
+
         panePerformance.toFront();
+
+        setActiveTab(btnTabPerformance);
     }
 
     private void loadTrendAreaChart() {
@@ -969,14 +990,24 @@ public class ReportController implements Initializable {
 
         yAxis.setTickUnit(tickUnit);
     }
+
+    
     @FXML
     public void onInventoryClick(ActionEvent event) {
+
+        paneInventory.setStyle("-fx-background-color: red;");
         paneInventory.toFront();
+        
+
+        setActiveTab(btnTabInventory);
     }
 
     @FXML
     public void onCustomerClick(ActionEvent event) {
+
         paneCustomer.toFront();
+
+        setActiveTab(btnTabCustomer);
     }
 
     @FXML

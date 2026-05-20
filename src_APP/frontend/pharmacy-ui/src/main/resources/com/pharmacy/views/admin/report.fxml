@@ -25,7 +25,7 @@
    <children>
       <StackPane layoutY="-8.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="686.0" prefWidth="1160.0" stylesheets="@dashboard-style.css">
          <children>
-            <AnchorPane fx:id="paneInventory" prefHeight="952.0" prefWidth="1404.0" style="-fx-background-color: FAFCFC;" visible="false">
+            <AnchorPane fx:id="paneInventory" prefHeight="952.0" prefWidth="1404.0" style="-fx-background-color: FAFCFC;">
                <children>
                   <HBox layoutX="208.0" layoutY="10.0" prefHeight="30.0" prefWidth="1011.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
@@ -126,7 +126,7 @@
                   </TableView>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneCustomer" prefHeight="706.0" prefWidth="1242.0" style="-fx-background-color: FAFCFC;" visible="false">
+            <AnchorPane fx:id="paneCustomer" prefHeight="706.0" prefWidth="1242.0" style="-fx-background-color: FAFCFC;">
                <children>
                   <Pane layoutX="16.0" layoutY="207.0" prefHeight="238.0" prefWidth="635.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
@@ -284,7 +284,7 @@
                         <AnchorPane fx:id="lblProfit" layoutX="331.0" layoutY="20.0" prefHeight="100.0" prefWidth="239.0" />
                      </children>
                   </Pane>
-                  <HBox layoutX="184.0" layoutY="20.0" prefHeight="19.0" prefWidth="955.0" style="-fx-background-color: white; -fx-border-color: black;">
+                  <HBox layoutX="248.0" layoutY="20.0" prefHeight="29.0" prefWidth="891.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
                         <ComboBox fx:id="cbYear" prefHeight="37.0" prefWidth="229.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                         <ComboBox fx:id="cbQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
@@ -326,9 +326,9 @@
                         <Circle fill="WHITE" layoutX="131.0" layoutY="122.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                      </children>
                   </Pane>
-                  <Text layoutX="1.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="202.39999999999986">
+                  <Text layoutX="14.0" layoutY="25.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" textAlignment="CENTER" wrappingWidth="202.39999999999986">
                      <font>
-                        <Font name="System Bold" size="20.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font>
                   </Text>
                   <AnchorPane layoutX="16.0" layoutY="51.0" prefHeight="116.0" prefWidth="198.0" styleClass="kpi-card">
@@ -451,6 +451,25 @@
                         </Label>
                      </children>
                   </AnchorPane>
+                  <HBox layoutX="3.0" layoutY="24.0" prefHeight="19.0" prefWidth="242.0">
+                     <children>
+                        <Button fx:id="btnTabPerformance" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="26.0" prefWidth="83.0" styleClass="dashboard-tab-active" text="Performance">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Button>
+                        <Button fx:id="btnTabInventory" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="26.0" prefWidth="86.0" styleClass="dashboard-tab-active" text="Inventory">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Button>
+                        <Button fx:id="btnTabCustomer" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="26.0" prefWidth="74.0" styleClass="dashboard-tab-active" text="Customer">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </HBox>
                </children>
             </AnchorPane>
          </children>
