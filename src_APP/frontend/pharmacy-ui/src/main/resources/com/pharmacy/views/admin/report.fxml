@@ -20,15 +20,15 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="697.0" prefWidth="1191.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ReportController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="1250.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ReportController">
    <children>
-      <StackPane layoutY="-8.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="707.0" prefWidth="1191.0" stylesheets="@dashboard-style.css">
+      <StackPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="685.0" prefWidth="1250.0" stylesheets="@dashboard-style.css">
          <children>
-            <AnchorPane fx:id="paneCustomer" prefHeight="686.0" prefWidth="1140.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="paneCustomer" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
                <children>
-                  <Pane layoutX="41.0" layoutY="223.0" prefHeight="246.0" prefWidth="710.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="31.0" layoutY="194.0" prefHeight="259.0" prefWidth="711.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <AreaChart fx:id="areaChartCustGrowth" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="246.0" prefWidth="710.0" title="Customer Grow Trend " verticalGridLinesVisible="false">
+                        <AreaChart fx:id="areaChartCustGrowth" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="273.0" prefWidth="711.0" title="Customer Grow Trend " verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="BOTTOM" />
                            </xAxis>
@@ -38,24 +38,24 @@
                         </AreaChart>
                      </children>
                   </Pane>
-                  <HBox layoutX="441.0" layoutY="34.0" prefHeight="30.0" prefWidth="730.0" style="-fx-background-color: white; -fx-border-color: black;">
+                  <HBox layoutX="425.0" layoutY="11.0" prefHeight="34.0" prefWidth="814.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbYear1" prefHeight="29.0" prefWidth="233.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbQuarter1" prefHeight="29.0" prefWidth="223.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup1" prefHeight="37.0" prefWidth="229.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbCustomerType1" prefHeight="37.0" prefWidth="229.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbYear1" prefHeight="33.0" prefWidth="251.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbQuarter1" prefHeight="38.0" prefWidth="208.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbProductGroup1" prefHeight="42.0" prefWidth="178.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustomerType1" prefHeight="33.0" prefWidth="198.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
-                  <HBox layoutX="41.0" layoutY="192.0" prefHeight="30.0" prefWidth="710.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
+                  <HBox layoutX="31.0" layoutY="165.0" prefHeight="28.0" prefWidth="711.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
                         <Button fx:id="btnCustTotal" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="239.0" styleClass="customer-metric-active" text="Total Customers" />
                         <Button fx:id="btnCustNew" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="232.0" styleClass="customer-metric-active" text="New Customers" />
-                        <Button fx:id="btnCustReturning" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="235.0" styleClass="customer-metric-active" text="Returning Customers" />
+                        <Button fx:id="btnCustReturning" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="250.0" styleClass="customer-metric-active" text="Returning Customers" />
                      </children>
                   </HBox>
-                  <Pane layoutX="759.0" layoutY="483.0" prefHeight="215.0" prefWidth="409.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="757.0" layoutY="462.0" prefHeight="215.0" prefWidth="486.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="barChartCustSeg" horizontalGridLinesVisible="false" layoutX="-4.0" layoutY="19.0" legendVisible="false" prefHeight="196.0" prefWidth="410.0" verticalGridLinesVisible="false">
+                        <BarChart fx:id="barChartCustSeg" horizontalGridLinesVisible="false" layoutX="-4.0" layoutY="19.0" legendVisible="false" prefHeight="196.0" prefWidth="486.0" verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="LEFT" />
                            </xAxis>
@@ -70,7 +70,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Pane layoutX="404.0" layoutY="482.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="394.0" layoutY="462.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="customerAgePieChart" labelsVisible="false" layoutY="19.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="350.0" />
                         <Circle fill="WHITE" layoutX="122.0" layoutY="118.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
@@ -81,7 +81,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Pane layoutX="41.0" layoutY="482.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="31.0" layoutY="462.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="customerGenderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="21.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="350.0" />
                         <Circle fill="WHITE" layoutX="124.0" layoutY="123.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
@@ -92,7 +92,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <AnchorPane layoutX="41.0" layoutY="70.0" prefHeight="116.0" prefWidth="198.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="31.0" layoutY="49.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblCustTotal" alignment="CENTER" layoutX="5.0" layoutY="14.0" prefHeight="98.0" prefWidth="202.0" text="Label Cus" textAlignment="JUSTIFY">
                            <font>
@@ -116,7 +116,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="271.0" layoutY="70.0" prefHeight="116.0" prefWidth="188.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="278.0" layoutY="49.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblCustNew" alignment="CENTER" layoutX="4.0" layoutY="14.0" prefHeight="98.0" prefWidth="210.0" text="Label NewCus" textAlignment="JUSTIFY">
                            <font>
@@ -140,7 +140,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="497.0" layoutY="71.0" prefHeight="114.0" prefWidth="218.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="524.0" layoutY="50.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblCustReturnRate" alignment="CENTER" layoutX="6.0" layoutY="12.0" prefHeight="98.0" prefWidth="202.0" text="Label Return" textAlignment="JUSTIFY">
                            <font>
@@ -164,7 +164,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="726.0" layoutY="70.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="765.0" layoutY="49.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblCustVip" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="202.0" text="Label CusVIP" textAlignment="JUSTIFY">
                            <font>
@@ -188,7 +188,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="952.0" layoutY="70.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="1007.0" layoutY="49.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblCustLost" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="202.0" text="Label CusLoss" textAlignment="JUSTIFY">
                            <font>
@@ -212,23 +212,23 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <HBox layoutX="168.0" layoutY="32.0" prefHeight="34.0" prefWidth="270.0">
+                  <HBox layoutX="133.0" layoutY="11.0" prefHeight="34.0" prefWidth="285.0">
                      <children>
-                        <Button fx:id="btnTabPerformance" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="34.0" prefWidth="141.0" styleClass="dashboard-tab" text="Performance" textFill="WHITE">
+                        <Button fx:id="btnTabPerformance" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="34.0" prefWidth="156.0" styleClass="dashboard-tab" text="Performance" textFill="WHITE">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Button>
-                        <Button fx:id="btnTabInventory" mnemonicParsing="false" onAction="#onInventoryClick" prefHeight="34.0" prefWidth="133.0" styleClass="dashboard-tab" text="Inventory">
+                        <Button fx:id="btnTabInventory" mnemonicParsing="false" onAction="#onInventoryClick" prefHeight="34.0" prefWidth="134.0" styleClass="dashboard-tab" text="Inventory">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Button>
                      </children>
                   </HBox>
-                  <Pane layoutX="759.0" layoutY="192.0" prefHeight="277.0" prefWidth="417.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="753.0" layoutY="167.0" prefHeight="286.0" prefWidth="486.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="barChartTopSpenders" horizontalGridLinesVisible="false" layoutY="21.0" legendVisible="false" prefHeight="253.0" prefWidth="418.0" verticalGridLinesVisible="false">
+                        <BarChart fx:id="barChartTopSpenders" horizontalGridLinesVisible="false" layoutX="1.0" layoutY="21.0" legendVisible="false" prefHeight="267.0" prefWidth="486.0" verticalGridLinesVisible="false">
                            <xAxis>
                               <NumberAxis side="BOTTOM" />
                            </xAxis>
@@ -243,30 +243,30 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Text layoutX="53.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" text="CUSTOMER" wrappingWidth="129.60000915527326">
+                  <Text layoutX="14.0" layoutY="36.0" strokeType="OUTSIDE" strokeWidth="0.0" text="CUSTOMER" wrappingWidth="129.60000915527326">
                      <font>
                         <Font name="System Bold" size="19.0" />
                      </font>
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneInventory" prefHeight="686.0" prefWidth="1140.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="paneInventory" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
                <children>
-                  <Pane layoutX="41.0" layoutY="191.0" prefHeight="504.0" prefWidth="710.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="14.0" layoutY="161.0" prefHeight="510.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <TableView fx:id="tableInventory" prefHeight="504.0" prefWidth="710.0">
+                        <TableView fx:id="tableInventory" prefHeight="510.0" prefWidth="791.0">
                            <columns>
-                              <TableColumn fx:id="colMedId" prefWidth="100.79999542236328" text="Mã thuốc" />
-                              <TableColumn fx:id="colMedName" prefWidth="136.0" text="Tên thuốc" />
-                              <TableColumn fx:id="colMedCategory" prefWidth="130.39996337890625" text="Phân loại" />
-                              <TableColumn fx:id="colMedStock" prefWidth="131.19992065429688" text="Tồn kho" />
-                              <TableColumn fx:id="colMedExpiry" prefWidth="115.199951171875" text="Hạn sử dụng" />
-                              <TableColumn fx:id="colMedStatus" prefWidth="95.60003662109375" text="Tình trạng" />
+                              <TableColumn fx:id="colMedId" prefWidth="169.59997272491455" text="Mã thuốc" />
+                              <TableColumn fx:id="colMedName" prefWidth="128.00001525878906" text="Tên thuốc" />
+                              <TableColumn fx:id="colMedCategory" prefWidth="107.20001220703125" text="Phân loại" />
+                              <TableColumn fx:id="colMedStock" prefWidth="140.0" text="Tồn kho" />
+                              <TableColumn fx:id="colMedExpiry" prefWidth="113.5999755859375" text="Hạn sử dụng" />
+                              <TableColumn fx:id="colMedStatus" prefWidth="130.20001220703125" text="Tình trạng" />
                            </columns>
                         </TableView>
                      </children>
                   </Pane>
-                  <HBox layoutX="470.0" layoutY="34.0" prefHeight="30.0" prefWidth="701.0" style="-fx-background-color: white; -fx-border-color: black;">
+                  <HBox layoutX="454.0" layoutY="14.0" prefHeight="30.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
                         <ComboBox fx:id="cbYear11" prefHeight="28.0" prefWidth="192.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                         <ComboBox fx:id="cbQuarter11" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
@@ -274,7 +274,7 @@
                         <ComboBox fx:id="cbCustomerType11" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
-                  <Pane layoutX="759.0" layoutY="483.0" prefHeight="215.0" prefWidth="409.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="813.0" layoutY="456.0" prefHeight="215.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="pieChartInventory" layoutY="35.0" legendSide="RIGHT" prefHeight="186.0" prefWidth="410.0" />
                         <Circle fill="WHITE" layoutX="122.0" layoutY="130.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
@@ -285,7 +285,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <AnchorPane layoutX="41.0" layoutY="70.0" prefHeight="116.0" prefWidth="198.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="28.0" layoutY="45.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblInvTotalMeds" alignment="CENTER" layoutX="5.0" layoutY="14.0" prefHeight="98.0" prefWidth="202.0" text="Label TotalMedi" textAlignment="JUSTIFY">
                            <font>
@@ -309,7 +309,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="271.0" layoutY="70.0" prefHeight="116.0" prefWidth="188.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="282.0" layoutY="44.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblInvLowStock" alignment="CENTER" layoutX="4.0" layoutY="14.0" prefHeight="98.0" prefWidth="210.0" text="Label LowSt" textAlignment="JUSTIFY">
                            <font>
@@ -333,7 +333,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="497.0" layoutY="71.0" prefHeight="114.0" prefWidth="218.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="528.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblInvNearExpiry" alignment="CENTER" layoutX="6.0" layoutY="12.0" prefHeight="98.0" prefWidth="202.0" text="Label NearEx" textAlignment="JUSTIFY">
                            <font>
@@ -357,7 +357,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="726.0" layoutY="70.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="769.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblInvExpired" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="202.0" text="Label ExMedi" textAlignment="JUSTIFY">
                            <font>
@@ -381,7 +381,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="952.0" layoutY="70.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="1017.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblInvTotalValue" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="202.0" text="Label InvenValue" textAlignment="JUSTIFY">
                            <font>
@@ -405,23 +405,23 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <HBox layoutX="165.0" layoutY="32.0" prefHeight="29.0" prefWidth="298.0">
+                  <HBox layoutX="133.0" layoutY="12.0" prefHeight="34.0" prefWidth="318.0">
                      <children>
                         <Button fx:id="btnTabPerformance1" mnemonicParsing="false" onAction="#onPerformanceClick" prefHeight="34.0" prefWidth="146.0" styleClass="dashboard-tab" text="Performance" textFill="WHITE">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Button>
-                        <Button fx:id="btnTabCustomer1" mnemonicParsing="false" onAction="#onCustomerClick" prefHeight="34.0" prefWidth="150.0" styleClass="dashboard-tab" text="Customer">
+                        <Button fx:id="btnTabCustomer1" mnemonicParsing="false" onAction="#onCustomerClick" prefHeight="34.0" prefWidth="172.0" styleClass="dashboard-tab" text="Customer">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Button>
                      </children>
                   </HBox>
-                  <Pane layoutX="759.0" layoutY="192.0" prefHeight="277.0" prefWidth="417.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="813.0" layoutY="161.0" prefHeight="294.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="barChartInventory" layoutY="23.0" legendVisible="false" prefHeight="253.0" prefWidth="418.0">
+                        <BarChart fx:id="barChartInventory" layoutY="23.0" legendVisible="false" prefHeight="273.0" prefWidth="430.0">
                            <xAxis>
                               <CategoryAxis side="BOTTOM" />
                            </xAxis>
@@ -436,16 +436,16 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Text layoutX="48.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" text="INVENTORY" wrappingWidth="129.60000915527326">
+                  <Text layoutX="14.0" layoutY="37.0" strokeType="OUTSIDE" strokeWidth="0.0" text="INVENTORY" wrappingWidth="129.60000915527326">
                      <font>
                         <Font name="System Bold" size="19.0" />
                      </font>
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="panePerformance" prefHeight="686.0" prefWidth="1140.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="panePerformance" prefHeight="648.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
                <children>
-                  <Pane layoutX="41.0" layoutY="223.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="41.0" layoutY="199.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <AreaChart fx:id="trendAreaChart" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" layoutY="17.0" legendSide="TOP" legendVisible="false" prefHeight="229.0" prefWidth="807.0" verticalGridLinesVisible="false">
                            <xAxis>
@@ -462,7 +462,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <HBox layoutX="434.0" layoutY="36.0" prefHeight="30.0" prefWidth="730.0" style="-fx-background-color: white; -fx-border-color: black;">
+                  <HBox layoutX="434.0" layoutY="3.0" prefHeight="34.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
                         <ComboBox fx:id="cbYear" prefHeight="37.0" prefWidth="229.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                         <ComboBox fx:id="cbQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
@@ -470,7 +470,7 @@
                         <ComboBox fx:id="cbCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
-                  <HBox layoutX="41.0" layoutY="192.0" prefHeight="30.0" prefWidth="807.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
+                  <HBox layoutX="41.0" layoutY="168.0" prefHeight="30.0" prefWidth="807.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
                         <Button fx:id="btnRevenue" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="144.0" text="Revenue" />
                         <Button fx:id="btnProfit" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="154.0" text="Profit" />
@@ -479,9 +479,9 @@
                         <Button fx:id="btnOrders" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="171.0" text="Total Orders" />
                      </children>
                   </HBox>
-                  <Pane layoutX="858.0" layoutY="194.0" prefHeight="504.0" prefWidth="310.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="858.0" layoutY="168.0" prefHeight="504.0" prefWidth="392.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="topProductsBarChart" horizontalGridLinesVisible="false" layoutY="21.0" legendVisible="false" prefHeight="485.0" prefWidth="318.0" verticalGridLinesVisible="false">
+                        <BarChart fx:id="topProductsBarChart" horizontalGridLinesVisible="false" layoutY="21.0" legendVisible="false" prefHeight="485.0" prefWidth="392.0" verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="LEFT" />
                            </xAxis>
@@ -496,7 +496,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Pane layoutX="463.0" layoutY="482.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="464.0" layoutY="456.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="agePieChart" labelsVisible="false" layoutY="29.0" legendSide="RIGHT" prefHeight="186.0" prefWidth="384.0" />
                         <Circle fill="WHITE" layoutX="138.0" layoutY="121.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
@@ -507,7 +507,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <Pane layoutX="41.0" layoutY="482.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="42.0" layoutY="456.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="21.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="384.0" />
                         <Circle fill="WHITE" layoutX="141.0" layoutY="123.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
@@ -518,7 +518,7 @@
                         </Text>
                      </children>
                   </Pane>
-                  <AnchorPane layoutX="41.0" layoutY="73.0" prefHeight="116.0" prefWidth="198.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="41.0" layoutY="44.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblOrdersValue" alignment="CENTER" layoutX="5.0" layoutY="14.0" prefHeight="98.0" prefWidth="202.0" text="Label Ord" textAlignment="JUSTIFY">
                            <font>
@@ -542,7 +542,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="271.0" layoutY="73.0" prefHeight="116.0" prefWidth="188.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="284.0" layoutY="44.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblProfitValue" alignment="CENTER" layoutX="4.0" layoutY="14.0" prefHeight="98.0" prefWidth="210.0" text="Label Profit" textAlignment="JUSTIFY">
                            <font>
@@ -566,7 +566,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="497.0" layoutY="74.0" prefHeight="114.0" prefWidth="218.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="525.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblSpendValue" alignment="CENTER" layoutX="6.0" layoutY="12.0" prefHeight="98.0" prefWidth="202.0" text="Label Spend" textAlignment="JUSTIFY">
                            <font>
@@ -590,7 +590,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="726.0" layoutY="73.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="762.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblLossValue" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="202.0" text="Label Loss" textAlignment="JUSTIFY">
                            <font>
@@ -614,7 +614,7 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="952.0" layoutY="73.0" prefHeight="104.0" prefWidth="202.0" styleClass="kpi-card">
+                  <AnchorPane layoutX="1011.0" layoutY="45.0" prefHeight="114.0" prefWidth="231.0" styleClass="kpi-card">
                      <children>
                         <Label fx:id="lblReturningRateValue" alignment="CENTER" layoutX="6.0" layoutY="11.0" prefHeight="102.0" prefWidth="210.0" text="Label returning rate" textAlignment="JUSTIFY">
                            <font>
@@ -638,9 +638,9 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <HBox layoutX="185.0" layoutY="32.0" prefHeight="34.0" prefWidth="239.0">
+                  <HBox layoutX="185.0" layoutY="3.0" prefHeight="34.0" prefWidth="239.0">
                      <children>
-                        <Button fx:id="btnTabInventory" mnemonicParsing="false" onAction="#onInventoryClick" prefHeight="34.0" prefWidth="132.0" styleClass="dashboard-tab" text="Inventory">
+                        <Button fx:id="btnTabInventory" mnemonicParsing="false" onAction="#onInventoryClick" prefHeight="28.0" prefWidth="121.0" styleClass="dashboard-tab" text="Inventory">
                            <font>
                               <Font size="10.0" />
                            </font>
@@ -652,7 +652,7 @@
                         </Button>
                      </children>
                   </HBox>
-                  <Text layoutX="38.0" layoutY="56.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" wrappingWidth="146.39999999999998">
+                  <Text layoutX="29.0" layoutY="28.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PERFORMANCE" wrappingWidth="146.39999999999998">
                      <font>
                         <Font name="System Bold" size="19.0" />
                      </font>
