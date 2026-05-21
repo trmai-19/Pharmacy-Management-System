@@ -39,7 +39,6 @@
 
                 <VBox fx:id="sideMenu" spacing="12">
                     <Button fx:id="btnInventory" maxWidth="Infinity" onAction="#showInventoryManager" styleClass="nav-btn, nav-btn-active" text="🏠  QUẢN LÝ KHO" />
-                    <!-- THÊM NÚT QUẢN LÝ ĐỔI TRẢ Ở ĐÂY -->
                     <Button fx:id="btnReturn" maxWidth="Infinity" onAction="#showReturnManager" styleClass="nav-btn" text="↩  QUẢN LÝ ĐỔI TRẢ" />
                 </VBox>
 
@@ -65,10 +64,7 @@
                     <Region maxHeight="100.0" minHeight="100.0" prefHeight="100.0" HBox.hgrow="ALWAYS" />
 
                     <HBox alignment="CENTER_RIGHT" spacing="25.0">
-                        <children>
-                            <StackPane fx:id="bellIcon" focusTraversable="false" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand; -fx-background-color: transparent;" />
-                        </children>
-                    </HBox>
+                        </HBox>
 
                     <Circle fill="WHITE" radius="28.0" />
                     <AnchorPane>
@@ -88,7 +84,6 @@
                     </MenuButton>
                 </HBox>
 
-                <!-- Vùng hiển thị nội dung -->
                 <AnchorPane fx:id="contentPane" prefHeight="800.0" prefWidth="1134.0" VBox.vgrow="ALWAYS" />
                 
             </children>

@@ -11,10 +11,12 @@ commit;
 @triggers.sql;
 COMMIT;
 -- 4. Chạy file tạo các thủ tục/hàm
--- @procedures.sql;
+@procedures.sql;
+COMMIT;
 
--- 5. Chay Mock Data
---@mockdata.sql;
+-- 5. Chay view
+@get_all_accounts.sql;
+COMMIT;
 
 -- Xác nhận lưu toàn bộ thay đổi vào database
 COMMIT;

@@ -68,4 +68,13 @@ public class ApiService {
                 .build();
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
+
+    public static CompletableFuture<HttpResponse<String>> delete(String endpoint) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Authorization", "Bearer " + Session.getToken()) 
+                .DELETE() 
+                .build();
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+    }
 }

@@ -26,7 +26,7 @@
                         <Region prefHeight="10.0" />
                         <HBox alignment="BOTTOM_LEFT" spacing="10.0">
                            <Label fx:id="lblEmpAccounts" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0b5d77;" text="12" />
-                           <Label style="-fx-text-fill: #ef4444; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 5 0;" />
+                           <Label fx:id="lblLockedAccounts" style="-fx-text-fill: #ef4444; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 5 0;" />
                         </HBox>
                      </children>
                   </VBox>
@@ -51,25 +51,28 @@
                                  <padding>
                                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                                  </padding>
+                                
                                  <children>
                                     <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="15.0">
                                        <children>
                                           <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="300.0" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8; -fx-padding: 0 15;">
                                              <children>
                                                 <Label style="-fx-text-fill: #64748b;" text="🔍" />
-                                                <TextField fx:id="txtSearchEmp" promptText="Tìm Username, Tên NV..." style="-fx-background-color: transparent; -fx-font-size: 14px;" HBox.hgrow="ALWAYS" />
+                                                <TextField fx:id="txtSearchEmp" promptText="Tìm nhân viên..." style="-fx-background-color: transparent; -fx-font-size: 14px;" HBox.hgrow="ALWAYS" />
                                              </children>
                                           </HBox>
+            
                                           <Region HBox.hgrow="ALWAYS" />
                                           <Button fx:id="btnResetPwdEmp" prefHeight="38.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="ĐẶT LẠI MẬT KHẨU">
                                              <padding><Insets left="15" right="15" /></padding>
                                           </Button>
+       
                                           <Button fx:id="btnLockEmp" prefHeight="38.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="KHÓA TÀI KHOẢN">
                                              <padding><Insets left="15" right="15" /></padding>
                                           </Button>
                                        </children>
                                     </HBox>
-                                    
+                                 
                                     <TableView fx:id="tableEmployeeAcc" style="-fx-font-size: 14px; -fx-selection-bar: #ccfbf1; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">
                                       <columns>
                                         <TableColumn fx:id="colEmpUser" prefWidth="150.0" style="-fx-font-weight: bold;" text="Tên đăng nhập" />
@@ -85,7 +88,7 @@
                                  </children>
                               </VBox>
                            </content>
-                      </Tab>
+                        </Tab>
                       
                       <Tab style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10 30;" text="TÀI KHOẢN KHÁCH HÀNG">
                            <content>
@@ -93,6 +96,7 @@
                                  <padding>
                                     <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                                  </padding>
+                                
                                  <children>
                                     <HBox alignment="CENTER_LEFT" prefHeight="40.0" spacing="15.0">
                                        <children>
@@ -102,16 +106,15 @@
                                                 <TextField fx:id="txtSearchCust" promptText="Tìm SĐT, Email, Tên khách..." style="-fx-background-color: transparent; -fx-font-size: 14px;" HBox.hgrow="ALWAYS" />
                                              </children>
                                           </HBox>
+            
                                           <Region HBox.hgrow="ALWAYS" />
                                           <Button fx:id="btnResetPwdCust" prefHeight="38.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="ĐẶT LẠI MẬT KHẨU">
                                              <padding><Insets left="15" right="15" /></padding>
                                           </Button>
-                                          <!-- Đã xóa nút Đình chỉ truy cập ở đây -->
                                        </children>
                                     </HBox>                                    
                                     <TableView fx:id="tableCustomerAcc" style="-fx-font-size: 14px; -fx-selection-bar: #ccfbf1; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">
                                       <columns>
-                                        <!-- Đã tách cột Tài khoản thành SĐT và Email -->
                                         <TableColumn fx:id="colCustPhone" prefWidth="120.0" style="-fx-font-weight: bold;" text="Số điện thoại" />
                                         <TableColumn fx:id="colCustEmail" prefWidth="180.0" text="Email" />
                                         <TableColumn fx:id="colCustName" prefWidth="180.0" text="Tên Khách Hàng" />
@@ -124,7 +127,7 @@
                                  </children>
                               </VBox>
                            </content>
-                      </Tab>
+                        </Tab>
                       
                     </tabs>
                   </TabPane>

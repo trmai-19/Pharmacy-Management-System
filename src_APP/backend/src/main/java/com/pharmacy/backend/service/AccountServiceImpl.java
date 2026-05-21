@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.mail.MailSender;
 
 import com.pharmacy.backend.dto.AccountResponse;
 import com.pharmacy.backend.dto.CreateUserRequest;
@@ -20,16 +19,11 @@ import com.pharmacy.backend.security.JwtUtils;
 import java.util.List; 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.FileCopyUtils;
-import java.nio.charset.StandardCharsets;
-
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final MailSender mailSender;
 
     private final AccountRepository accountRepo;
     private final EmployeeRepository employeeRepo;
@@ -91,10 +85,10 @@ public class AccountServiceImpl implements AccountService {
         emailService.sendAccountCreationEmail(request.getEmail(), request.getSdt(), rawPassword);
     }
 
-    @Override
+   @Override
     public void toggleAccountStatus(String id) {
-        Account acc = accountRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với mã: " + id));
+        Account acc = accountRepo.findBySdt(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với SĐT: " + id));
 
         if ("ACTIVE".equalsIgnoreCase(acc.getTrangthai())) {
             
@@ -102,8 +96,9 @@ public class AccountServiceImpl implements AccountService {
                 Employee emp = employeeRepo.findByMatk(acc.getMatk())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
+                // Logic của bạn: Bắt buộc nhân viên phải nghỉ việc mới được khóa tài khoản
                 if (!"RESIGNED".equalsIgnoreCase(emp.getTrangthai())) {
-                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đã nghỉ trước.");
+                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân sự sang ĐÃ NGHỈ VIỆC (RESIGNED) trước.");
                 }
             }
             acc.setTrangthai("LOCKED");
@@ -115,7 +110,7 @@ public class AccountServiceImpl implements AccountService {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
                 if (!"WORKING".equalsIgnoreCase(emp.getTrangthai())) {
-                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đang làm trước.");
+                    throw new RuntimeException("Không thể mở khóa! Vui lòng chuyển trạng thái nhân sự sang ĐANG LÀM VIỆC (WORKING) trước.");
                 }
             }
             acc.setTrangthai("ACTIVE");

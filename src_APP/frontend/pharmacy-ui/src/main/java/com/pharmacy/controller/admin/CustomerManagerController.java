@@ -1,207 +1,328 @@
 package com.pharmacy.controller.admin;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.pharmacy.dto.ApiResponse;
-import com.pharmacy.dto.CustomerResponse;
-import com.pharmacy.dto.QuickCreateCustomerRequest;
-import com.pharmacy.model.Customer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.pharmacy.model.CustomerListRow;
+import com.pharmacy.model.InvoiceHistoryRow;
+import com.pharmacy.model.InvoiceItemRow;
 import com.pharmacy.util.ApiService;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 
 import java.net.URLEncoder;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class CustomerManagerController {
 
-    @FXML private Label lblTotalCustomers;
-    @FXML private Label lblVIPCustomers;
-    @FXML private Label lblSpecialNotes;
-    
+    // Các nhãn thống kê
+    @FXML private Label lblTotalCustomers, lblDiamondCustomers, lblGoldCustomers, lblSilverCustomers;
 
+    // Thanh công cụ
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbTier;
 
-    @FXML private TableView<Customer> tableCustomer;
-    @FXML private TableColumn<Customer, String> colId;
-    @FXML private TableColumn<Customer, String> colName;
-    @FXML private TableColumn<Customer, String> colPhone;
-    @FXML private TableColumn<Customer, String> colTier;
-    @FXML private TableColumn<Customer, String> colPoints;
-    @FXML private TableColumn<Customer, String> colTotalSpent;
+    // Bảng và Cột Khách Hàng
+    @FXML private TableView<CustomerListRow> tableCustomer;
+    @FXML private TableColumn<CustomerListRow, String> colId, colName, colPhone, colDob, colTier, colPoints, colTotalSpent;
+    @FXML private TableColumn<CustomerListRow, Void> colActionView;
 
+    // Form Tạo Hồ Sơ
     @FXML private StackPane modalOverlay;
-    @FXML private TextField txtNewName;
-    @FXML private TextField txtNewPhone;
+    @FXML private TextField txtNewName, txtNewPhone;
     @FXML private ComboBox<String> cbNewGender;
     @FXML private DatePicker dpNewDOB;
 
-    private ObservableList<Customer> customerList;
-    private FilteredList<Customer> filteredData;
+    // Form Lịch Sử Hóa Đơn (Bảng Trên)
+    @FXML private StackPane modalInvoiceHistory;
+    @FXML private Label lblHistoryCustomerName;
+    @FXML private TableView<InvoiceHistoryRow> tableInvoiceHistory;
+    @FXML private TableColumn<InvoiceHistoryRow, String> colInvId, colInvDate, colInvStatus, colInvTotal, colInvAmount;
+    @FXML private TableColumn<InvoiceHistoryRow, Integer> colInvPoints;
+    
+    // Form Chi Tiết Hóa Đơn (Bảng Dưới)
+    @FXML private TableView<InvoiceItemRow> tableInvoiceDetails;
+    @FXML private TableColumn<InvoiceItemRow, String> colDetailMasp, colDetailMalo, colDetailPrice, colDetailTotal;
+    @FXML private TableColumn<InvoiceItemRow, Integer> colDetailSl;
+
+    private ObservableList<CustomerListRow> customerList = FXCollections.observableArrayList();
+    private ObservableList<InvoiceHistoryRow> invoiceHistoryList = FXCollections.observableArrayList();
+    private ObservableList<InvoiceItemRow> invoiceDetailsList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        System.out.println("🤝 CustomerManagerController đang tải...");
-
-        colId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
-        colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneProperty());
-        colTier.setCellValueFactory(cellData -> cellData.getValue().tierProperty());
-        colPoints.setCellValueFactory(cellData -> cellData.getValue().pointsProperty());
-        colTotalSpent.setCellValueFactory(cellData -> cellData.getValue().totalSpentProperty());
-
-        cbTier.setItems(FXCollections.observableArrayList(
-                "Tất cả hạng mức", "Thành viên", "Bạc", "Vàng", "Kim Cương"
-        ));
+        cbTier.setItems(FXCollections.observableArrayList("Tất cả hạng mức", "Thành viên", "Bạc", "Vàng", "Kim Cương"));
         cbTier.getSelectionModel().selectFirst();
-
-        customerList = FXCollections.observableArrayList();
-        setupSearchAndFilter();
-
-        loadCustomerData("");
-
         cbNewGender.setItems(FXCollections.observableArrayList("Nam", "Nữ", "Khác"));
-    }
 
-    private void loadCustomerData(String keyword) {
-        if (customerList == null) {
-            customerList = FXCollections.observableArrayList();
-        }
+        // ================= MAP CÁC CỘT DỮ LIỆU =================
+        // Bảng Khách Hàng
+        colId.setCellValueFactory(new PropertyValueFactory<>("makh"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("tenkh"));
+        colPhone.setCellValueFactory(new PropertyValueFactory<>("sdt"));
+        colDob.setCellValueFactory(new PropertyValueFactory<>("ngaysinh")); 
+        colTier.setCellValueFactory(new PropertyValueFactory<>("hangtv"));
+        colPoints.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDiem()));
+        colTotalSpent.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDoanhThu()));
 
-        String encodedKeyword = "";
-        try {
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                encodedKeyword = URLEncoder.encode(keyword.trim(), StandardCharsets.UTF_8);
+        colActionView.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(null));
+        colActionView.setCellFactory(param -> new TableCell<>() {
+            private final Button viewBtn = new Button("👁");
+            {
+                viewBtn.setStyle("-fx-background-color: #0f766e; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 5;");
+                viewBtn.setOnAction(e -> showInvoiceHistory(getTableView().getItems().get(getIndex())));
             }
-        } catch (Exception e) {
-            encodedKeyword = "";
-        }
+            @Override protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty ? null : viewBtn);
+            }
+        });
+        tableCustomer.setItems(customerList);
 
-        String endpoint = "/api/sales/customers/search" + (encodedKeyword.isEmpty() ? "" : "?keyword=" + encodedKeyword);
+        // Bảng Lịch Sử Hóa Đơn
+        colInvId.setCellValueFactory(new PropertyValueFactory<>("mahd"));
+        colInvDate.setCellValueFactory(new PropertyValueFactory<>("ngayban"));
+        colInvStatus.setCellValueFactory(new PropertyValueFactory<>("trangthai"));
+        colInvPoints.setCellValueFactory(new PropertyValueFactory<>("diemsudung"));
+        colInvTotal.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedTongTien()));
+        colInvAmount.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedTienThanhToan()));
+        tableInvoiceHistory.setItems(invoiceHistoryList);
 
-        ApiService.get(endpoint)
-                .thenApply(HttpResponse::body)
-                .thenAccept(jsonResponseBody -> {
-                    try {
-                        ApiResponse<List<CustomerResponse>> apiRes = ApiService.mapper.readValue(
-                                jsonResponseBody,
-                                new TypeReference<ApiResponse<List<CustomerResponse>>>() {}
-                        );
+        // Bảng Chi Tiết Hóa Đơn 
+        colDetailMasp.setCellValueFactory(new PropertyValueFactory<>("masp"));
+        colDetailMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
+        colDetailSl.setCellValueFactory(new PropertyValueFactory<>("sl"));
+        colDetailPrice.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedDongia()));
+        colDetailTotal.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedThanhtien()));
+        tableInvoiceDetails.setItems(invoiceDetailsList);
 
-                        if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
-                            List<Customer> serverCustomers = apiRes.getData().stream()
-                                    .map(this::toCustomerModel)
-                                    .collect(Collectors.toList());
-
-                            Platform.runLater(() -> {
-                                customerList.setAll(serverCustomers);
-                                updateStats();
-                            });
-                        } else {
-                            String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
-                            Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", msg));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi xử lý", "Không thể đọc dữ liệu khách hàng từ Backend."));
-                    }
-                })
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối đến Backend để tải khách hàng!"));
-                    return null;
+        // ================= SỰ KIỆN CLICK DÒNG HÓA ĐƠN =================
+        // Lazy Loading: Click dòng nào gọi API chi tiết dòng đó
+        tableInvoiceHistory.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            invoiceDetailsList.clear();
+            if (newSelection != null) {
+                String mahd = newSelection.getMahd();
+                
+                // Gọi API lấy chi tiết Hóa đơn
+                ApiService.get("/api/sales/invoices/" + mahd).thenAccept(res -> {
+                    Platform.runLater(() -> {
+                        try {
+                            if (res.statusCode() == 200) {
+                                JsonNode root = ApiService.mapper.readTree(res.body());
+                                JsonNode dataNode = root.get("data");
+                                
+                                if (dataNode.has("items") && dataNode.get("items").isArray()) {
+                                    for (JsonNode itemNode : dataNode.get("items")) {
+                                        // Ưu tiên hiển thị tên sản phẩm, không có thì xài mã
+                                        String tenHienThi = itemNode.has("tensanpham") && !itemNode.get("tensanpham").isNull() 
+                                                            ? itemNode.get("tensanpham").asText() 
+                                                            : (itemNode.has("masp") ? itemNode.get("masp").asText() : "Chưa rõ");
+                                        
+                                        invoiceDetailsList.add(new InvoiceItemRow(
+                                            tenHienThi,
+                                            itemNode.has("malo") ? itemNode.get("malo").asText() : "",
+                                            itemNode.has("sl") ? itemNode.get("sl").asInt() : 0,
+                                            itemNode.has("dongia") ? itemNode.get("dongia").asDouble() : 0.0,
+                                            itemNode.has("thanhtien") ? itemNode.get("thanhtien").asDouble() : 0.0
+                                        ));
+                                    }
+                                }
+                            }
+                        } catch (Exception e) { e.printStackTrace(); }
+                    });
                 });
-    }
-
-    private Customer toCustomerModel(CustomerResponse response) {
-        String formattedPoints = response.getDiemtichluy() == 0 ? "0" : String.valueOf((int) response.getDiemtichluy());
-        String formattedTotal = response.getTongdoanhthu() == null ? "0" : String.format("%.0f", response.getTongdoanhthu());
-        String tier = response.getHangtv() == null ? "Thành viên" : normalizeTier(response.getHangtv());
-
-        return new Customer(
-                response.getMakh() != null ? response.getMakh() : "",
-                response.getTenkh() != null ? response.getTenkh() : "N/A",
-                response.getSdt() != null ? response.getSdt() : "",
-                tier,
-                formattedPoints,
-                formattedTotal,
-                ""
-        );
-    }
-
-    private void setupSearchAndFilter() {
-        filteredData = new FilteredList<>(customerList, this::matchesCurrentFilter);
-
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
-            loadCustomerData(newValue);
-            updateFilter();
+            }
         });
 
-        cbTier.valueProperty().addListener((observable, oldValue, newValue) -> updateFilter());
-
-        SortedList<Customer> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(tableCustomer.comparatorProperty());
-        tableCustomer.setItems(sortedData);
+        // Load dữ liệu lần đầu
+        loadStats();
+        handleSearchData(null);
     }
 
-    private void updateFilter() {
-        filteredData.setPredicate(this::matchesCurrentFilter);
+    // ==========================================
+    // API: THỐNG KÊ & DANH SÁCH (TÌM KIẾM/LỌC)
+    // ==========================================
+
+    private void loadStats() {
+        ApiService.get("/api/sales/customers/stats").thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) {
+                        JsonNode data = ApiService.mapper.readTree(res.body()).get("data");
+                        lblTotalCustomers.setText(String.format("%,d", data.get("totalCustomers").asLong()));
+                        lblDiamondCustomers.setText(String.format("%,d", data.get("diamondCustomers").asLong()));
+                        lblGoldCustomers.setText(String.format("%,d", data.get("goldCustomers").asLong()));
+                        lblSilverCustomers.setText(String.format("%,d", data.get("silverCustomers").asLong()));
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            });
+        });
     }
 
-    private boolean matchesCurrentFilter(Customer customer) {
-        String searchText = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
-        String selectedTier = cbTier.getValue();
+    @FXML
+    void handleSearchData(ActionEvent event) {
+        String search = txtSearch.getText().trim();
+        String tier = cbTier.getValue();
+        
+        // "Phiên dịch" chữ trước khi gọi API để khớp với Database
+        if ("Tất cả hạng mức".equals(tier)) {
+            tier = "";
+        } else if ("Thành viên".equals(tier)) {
+            tier = "THANH VIEN"; 
+        }
 
-        boolean matchesTier = selectedTier == null || selectedTier.equals("Tất cả hạng mức") || customer.getTier().equals(selectedTier);
-        boolean matchesSearch = searchText.isEmpty() || customer.getName().toLowerCase().contains(searchText) || customer.getPhone().contains(searchText);
+        try {
+            String url = "/api/sales/customers/list?search=" + URLEncoder.encode(search, StandardCharsets.UTF_8)
+                         + "&tier=" + URLEncoder.encode(tier, StandardCharsets.UTF_8);
+            
+            ApiService.get(url).thenAccept(res -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (res.statusCode() == 200) {
+                            customerList.clear();
+                            JsonNode dataArray = ApiService.mapper.readTree(res.body()).get("data");
+                            for (JsonNode node : dataArray) {
+                                String ngaysinhStr = node.has("ngaysinh") && !node.get("ngaysinh").isNull() 
+                                                     ? node.get("ngaysinh").asText().split("T")[0] 
+                                                     : "Chưa cập nhật";
 
-        return matchesTier && matchesSearch;
+                                customerList.add(new CustomerListRow(
+                                    node.get("makh").asText(),
+                                    node.get("tenkh").asText(),
+                                    node.get("sdt").asText(),
+                                    ngaysinhStr,
+                                    node.get("hangtv").asText(),
+                                    node.has("tongdoanhthu") && !node.get("tongdoanhthu").isNull() ? node.get("tongdoanhthu").asDouble() : 0.0,
+                                    node.has("diemtichluy") && !node.get("diemtichluy").isNull() ? node.get("diemtichluy").asDouble() : 0.0
+                                ));
+                            }
+                            tableCustomer.refresh();
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                });
+            });
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private String normalizeTier(String rawTier) {
-        if (rawTier == null || rawTier.isBlank()) {
-            return "Thành viên";
-        }
-        String normalized = rawTier.trim().toUpperCase();
-        if (normalized.contains("THANH")) {
-            return "Thành viên";
-        }
-        if (normalized.contains("BAC")) {
-            return "Bạc";
-        }
-        if (normalized.contains("VANG")) {
-            return "Vàng";
-        }
-        if (normalized.contains("KIM")) {
-            return "Kim Cương";
-        }
-        return Character.toUpperCase(rawTier.charAt(0)) + rawTier.substring(1).toLowerCase();
+    // ==========================================
+    // API: XEM LỊCH SỬ HÓA ĐƠN
+    // ==========================================
+
+    private void showInvoiceHistory(CustomerListRow customer) {
+        lblHistoryCustomerName.setText("📋 Lịch Sử Mua Hàng: " + customer.getTenkh() + " (" + customer.getSdt() + ")");
+        invoiceHistoryList.clear();
+        invoiceDetailsList.clear();
+
+        ApiService.get("/api/sales/customers/" + customer.getMakh() + "/invoices").thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) {
+                        JsonNode dataArray = ApiService.mapper.readTree(res.body()).get("data");
+                        for (JsonNode node : dataArray) {
+                            String ngayban = node.get("ngayban").asText();
+                            if (ngayban != null && ngayban.contains("T")) {
+                                ngayban = ngayban.replace("T", " ").substring(0, 19);
+                            }
+
+                            // Truyền null cho tham số cuối (items) vì giờ đã Lazy Loading
+                            invoiceHistoryList.add(new InvoiceHistoryRow(
+                                node.get("mahd").asText(),
+                                ngayban,
+                                node.get("tongtien").asDouble(),
+                                node.get("diemsudung").asInt(),
+                                node.get("tienthanhtoan").asDouble(),
+                                node.get("trangthai").asText(),
+                                null 
+                            ));
+                        }
+                        modalInvoiceHistory.setVisible(true);
+                        
+                        // Tự động chọn dòng HĐ đầu tiên để nó nhảy API nạp chi tiết
+                        if (!invoiceHistoryList.isEmpty()) {
+                            tableInvoiceHistory.getSelectionModel().selectFirst();
+                        }
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải lịch sử mua hàng!");
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            });
+        });
     }
 
-    private void updateStats() {
-        if (lblTotalCustomers != null) {
-            lblTotalCustomers.setText(String.valueOf(customerList.size()));
+    @FXML void handleCloseHistory(ActionEvent event) { modalInvoiceHistory.setVisible(false); }
+
+    // ==========================================
+    // TẠO HỒ SƠ KHÁCH HÀNG MỚI
+    // ==========================================
+
+    @FXML void handleShowCreateForm(ActionEvent event) { modalOverlay.setVisible(true); }
+
+    @FXML
+    void handleCloseCreateForm(ActionEvent event) {
+        modalOverlay.setVisible(false);
+        clearCreateForm();
+    }
+
+    @FXML
+    void handleSaveCustomer(ActionEvent event) {
+        String name = txtNewName.getText().trim();
+        String phone = txtNewPhone.getText().trim();
+        String gender = cbNewGender.getValue();
+        LocalDate dob = dpNewDOB.getValue();
+
+        if (name.isEmpty() || phone.isEmpty() || gender == null || dob == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập đầy đủ thông tin!");
+            return;
         }
-        if (lblVIPCustomers != null) {
-            long vipCount = customerList.stream()
-                    .filter(c -> c.getTier() != null && (c.getTier().equalsIgnoreCase("Vàng") || c.getTier().equalsIgnoreCase("Kim Cương")))
-                    .count();
-            lblVIPCustomers.setText(String.valueOf(vipCount));
+
+        LocalDate today = LocalDate.now();
+        if (dob.isAfter(today) || today.getYear() - dob.getYear() > 120) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Ngày sinh không hợp lệ!");
+            return;
         }
-        if (lblSpecialNotes != null) {
-            lblSpecialNotes.setText("Hiển thị " + customerList.size() + " khách hàng");
-        }
+
+        try {
+            ObjectNode json = ApiService.mapper.createObjectNode();
+            json.put("tenkh", name);
+            json.put("sdt", phone);
+            json.put("gioitinh", gender);
+            json.put("ngaysinh", dob.toString());
+
+            ApiService.post("/api/sales/customers", json.toString()).thenAccept(res -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (res.statusCode() == 200 || res.statusCode() == 201) {
+                            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã tạo hồ sơ: " + name);
+                            modalOverlay.setVisible(false);
+                            clearCreateForm();
+                            
+                            // Load lại giao diện sau khi tạo thành công
+                            loadStats();
+                            handleSearchData(null);
+                        } else {
+                            JsonNode errNode = ApiService.mapper.readTree(res.body());
+                            String errMsg = errNode.has("message") ? errNode.get("message").asText() : "Lỗi hệ thống";
+                            showAlert(Alert.AlertType.ERROR, "Thất bại", errMsg);
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                });
+            });
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void clearCreateForm() {
+        txtNewName.clear();
+        txtNewPhone.clear();
+        cbNewGender.getSelectionModel().clearSelection();
+        dpNewDOB.setValue(null);
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
@@ -210,135 +331,5 @@ public class CustomerManagerController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    @FXML
-    void handleShowCreateForm(ActionEvent event) {
-        modalOverlay.setVisible(true);
-    }
-
-    @FXML
-    void handleCloseCreateForm(ActionEvent event) {
-        modalOverlay.setVisible(false);
-        clearCreateForm();
-    }
-
-@FXML
-    void handleSaveCustomer(ActionEvent event) {
-        String name = txtNewName.getText();
-        String phone = txtNewPhone.getText();
-        String gender = cbNewGender.getValue();
-        LocalDate dob = dpNewDOB.getValue();
-
-        if (name == null || name.trim().isEmpty() || 
-            phone == null || phone.trim().isEmpty() || 
-            gender == null || 
-            dob == null) {
-            
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Cảnh báo");
-            alert.setHeaderText("Thông tin không đầy đủ");
-            alert.setContentText("Vui lòng nhập đầy đủ: Họ tên, Số điện thoại, Giới tính và Ngày sinh!");
-            alert.showAndWait();
-            return; 
-        }
-
-        LocalDate today = LocalDate.now();
-        
-        if (dob.isAfter(today)) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Cảnh báo");
-            alert.setHeaderText("Ngày sinh không hợp lệ");
-            alert.setContentText("Ngày sinh không thể lớn hơn ngày hiện tại!");
-            alert.showAndWait();
-            return;
-        }
-        
-        if (today.getYear() - dob.getYear() > 120) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Cảnh báo");
-            alert.setHeaderText("Ngày sinh không hợp lệ");
-            alert.setContentText("Hệ thống phát hiện số tuổi lớn hơn 120. Vui lòng kiểm tra lại năm sinh!");
-            alert.showAndWait();
-            return;
-        }
-
-        QuickCreateCustomerRequest request = new QuickCreateCustomerRequest(name, phone, gender);
-        String requestBody;
-        try {
-            requestBody = ApiService.mapper.writeValueAsString(request);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Lỗi nội bộ");
-            alert.setHeaderText(null);
-            alert.setContentText("Không thể tạo dữ liệu request gửi lên backend.");
-            alert.showAndWait();
-            return;
-        }
-
-        ApiService.post("/api/sales/customers/quick-create", requestBody)
-                .thenApply(HttpResponse::body)
-                .thenAccept(jsonResponseBody -> {
-                    try {
-                        ApiResponse<CustomerResponse> apiRes = ApiService.mapper.readValue(
-                                jsonResponseBody,
-                                new com.fasterxml.jackson.core.type.TypeReference<ApiResponse<CustomerResponse>>() {}
-                        );
-
-                        if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
-                            Customer created = toCustomerModel(apiRes.getData());
-                            Platform.runLater(() -> {
-                                customerList.add(created);
-                                updateStats();
-
-                                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                                successAlert.setTitle("Thành công");
-                                successAlert.setHeaderText(null);
-                                successAlert.setContentText("Đã tạo hồ sơ thành công cho khách hàng: " + name);
-                                successAlert.showAndWait();
-
-                                modalOverlay.setVisible(false);
-                                clearCreateForm();
-                            });
-                        } else {
-                            String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
-                            Platform.runLater(() -> {
-                                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                                errorAlert.setTitle("Lỗi backend");
-                                errorAlert.setHeaderText(null);
-                                errorAlert.setContentText(msg);
-                                errorAlert.showAndWait();
-                            });
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Platform.runLater(() -> {
-                            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                            errorAlert.setTitle("Lỗi xử lý");
-                            errorAlert.setHeaderText(null);
-                            errorAlert.setContentText("Không thể đọc phản hồi từ backend.");
-                            errorAlert.showAndWait();
-                        });
-                    }
-                })
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    Platform.runLater(() -> {
-                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                        errorAlert.setTitle("Lỗi kết nối");
-                        errorAlert.setHeaderText(null);
-                        errorAlert.setContentText("Không thể liên hệ với backend để tạo khách hàng.");
-                        errorAlert.showAndWait();
-                    });
-                    return null;
-                });
-    }
-
-    private void clearCreateForm() {
-        txtNewName.clear();
-        txtNewPhone.clear();
-        cbNewGender.getSelectionModel().clearSelection();
-        dpNewDOB.setValue(null);
     }
 }

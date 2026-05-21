@@ -5,20 +5,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton; 
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.layout.HBox;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
-import javafx.scene.input.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 
@@ -32,11 +23,6 @@ public class WarehouseController {
     @FXML private Button btnReturn; 
     @FXML private MenuButton avatarMenuButton; 
     
-    private ContextMenu notificationMenu;   
-
-    @FXML private StackPane bellIcon;
-    @FXML private Label lblNotificationCount;
-
     private Button currentActiveButton;
 
     @FXML
@@ -45,7 +31,17 @@ public class WarehouseController {
         
         // CẬP NHẬT TÊN LÊN HEADER
         if (lblWarehouseName != null && com.pharmacy.util.Session.getCurrentUser() != null) {
-            lblWarehouseName.setText(com.pharmacy.util.Session.getFullName());
+            String fullName = com.pharmacy.util.Session.getFullName();
+            if (fullName == null || fullName.trim().isEmpty() || fullName.equalsIgnoreCase("null") || fullName.equals("Unknown User")) {
+                String phone = com.pharmacy.util.Session.getCurrentUser().getUsername();
+                if (phone != null && phone.length() >= 4) {
+                    lblWarehouseName.setText("User" + phone.substring(phone.length() - 4));
+                } else {
+                    lblWarehouseName.setText("Nhân viên kho");
+                }
+            } else {
+                lblWarehouseName.setText(fullName);
+            }
         }
 
         loadView("inventory.fxml", "QUẢN LÝ KHO");
@@ -119,118 +115,6 @@ public class WarehouseController {
             System.err.println("❌ LỖI LOAD FILE: " + fxmlFileName);
             e.printStackTrace();
         }
-    }
-
-    @FXML
-    void handleShowNotifications(MouseEvent event) {
-        if (lblNotificationCount != null) {
-            lblNotificationCount.setText("0");
-            lblNotificationCount.getParent().setVisible(false);
-        }
-
-        if (notificationMenu != null && notificationMenu.isShowing()) {
-            notificationMenu.hide();
-            notificationMenu = null;
-            return;
-        }
-
-        notificationMenu = new ContextMenu();
-        notificationMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-border-color: transparent; -fx-border-width: 0;");
-
-        VBox popupContainer = new VBox();
-        popupContainer.setFocusTraversable(false);
-        popupContainer.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 15, 0, 0, 6); -fx-border-radius: 12; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
-
-        HBox headerBox = new HBox();
-        headerBox.setFocusTraversable(false);
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-        headerBox.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 11 11 0 0; -fx-padding: 15 20; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
-
-        Label headerLabel = new Label("Thông báo hệ thống kho");
-        headerLabel.setStyle("-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: #0f766e;");
-        headerBox.getChildren().add(headerLabel);
-
-        VBox notifList = new VBox(0);
-        notifList.setFocusTraversable(false);
-        notifList.setStyle("-fx-background-color: white;");
-
-        notifList.getChildren().add(createNotificationRow("CẢNH BÁO", "Thuốc Paracetamol 500mg sắp hết (Còn 3 hộp).", "Vừa xong", "WARNING"));
-        notifList.getChildren().add(createNotificationRow("THÔNG TIN", "Nhà cung cấp đã giao lô hàng mới.", "15 phút trước", "INFO"));
-        notifList.getChildren().add(createNotificationRow("CẢNH BÁO", "Lô hàng Vitamin C sẽ hết hạn sau 30 ngày nữa.", "2 giờ trước", "WARNING"));
-
-        ScrollPane scrollPane = new ScrollPane(notifList);
-        scrollPane.setFocusTraversable(false);
-        scrollPane.setPrefWidth(380);
-        scrollPane.setPrefHeight(420);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: white; -fx-background: white; -fx-border-color: transparent;");
-
-        HBox footerBox = new HBox();
-        footerBox.setFocusTraversable(false);
-        footerBox.setAlignment(Pos.CENTER);
-        footerBox.setStyle("-fx-background-color: white; -fx-background-radius: 0 0 11 11; -fx-padding: 12; -fx-border-color: #f1f5f9; -fx-border-width: 1 0 0 0; -fx-cursor: hand;");
-
-        popupContainer.getChildren().addAll(headerBox, scrollPane, footerBox);
-
-        CustomMenuItem customItem = new CustomMenuItem(popupContainer, false);
-        popupContainer.setFocusTraversable(false);    
-        customItem.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
-
-        notificationMenu.getItems().add(customItem);
-        notificationMenu.show(bellIcon, event.getScreenX() - 340, event.getScreenY() + 15);
-        notificationMenu.setOnHidden(e -> notificationMenu = null);
-    }
-
-    private HBox createNotificationRow(String title, String content, String timeStr, String type) {
-        HBox container = new HBox(15);
-        container.setAlignment(Pos.TOP_LEFT);
-        container.setStyle("-fx-padding: 16 20; -fx-border-color: #f1f5f9; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: white;");
-
-        Color dotColor;
-        String bgDotColor;
-        switch (type) {
-            case "WARNING": 
-                dotColor = Color.valueOf("#ef4444");
-                bgDotColor = "#fee2e2";
-                break;
-            case "SUCCESS": 
-                dotColor = Color.valueOf("#10b981");
-                bgDotColor = "#d1fae5";
-                break;
-            default:        
-                dotColor = Color.valueOf("#3b82f6");
-                bgDotColor = "#dbeafe";
-                break;
-        }
-
-        StackPane iconPane = new StackPane();
-        iconPane.setStyle("-fx-background-color: " + bgDotColor + "; -fx-background-radius: 50;");
-        iconPane.setPrefSize(32, 32);
-        iconPane.setMinSize(32, 32);
-        Circle dot = new Circle(5, dotColor);
-        iconPane.getChildren().add(dot);
-
-        VBox textContainer = new VBox(4);
-
-        Label lblTitle = new Label(title);
-        lblTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: " + dotColor.toString().replace("0x", "#") + ";");
-
-        Label lblContent = new Label(content);
-        lblContent.setWrapText(true);
-        lblContent.setMaxWidth(290);
-        lblContent.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155; -fx-line-spacing: 2px;");
-
-        Label lblTime = new Label(timeStr);
-        lblTime.setStyle("-fx-font-size: 11.5px; -fx-text-fill: #94a3b8;");
-
-        textContainer.getChildren().addAll(lblTitle, lblContent, lblTime);
-        container.getChildren().addAll(iconPane, textContainer);
-
-        container.setOnMouseEntered(e -> container.setStyle("-fx-padding: 16 20; -fx-border-color: " + dotColor.toString().replace("0x", "#") + " transparent #f1f5f9 transparent; -fx-border-width: 0 0 1 4; -fx-cursor: hand; -fx-background-color: #f8fafc;"));
-        container.setOnMouseExited(e -> container.setStyle("-fx-padding: 16 20; -fx-border-color: #f1f5f9; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: white;"));
-        container.setFocusTraversable(false);
-        return container;
     }
 
     @FXML
