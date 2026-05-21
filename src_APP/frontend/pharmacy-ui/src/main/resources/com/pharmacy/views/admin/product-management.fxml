@@ -57,7 +57,7 @@
                                </children>
                             </HBox>
                             
-                             <SplitPane dividerPositions="0.6" orientation="VERTICAL" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                              <SplitPane dividerPositions="0.6" orientation="VERTICAL" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
                                <items>
                                   <TableView fx:id="tableProduct" style="-fx-selection-bar: #0ea5e9;">
                                      <columns>
@@ -81,11 +81,14 @@
                                             <TableColumn fx:id="colBatchMfg" style="-fx-alignment: CENTER;" text="Ngày sản xuất" />
                                             <TableColumn fx:id="colBatchExp" style="-fx-alignment: CENTER;" text="Hạn sử dụng" />
                                             <TableColumn fx:id="colBatchImport" style="-fx-alignment: CENTER;" text="Ngày nhập" />
+                                            
+                                            <TableColumn fx:id="colBatchImportPrice" style="-fx-alignment: CENTER_RIGHT;" text="Giá nhập (VNĐ)" />
+                                            
                                             <TableColumn fx:id="colBatchQty" style="-fx-alignment: CENTER;" text="Số lượng tồn" />
                                             <TableColumn fx:id="colBatchStatus" style="-fx-alignment: CENTER;" text="Tình trạng" />
                                            </columns>
                                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
-                                         </TableView>
+                                        </TableView>
                                      </children>
                                   </VBox>
                                </items>
