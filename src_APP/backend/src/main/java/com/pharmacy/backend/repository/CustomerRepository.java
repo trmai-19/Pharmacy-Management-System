@@ -26,5 +26,9 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
            "(:search IS NULL OR :search = '' OR LOWER(c.tenkh) LIKE LOWER(CONCAT('%', :search, '%')) OR c.sdt LIKE CONCAT('%', :search, '%')) " +
            "AND (:tier IS NULL OR :tier = '' OR :tier = 'Tất cả hạng mức' OR c.hangtv = :tier)")
     List<Customer> searchAndFilterCustomers(@Param("search") String search, @Param("tier") String tier);
+
+    // Đếm giới tính
+    @Query(value = "SELECT GIOITINH as label, COUNT(*) as value FROM KHACHHANG GROUP BY GIOITINH", nativeQuery = true)
+    List<ChartProjection> getGenderStatistics();
 }
 

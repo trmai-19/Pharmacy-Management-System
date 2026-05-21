@@ -1,4 +1,6 @@
 package com.pharmacy.controller.admin;
+import com.pharmacy.util.ReportApiService;
+import com.pharmacy.dto.PerformanceReportDTO;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -126,6 +128,8 @@ public class ReportController implements Initializable {
     @FXML private Label lblInvNearExpiryTrend;
     @FXML private Label lblInvExpiredTrend;
     @FXML private Label lblInvValueTrend;
+    
+    private PerformanceReportDTO currentPerformanceData;
 
     private enum MetricType {
         REVENUE,
@@ -151,9 +155,7 @@ public class ReportController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         loadTrendAreaChart();
         loadTopProductsBarChart();
-        loadGenderPieChart(genderPieChart);
         loadCustomerGenderPieChart();
-        loadAgePieChart(agePieChart);
         loadCustomerAgePieChart();
         loadInventoryKPIData();
         initInventoryTable();
@@ -163,7 +165,8 @@ public class ReportController implements Initializable {
         initGrowthChartData();
         loadTopSpendersChart();
         loadCustomerSegmentationChart();
-        loadPerformanceKPIs();
+        // loadPerformanceKPIs();
+        fetchAndLoadPerformanceData();
         initFilters();
         setActivePerformanceButton(btnRevenue);
         setActiveCustomerButton(btnCustTotal);
@@ -203,301 +206,138 @@ public class ReportController implements Initializable {
         setActiveTab(btnTabPerformance);
     }
 
+   
     private void loadTrendAreaChart() {
-
+        if (trendAreaChart == null || currentPerformanceData == null) return;
+        
         trendAreaChart.getData().clear();
-
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
-        series.setName("Doanh thu 2026");
-
         switch (currentMetric) {
-
             case REVENUE:
-
-                series.setName("Doanh thu 2026");
-
-                series.getData().add(new XYChart.Data<>("Jan", 12000000));
-                series.getData().add(new XYChart.Data<>("Feb", 15000000));
-                series.getData().add(new XYChart.Data<>("Mar", 11000000));
-                series.getData().add(new XYChart.Data<>("Apr", 18000000));
-                series.getData().add(new XYChart.Data<>("May", 22000000));
-                series.getData().add(new XYChart.Data<>("Jun", 21000000));
-                series.getData().add(new XYChart.Data<>("Jul", 25000000));
-                series.getData().add(new XYChart.Data<>("Aug", 27000000));
-                series.getData().add(new XYChart.Data<>("Sep", 24000000));
-                series.getData().add(new XYChart.Data<>("Oct", 30000000));
-                series.getData().add(new XYChart.Data<>("Nov", 32000000));
-                series.getData().add(new XYChart.Data<>("Dec", 35000000));
-
+                series.setName("Revenue");
+                for (var item : currentPerformanceData.trendData) 
+                    series.getData().add(new XYChart.Data<>(item.month, item.revenue));
                 break;
-
             case PROFIT:
-
-                series.setName("Lợi nhuận 2026");
-
-                series.getData().add(new XYChart.Data<>("Jan", 8000000));
-                series.getData().add(new XYChart.Data<>("Feb", 9500000));
-                series.getData().add(new XYChart.Data<>("Mar", 7000000));
-                series.getData().add(new XYChart.Data<>("Apr", 12000000));
-                series.getData().add(new XYChart.Data<>("May", 14500000));
-                series.getData().add(new XYChart.Data<>("Jun", 15000000));
-                series.getData().add(new XYChart.Data<>("Jul", 17000000));
-                series.getData().add(new XYChart.Data<>("Aug", 18000000));
-                series.getData().add(new XYChart.Data<>("Sep", 16500000));
-                series.getData().add(new XYChart.Data<>("Oct", 20000000));
-                series.getData().add(new XYChart.Data<>("Nov", 21500000));
-                series.getData().add(new XYChart.Data<>("Dec", 24000000));
-
+                series.setName("Profit");
+                for (var item : currentPerformanceData.trendData) 
+                    series.getData().add(new XYChart.Data<>(item.month, item.profit));
                 break;
-
             case LOSS:
-
-                series.setName("Thua lỗ 2026");
-
-                series.getData().add(new XYChart.Data<>("Jan", 2000000));
-                series.getData().add(new XYChart.Data<>("Feb", 1800000));
-                series.getData().add(new XYChart.Data<>("Mar", 2500000));
-                series.getData().add(new XYChart.Data<>("Apr", 2200000));
-                series.getData().add(new XYChart.Data<>("May", 1900000));
-                series.getData().add(new XYChart.Data<>("Jun", 1700000));
-                series.getData().add(new XYChart.Data<>("Jul", 2100000));
-                series.getData().add(new XYChart.Data<>("Aug", 2400000));
-                series.getData().add(new XYChart.Data<>("Sep", 2000000));
-                series.getData().add(new XYChart.Data<>("Oct", 1800000));
-                series.getData().add(new XYChart.Data<>("Nov", 1600000));
-                series.getData().add(new XYChart.Data<>("Dec", 1500000));
-
+                series.setName("Loss");
+                for (var item : currentPerformanceData.trendData) 
+                    series.getData().add(new XYChart.Data<>(item.month, item.loss));
                 break;
-
             case SPEND:
-
-                series.setName("Chi tiêu 2026");
-
-                series.getData().add(new XYChart.Data<>("Jan", 5000000));
-                series.getData().add(new XYChart.Data<>("Feb", 6000000));
-                series.getData().add(new XYChart.Data<>("Mar", 5800000));
-                series.getData().add(new XYChart.Data<>("Apr", 6500000));
-                series.getData().add(new XYChart.Data<>("May", 7000000));
-                series.getData().add(new XYChart.Data<>("Jun", 7500000));
-                series.getData().add(new XYChart.Data<>("Jul", 8200000));
-                series.getData().add(new XYChart.Data<>("Aug", 7900000));
-                series.getData().add(new XYChart.Data<>("Sep", 8300000));
-                series.getData().add(new XYChart.Data<>("Oct", 9000000));
-                series.getData().add(new XYChart.Data<>("Nov", 9500000));
-                series.getData().add(new XYChart.Data<>("Dec", 9800000));
-
+                series.setName("Spend");
+                for (var item : currentPerformanceData.trendData) 
+                    series.getData().add(new XYChart.Data<>(item.month, item.spend));
                 break;
-
             case ORDERS:
-
-                series.setName("Đơn hàng 2026");
-
-                series.getData().add(new XYChart.Data<>("Jan", 300));
-                series.getData().add(new XYChart.Data<>("Feb", 350));
-                series.getData().add(new XYChart.Data<>("Mar", 320));
-                series.getData().add(new XYChart.Data<>("Apr", 410));
-                series.getData().add(new XYChart.Data<>("May", 480));
-                series.getData().add(new XYChart.Data<>("Jun", 510));
-                series.getData().add(new XYChart.Data<>("Jul", 560));
-                series.getData().add(new XYChart.Data<>("Aug", 590));
-                series.getData().add(new XYChart.Data<>("Sep", 570));
-                series.getData().add(new XYChart.Data<>("Oct", 650));
-                series.getData().add(new XYChart.Data<>("Nov", 700));
-                series.getData().add(new XYChart.Data<>("Dec", 760));
-
+                series.setName("Orders");
+                for (var item : currentPerformanceData.trendData) 
+                    series.getData().add(new XYChart.Data<>(item.month, item.orders));
                 break;
         }
 
-
         trendAreaChart.getData().add(series);
         NumberAxis yAxis = (NumberAxis) trendAreaChart.getYAxis();
-
         configureDynamicAxis(yAxis, series);
-
         trendAreaChart.applyCss();
         trendAreaChart.layout();
 
-        trendAreaChart.applyCss();
-        trendAreaChart.layout();    
-
+        // Giữ nguyên phần style (màu viền, marker...)
         Platform.runLater(() -> {
-
             String strokeColor = getMetricBarColor();
-
             String fillColor = getMetricAreaFillColor();
 
-            Node line = series.getNode()
-                    .lookup(".chart-series-area-line");
+            Node line = series.getNode().lookup(".chart-series-area-line");
+            if (line != null) line.setStyle("-fx-stroke: " + strokeColor + "; -fx-stroke-width: 3px;");
 
-            if (line != null) {
+            Node fill = series.getNode().lookup(".chart-series-area-fill");
+            if (fill != null) fill.setStyle("-fx-fill: " + fillColor + ";");
 
-                line.setStyle(
-                        "-fx-stroke: " + strokeColor + ";" +
-                        "-fx-stroke-width: 3px;"
-                );
-            }
-
-            Node fill = series.getNode()
-                    .lookup(".chart-series-area-fill");
-
-            if (fill != null) {
-
-                fill.setStyle(
-                        "-fx-fill: " + fillColor + ";"
-                );
-            }
-
-            // ===== Marker Color =====
             for (XYChart.Data<String, Number> data : series.getData()) {
-
                 Node node = data.getNode();
-
-                if (node != null) {
-
-                    node.setStyle(
-                            "-fx-background-color: white, "
-                                    + strokeColor + ";" +
-
-                            "-fx-background-insets: 0, 2;" +
-
-                            "-fx-background-radius: 100em;" +
-
-                            "-fx-padding: 5;"
-                    );
-                }
+                if (node != null) node.setStyle("-fx-background-color: white, " + strokeColor + "; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 5;");
             }
         });
-
     }
-
     private void loadTopProductsBarChart() {
-
+        if (topProductsBarChart == null || currentPerformanceData == null) return;
+        
         topProductsBarChart.getData().clear();
-
-        XYChart.Series<String, Number> series =
-                new XYChart.Series<>();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
 
         switch (currentMetric) {
-
             case REVENUE:
-
-                series.setName("Doanh thu");
-
-                series.getData().add(new XYChart.Data<>("Panadol", 520));
-                series.getData().add(new XYChart.Data<>("Vitamin C", 470));
-                series.getData().add(new XYChart.Data<>("Khẩu trang", 390));
-                series.getData().add(new XYChart.Data<>("Nước muối", 310));
-                series.getData().add(new XYChart.Data<>("Bông y tế", 180));
-
+                series.setName("Revenue");
+                for (var item : currentPerformanceData.topProducts) 
+                    series.getData().add(new XYChart.Data<>(item.productName, item.revenue));
                 break;
-
             case PROFIT:
-
-                series.setName("Lợi nhuận");
-
-                series.getData().add(new XYChart.Data<>("Panadol", 420));
-                series.getData().add(new XYChart.Data<>("Vitamin C", 350));
-                series.getData().add(new XYChart.Data<>("Khẩu trang", 280));
-                series.getData().add(new XYChart.Data<>("Nước muối", 210));
-                series.getData().add(new XYChart.Data<>("Bông y tế", 120));
-
+                series.setName("Profit");
+                for (var item : currentPerformanceData.topProducts) 
+                    series.getData().add(new XYChart.Data<>(item.productName, item.profit));
                 break;
-
             case LOSS:
-
-                series.setName("Thua lỗ");
-
-                series.getData().add(new XYChart.Data<>("Thuốc hết hạn", 90));
-                series.getData().add(new XYChart.Data<>("Hàng lỗi", 70));
-                series.getData().add(new XYChart.Data<>("Hàng hỏng", 50));
-                series.getData().add(new XYChart.Data<>("Trả hàng", 35));
-                series.getData().add(new XYChart.Data<>("Mất kho", 20));
-
+                series.setName("Loss");
+                for (var item : currentPerformanceData.topProducts) 
+                    series.getData().add(new XYChart.Data<>(item.productName, item.loss));
                 break;
-
             case SPEND:
-
-                series.setName("Chi tiêu");
-
-                series.getData().add(new XYChart.Data<>("Nhập thuốc", 600));
-                series.getData().add(new XYChart.Data<>("Marketing", 350));
-                series.getData().add(new XYChart.Data<>("Lương nhân viên", 300));
-                series.getData().add(new XYChart.Data<>("Vận chuyển", 180));
-                series.getData().add(new XYChart.Data<>("Điện nước", 120));
-
+                series.setName("Spend");
+                for (var item : currentPerformanceData.topProducts) 
+                    series.getData().add(new XYChart.Data<>(item.productName, item.spend));
                 break;
-
             case ORDERS:
-
-                series.setName("Đơn hàng");
-
-                series.getData().add(new XYChart.Data<>("Online", 800));
-                series.getData().add(new XYChart.Data<>("Tại quầy", 620));
-                series.getData().add(new XYChart.Data<>("Giao nhanh", 410));
-                series.getData().add(new XYChart.Data<>("Đặt trước", 260));
-                series.getData().add(new XYChart.Data<>("Đơn hủy", 90));
-
+                series.setName("Orders");
+                for (var item : currentPerformanceData.topProducts) 
+                    series.getData().add(new XYChart.Data<>(item.productName, item.orders));
                 break;
         }
 
         topProductsBarChart.getData().add(series);
-        NumberAxis yAxis =
-                (NumberAxis) topProductsBarChart.getYAxis();
-
+        NumberAxis yAxis = (NumberAxis) topProductsBarChart.getYAxis();
         configureDynamicAxis(yAxis, series);
 
-        trendAreaChart.applyCss();
-        trendAreaChart.layout();
-
-
-
         Platform.runLater(() -> {
-
             String color = getMetricBarColor();
-
             for (XYChart.Data<String, Number> data : series.getData()) {
-
                 Node node = data.getNode();
-
                 if (node != null) {
-
-                    node.setStyle(
-                            "-fx-bar-fill: " + color + ";" +
-                            "-fx-border-color: #111111;" +
-                            "-fx-border-width: 1.2px;" +
-                            "-fx-background-radius: 6 6 0 0;"
-                    );
+                    node.setStyle("-fx-bar-fill: " + color + "; -fx-border-color: #111111; -fx-border-width: 1.2px; -fx-background-radius: 6 6 0 0;");
                 }
             }
         });
     }
-    private void loadGenderPieChart(PieChart chart) {
-        ObservableList<PieChart.Data> pieChartData =
-                FXCollections.observableArrayList(
-                new PieChart.Data("Nam", 45),
-                new PieChart.Data("Nữ", 55)
-        );
-        chart.setData(pieChartData);
 
-        String[] colors = {"#00bfa5", "#4C15AB"};
-        applyPieChartStyles(chart, pieChartData, colors);
-    }
-
-    private void loadAgePieChart(PieChart chart) {
-        ObservableList<PieChart.Data> pieChartData =
-                FXCollections.observableArrayList(
-                new PieChart.Data("18-24", 15),
-                new PieChart.Data("25-34", 40),
-                new PieChart.Data("35-44", 25),
-                new PieChart.Data("45+", 20)
-        );
-        chart.setData(pieChartData);
-
-        String[] colors = {"#00bfa5", "#4C15AB", "#878A94", "#093287"};
-        applyPieChartStyles(chart, pieChartData, colors);
-    }
+    private void updateGenderPieChart() {
+        if (genderPieChart == null || currentPerformanceData == null) return;
         
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        for (var item : currentPerformanceData.genderData) {
+            pieChartData.add(new PieChart.Data(item.category, item.value));
+        }
+        
+        genderPieChart.setData(pieChartData);
+        String[] colors = {"#00bfa5", "#4C15AB"};
+        applyPieChartStyles(genderPieChart, pieChartData, colors);
+    }
+
+    private void updateAgePieChart() {
+        if (agePieChart == null || currentPerformanceData == null) return;
+        
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        for (var item : currentPerformanceData.ageData) {
+            pieChartData.add(new PieChart.Data(item.category, item.value));
+        }
+        
+        agePieChart.setData(pieChartData);
+        String[] colors = {"#00bfa5", "#4C15AB", "#878A94", "#093287"};
+        applyPieChartStyles(agePieChart, pieChartData, colors);
+    }   
 
 private void loadInventoryKPIData() {
         int totalMeds = 450;
@@ -900,18 +740,8 @@ private void loadInventoryKPIData() {
     }
 
     private void refreshPerformanceDashboard() {
-
         loadTrendAreaChart();
-
         loadTopProductsBarChart();
-
-        loadGenderPieChart(genderPieChart);
-
-        loadGenderPieChart(customerGenderPieChart);
-
-        loadAgePieChart(agePieChart);
-
-        loadAgePieChart(customerAgePieChart);
     }
 
     private String getMetricColor() {
@@ -1333,6 +1163,43 @@ private void loadInventoryKPIData() {
         activeBtn.getStyleClass().add("performance-metric-active");
     }
 
+    private void fetchAndLoadPerformanceData() {
+        reportApiService.fetchPerformanceData().thenAccept(data -> {
+            Platform.runLater(() -> {
+                // 1. Lưu dữ liệu lại để dùng cho các nút bấm chuyển đổi
+                this.currentPerformanceData = data;
+
+                // 2. Cập nhật thẻ KPI
+                lblOrdersValue.setText(data.kpis.totalOrders);
+                setTrendLabel(lblOrdersTrend, data.kpis.ordersTrend);
+                
+                lblProfitValue.setText(data.kpis.profit);
+                setTrendLabel(lblProfitTrend, data.kpis.profitTrend);
+                
+                lblLossValue.setText(data.kpis.loss);
+                setTrendLabel(lblLossTrend, data.kpis.lossTrend);
+                
+                lblSpendValue.setText(data.kpis.spend);
+                setTrendLabel(lblSpendTrend, data.kpis.spendTrend);
+                
+                lblReturningRateValue.setText(data.kpis.returningRate);
+                setTrendLabel(lblReturningRateTrend, data.kpis.returningRateTrend);
+                
+                // 3. Đổ dữ liệu vào 2 biểu đồ Tròn
+                updateGenderPieChart();
+                updateAgePieChart();
+
+                // 4. Đổ dữ liệu vào biểu đồ Đường và Cột
+                loadTrendAreaChart();
+                loadTopProductsBarChart();
+            });
+            
+        }).exceptionally(ex -> {
+            System.err.println("Lỗi khi fetch API: " + ex.getMessage());
+            return null;
+        });
+    }
+
 @FXML
 private void handleCustomerMetricChange(ActionEvent event) {
 
@@ -1382,6 +1249,8 @@ private void handleCustomerMetricChange(ActionEvent event) {
 
         refreshPerformanceDashboard();
     }
+
+    private final ReportApiService reportApiService = new ReportApiService();
 }
 
     

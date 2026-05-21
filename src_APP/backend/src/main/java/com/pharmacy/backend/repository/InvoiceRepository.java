@@ -12,4 +12,11 @@ public interface InvoiceRepository extends JpaRepository<Invoice, String> {
     @Query("SELECT i FROM Invoice i WHERE i.makh = :makh AND i.ngayban >= :since ORDER BY i.ngayban DESC")
     List<Invoice> findPurchaseHistory(@Param("makh") String makh, @Param("since") LocalDateTime since);
 
+    // Đếm tổng số đơn hàng
+    @Query(value = "SELECT COUNT(MAHD) FROM HOADON", nativeQuery = true)
+    Long countTotalOrders();
+
+    // Tính tổng doanh thu
+    @Query(value = "SELECT NVL(SUM(TONGTIEN), 0) FROM HOADON", nativeQuery = true)
+    Long sumTotalRevenue();
 }
