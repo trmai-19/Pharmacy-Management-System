@@ -43,6 +43,8 @@ public class ReportController implements Initializable {
     @FXML private BarChart<String, Number> topProductsBarChart;
     @FXML private PieChart genderPieChart;
     @FXML private PieChart agePieChart;
+    @FXML private PieChart customerGenderPieChart;
+    @FXML private PieChart customerAgePieChart;
 
     @FXML private Button btnRevenue;
     @FXML private Button btnProfit;
@@ -77,9 +79,6 @@ public class ReportController implements Initializable {
     @FXML private Label lblCustLost;         
 
     @FXML private AreaChart<String, Number> areaChartCustGrowth;
-    @FXML private CheckBox chkTotal;
-    @FXML private CheckBox chkNew;
-    @FXML private CheckBox chkReturning;
     @FXML private BarChart<Number, String> barChartTopSpenders;
 
     @FXML private Label lblOrdersValue;
@@ -94,6 +93,12 @@ public class ReportController implements Initializable {
     @FXML private Label lblLossTrend;
     @FXML private Label lblSpendTrend;
     @FXML private Label lblReturningRateTrend;
+
+    @FXML private Label lblCustTotalTrend;
+    @FXML private Label lblCustNewTrend;
+    @FXML private Label lblCustReturnTrend;
+    @FXML private Label lblCustVipTrend;
+    @FXML private Label lblCustLostTrend;
     
 
     @FXML private ComboBox<String> cbYear;
@@ -111,6 +116,10 @@ public class ReportController implements Initializable {
     @FXML private Button btnTabPerformance;
     @FXML private Button btnTabInventory;
     @FXML private Button btnTabCustomer;
+    @FXML private NumberAxis customerGrowthYAxis;
+    @FXML private Button btnCustTotal;
+    @FXML private Button btnCustNew;
+    @FXML private Button btnCustReturning;
 
     private enum MetricType {
         REVENUE,
@@ -119,16 +128,27 @@ public class ReportController implements Initializable {
         SPEND,
         ORDERS
     }
+    private enum CustomerMetricType {
+        TOTAL,
+        NEW,
+        RETURNING
+    }
+    
 
     private MetricType currentMetric =
         MetricType.REVENUE;
+    
+    private CustomerMetricType currentCustomerMetric =
+        CustomerMetricType.TOTAL;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         loadTrendAreaChart();
         loadTopProductsBarChart();
-        loadGenderPieChart();
-        loadAgePieChart();
+        loadGenderPieChart(genderPieChart);
+        loadCustomerGenderPieChart();
+        loadAgePieChart(agePieChart);
+        loadCustomerAgePieChart();
         loadInventoryKPIData();
         initInventoryTable();
         loadInventoryBarChart();
@@ -144,13 +164,13 @@ public class ReportController implements Initializable {
     private void setActiveTab(Button activeBtn) {
 
         btnTabPerformance.getStyleClass()
-                .remove("dashboard-tab-active");
+                .removeAll("dashboard-tab-active");
 
         btnTabInventory.getStyleClass()
-                .remove("dashboard-tab-active");
+                .removeAll("dashboard-tab-active");
 
         btnTabCustomer.getStyleClass()
-                .remove("dashboard-tab-active");
+                .removeAll("dashboard-tab-active");
 
         activeBtn.getStyleClass()
                 .add("dashboard-tab-active");
@@ -434,78 +454,85 @@ public class ReportController implements Initializable {
         });
     }
 
-   private void loadGenderPieChart() {
-
-        ObservableList<PieChart.Data> pieChartData =
-                FXCollections.observableArrayList(
-
-                new PieChart.Data("Nam", 45),
-                new PieChart.Data("Nữ", 55)
-        );
-
-        genderPieChart.setData(pieChartData);
-        
-        genderPieChart.applyCss();
-        genderPieChart.layout();
-
-        Platform.runLater(() -> {
-
-            String[] colors = {
-                    "#23B07E",
-                    "#4C15AB"
-            };
-
-            for (int i = 0; i < pieChartData.size(); i++) {
-
-                PieChart.Data data = pieChartData.get(i);
-
-                Node node = data.getNode();
-
-                // ===== PIE SLICE =====
-                node.setStyle(
-                        "-fx-pie-color: " + colors[i] + ";"
-                );
-            }
-
-            // ===== FIX LEGEND COLORS =====
-            Set<Node> items =
-                    genderPieChart.lookupAll(
-                            "Label.chart-legend-item"
-                    );
-
-            int index = 0;
-
-            for (Node item : items) {
-
-                Label label = (Label) item;
-
-                Node symbol = label.getGraphic();
-
-                if (symbol != null && index < colors.length) {
-
-                    symbol.setStyle(
-                            "-fx-background-color: "
-                                    + colors[index] + ";"
-                    );
-                }
-
-                index++;
-            }
-        });
-    }
-
-    private void loadAgePieChart() {
+    private void loadGenderPieChart(PieChart chart) {
 
     ObservableList<PieChart.Data> pieChartData =
             FXCollections.observableArrayList(
 
-            new PieChart.Data("18-24", 15),
-            new PieChart.Data("25-34", 40),
-            new PieChart.Data("35-44", 25),
-            new PieChart.Data("45+", 20)
+            new PieChart.Data("Nam", 45),
+            new PieChart.Data("Nữ", 55)
     );
 
-    agePieChart.setData(pieChartData);
+    
+
+    chart.setData(pieChartData);
+
+    chart.applyCss();
+    chart.layout();
+
+    Platform.runLater(() -> {
+
+        String[] colors = {
+                "#23B07E",
+                "#4C15AB"
+        };
+
+        // ===== PIE SLICE =====
+        for (int i = 0; i < pieChartData.size(); i++) {
+
+            PieChart.Data data = pieChartData.get(i);
+
+            Node node = data.getNode();
+
+            if (node != null) {
+
+                node.setStyle(
+                        "-fx-pie-color: " + colors[i] + ";"
+                );
+            }
+        }
+
+        // ===== LEGEND COLORS =====
+        Set<Node> items =
+                chart.lookupAll(
+                        "Label.chart-legend-item"
+                );
+
+        int index = 0;
+
+        for (Node item : items) {
+
+            Label label = (Label) item;
+
+            Node symbol = label.getGraphic();
+
+            if (symbol != null && index < colors.length) {
+
+                symbol.setStyle(
+                        "-fx-background-color: "
+                                + colors[index] + ";"
+                );
+            }
+
+            index++;
+        }
+    });
+}
+    private void loadAgePieChart(PieChart chart) {
+
+        ObservableList<PieChart.Data> pieChartData =
+                FXCollections.observableArrayList(
+
+                new PieChart.Data("18-24", 15),
+                new PieChart.Data("25-34", 40),
+                new PieChart.Data("35-44", 25),
+                new PieChart.Data("45+", 20)
+        );
+
+        chart.setData(pieChartData);
+
+        chart.applyCss();
+        chart.layout();
 
         Platform.runLater(() -> {
 
@@ -516,19 +543,24 @@ public class ReportController implements Initializable {
                     "#093287"
             };
 
+            // ===== PIE SLICE =====
             for (int i = 0; i < pieChartData.size(); i++) {
 
                 PieChart.Data data = pieChartData.get(i);
 
                 Node node = data.getNode();
 
-                node.setStyle(
-                        "-fx-pie-color: " + colors[i] + ";"
-                );
+                if (node != null) {
+
+                    node.setStyle(
+                            "-fx-pie-color: " + colors[i] + ";"
+                    );
+                }
             }
 
+            // ===== LEGEND COLORS =====
             Set<Node> items =
-                    agePieChart.lookupAll(
+                    chart.lookupAll(
                             "Label.chart-legend-item"
                     );
 
@@ -552,6 +584,7 @@ public class ReportController implements Initializable {
             }
         });
     }
+        
 
     private void loadInventoryKPIData() {
         int totalMeds = 450;
@@ -616,33 +649,216 @@ public class ReportController implements Initializable {
     }
 
     private void loadCustomerKPIs() {
-        if (lblCustTotal != null) lblCustTotal.setText("2,450");
-        if (lblCustNew != null) lblCustNew.setText("120");
-        if (lblCustReturnRate != null) lblCustReturnRate.setText("68%");
-        if (lblCustVip != null) lblCustVip.setText("315");
-        if (lblCustLost != null) lblCustLost.setText("89");
-    }
 
+        if (lblCustTotal != null)
+            lblCustTotal.setText("2,450");
+
+        if (lblCustNew != null)
+            lblCustNew.setText("120");
+
+        if (lblCustReturnRate != null)
+            lblCustReturnRate.setText("68%");
+
+        if (lblCustVip != null)
+            lblCustVip.setText("315");
+
+        if (lblCustLost != null)
+            lblCustLost.setText("89");
+
+        // ===== Trend =====
+
+        setTrendLabel(lblCustTotalTrend, 12.4);
+
+        setTrendLabel(lblCustNewTrend, 8.2);
+
+        setTrendLabel(lblCustReturnTrend, 5.8);
+
+        setTrendLabel(lblCustVipTrend, 14.6);
+
+        setTrendLabel(lblCustLostTrend, -6.3);
+    }
     private void initGrowthChartData() {
+
         if (areaChartCustGrowth == null) return;
+
+        areaChartCustGrowth.getData().clear();
+
+        seriesTotal = new XYChart.Series<>();
+        seriesNew = new XYChart.Series<>();
+        seriesReturning = new XYChart.Series<>();
 
         seriesTotal.setName("Tổng khách");
         seriesNew.setName("Khách mới");
         seriesReturning.setName("Khách quay lại");
 
-        String[] months = {"T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"};
-        int[] totalData = {1000, 1200, 1150, 1400, 1600, 1800, 1500, 1200, 1700, 2000, 1850, 1800};
-        int[] newData = {200, 300, 150, 400, 350, 500, 300, 400, 650, 800, 350, 700};
-        int[] returnData = {800, 900, 1000, 1000, 1250, 1300, 400, 600, 800, 1200, 1450, 1500};
+        String[] months = {
+                "T1","T2","T3","T4","T5","T6",
+                "T7","T8","T9","T10","T11","T12"
+        };
 
-        for (int i = 0; i < 12; i++) {
-            seriesTotal.getData().add(new XYChart.Data<>(months[i], totalData[i]));
-            seriesNew.getData().add(new XYChart.Data<>(months[i], newData[i]));
-            seriesReturning.getData().add(new XYChart.Data<>(months[i], returnData[i]));
+        int[] totalData = {
+                1000,1200,1150,1400,1600,1800,
+                1900,2100,2300,2500,2700,3000
+        };
+
+        int[] newData = {
+                200,300,150,400,350,500,
+                520,610,700,760,820,950
+        };
+
+        int[] returnData = {
+                800,900,1000,1000,1250,1300,
+                1380,1490,1600,1740,1880,2050
+        };
+
+        for (int i = 0; i < months.length; i++) {
+
+            seriesTotal.getData().add(
+                    new XYChart.Data<>(months[i], totalData[i])
+            );
+
+            seriesNew.getData().add(
+                    new XYChart.Data<>(months[i], newData[i])
+            );
+
+            seriesReturning.getData().add(
+                    new XYChart.Data<>(months[i], returnData[i])
+            );
         }
 
-        chkTotal.setSelected(true);
-        areaChartCustGrowth.getData().add(seriesTotal);
+        switch (currentCustomerMetric) {
+
+            case TOTAL:
+
+                areaChartCustGrowth.getData().add(seriesTotal);
+
+                break;
+
+            case NEW:
+
+                areaChartCustGrowth.getData().add(seriesNew);
+
+                break;
+
+            case RETURNING:
+
+                areaChartCustGrowth.getData().add(seriesReturning);
+
+                break;
+        }
+
+        areaChartCustGrowth.applyCss();
+        areaChartCustGrowth.layout();
+
+        Platform.runLater(() -> {
+
+            styleCustomerSeries(
+                    seriesTotal,
+                    "#F5B700",
+                    "rgba(245,183,0,0.18)"
+            );
+
+            styleCustomerSeries(
+                    seriesNew,
+                    "#00B894",
+                    "rgba(0,184,148,0.18)"
+            );
+
+            styleCustomerSeries(
+                    seriesReturning,
+                    "#6C5CE7",
+                    "rgba(108,92,231,0.18)"
+            );
+
+            setupCustomerYAxis();
+        });
+    }
+
+    private void styleCustomerSeries(
+            XYChart.Series<String, Number> series,
+            String strokeColor,
+            String fillColor
+    ) {
+
+        Platform.runLater(() -> {
+
+            Node line = series.getNode()
+                    .lookup(".chart-series-area-line");
+
+            if (line != null) {
+
+                line.setStyle(
+                        "-fx-stroke: " + strokeColor + ";" +
+                        "-fx-stroke-width: 3px;"
+                );
+            }
+
+            Node fill = series.getNode()
+                    .lookup(".chart-series-area-fill");
+
+            if (fill != null) {
+
+                fill.setStyle(
+                        "-fx-fill: " + fillColor + ";"
+                );
+            }
+
+            for (XYChart.Data<String, Number> data : series.getData()) {
+
+                Node node = data.getNode();
+
+                if (node != null) {
+
+                    node.setStyle(
+                            "-fx-background-color: white, "
+                                    + strokeColor + ";" +
+
+                            "-fx-background-insets: 0, 2;" +
+
+                            "-fx-background-radius: 100em;" +
+
+                            "-fx-padding: 5;"
+                    );
+
+                    Tooltip tooltip = new Tooltip(
+                            data.getXValue() + "\n"
+                                    + data.getYValue()
+                    );
+
+                    Tooltip.install(node, tooltip);
+                }
+            }
+        });
+    }
+
+    private void setupCustomerYAxis() {
+
+        double maxValue = 0;
+
+        for (XYChart.Series<String, Number> s :
+                areaChartCustGrowth.getData()) {
+
+            for (XYChart.Data<String, Number> d :
+                    s.getData()) {
+
+                maxValue = Math.max(
+                        maxValue,
+                        d.getYValue().doubleValue()
+                );
+            }
+        }
+
+        double upperBound = roundNiceNumber(maxValue * 1.08);
+
+        customerGrowthYAxis.setAutoRanging(false);
+
+        customerGrowthYAxis.setLowerBound(0);
+
+        customerGrowthYAxis.setUpperBound(upperBound);
+
+        customerGrowthYAxis.setTickUnit(
+                upperBound / 6
+        );
     }
 
     private void loadTopSpendersChart() {
@@ -660,18 +876,73 @@ public class ReportController implements Initializable {
         series.getData().add(new XYChart.Data<>(8200000, "Trần Thị B"));
         series.getData().add(new XYChart.Data<>(10500000, "Nguyễn Văn A"));
         series.getData().add(new XYChart.Data<>(15200000, "Khách VIP 001"));
+
         barChartTopSpenders.getData().add(series);
+
+        barChartTopSpenders.setCategoryGap(12);
+        barChartTopSpenders.setBarGap(2);  
+        
+        Platform.runLater(() -> {
+        for (XYChart.Data<Number, String> data : series.getData()) {
+
+            Node node = data.getNode();
+
+            if (node != null) {
+
+                node.setStyle(
+                        "-fx-bar-fill: #14B8A6;" +
+                        "-fx-background-radius: 8;"
+                );
+
+                // tăng chiều cao bar
+                node.setScaleY(2.5);
+            }
+        }
+    });
     }
 
     private void loadCustomerSegmentationChart() {
-        if (barChartCustSeg == null) return;
+        if (barChartCustSeg == null) 
+            return;
+
         barChartCustSeg.getData().clear();
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng thành viên");
         series.getData().add(new XYChart.Data<>("Loyal (Thân thiết)", 1470));
         series.getData().add(new XYChart.Data<>("New (Mới)", 680));
         series.getData().add(new XYChart.Data<>("Lost (Rời bỏ)", 300));
+
         barChartCustSeg.getData().add(series);
+        barChartCustSeg.setCategoryGap(60);
+        barChartCustSeg.setBarGap(18);
+
+        Platform.runLater(() -> {
+            String[] colors = {
+                    "#14B8A6", // Loyal
+                    "#EAB308", // New
+                    "#DC2626"  // Lost
+            };
+
+            int index = 0;
+
+            for (XYChart.Data<String, Number> data : series.getData()) {
+
+                Node node = data.getNode();
+
+                if (node != null) {
+
+                    node.setStyle(
+                            "-fx-bar-fill: " + colors[index] + ";" +
+                            "-fx-background-radius: 0 0 0 0;"
+                    );
+
+                    node.setScaleX(2.5);
+                }
+
+                index++;
+            }
+        });
     }
 
 
@@ -695,9 +966,13 @@ public class ReportController implements Initializable {
 
         loadTopProductsBarChart();
 
-        loadGenderPieChart();
+        loadGenderPieChart(genderPieChart);
 
-        loadAgePieChart();
+        loadGenderPieChart(customerGenderPieChart);
+
+        loadAgePieChart(agePieChart);
+
+        loadAgePieChart(customerAgePieChart);
     }
 
     private String getMetricColor() {
@@ -991,6 +1266,158 @@ public class ReportController implements Initializable {
         yAxis.setTickUnit(tickUnit);
     }
 
+    private void loadCustomerGenderPieChart() {
+
+        ObservableList<PieChart.Data> pieChartData;
+
+        switch (currentCustomerMetric) {
+
+            case NEW:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("Nam", 35),
+                        new PieChart.Data("Nữ", 65)
+                );
+
+                break;
+
+            case RETURNING:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("Nam", 52),
+                        new PieChart.Data("Nữ", 48)
+                );
+
+                break;
+
+            default:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("Nam", 45),
+                        new PieChart.Data("Nữ", 55)
+                );
+        }
+
+        customerGenderPieChart.setData(pieChartData);
+
+        customerGenderPieChart.applyCss();
+        customerGenderPieChart.layout();
+
+        Platform.runLater(() -> {
+
+            String[] colors = {
+                    "#23B07E",
+                    "#4C15AB"
+            };
+
+            for (int i = 0; i < pieChartData.size(); i++) {
+
+                Node node =
+                        pieChartData.get(i).getNode();
+
+                if (node != null) {
+
+                    node.setStyle(
+                            "-fx-pie-color: "
+                                    + colors[i] + ";"
+                    );
+                }
+            }
+        });
+    }
+
+    private void loadCustomerAgePieChart() {
+
+        ObservableList<PieChart.Data> pieChartData;
+
+        switch (currentCustomerMetric) {
+
+            case NEW:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("18-24", 40),
+                        new PieChart.Data("25-34", 35),
+                        new PieChart.Data("35-44", 15),
+                        new PieChart.Data("45+", 10)
+                );
+
+                break;
+
+            case RETURNING:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("18-24", 10),
+                        new PieChart.Data("25-34", 30),
+                        new PieChart.Data("35-44", 40),
+                        new PieChart.Data("45+", 20)
+                );
+
+                break;
+
+            default:
+
+                pieChartData =
+                        FXCollections.observableArrayList(
+
+                        new PieChart.Data("18-24", 15),
+                        new PieChart.Data("25-34", 40),
+                        new PieChart.Data("35-44", 25),
+                        new PieChart.Data("45+", 20)
+                );
+        }
+
+        customerAgePieChart.setData(pieChartData);
+
+        customerAgePieChart.applyCss();
+        customerAgePieChart.layout();
+
+        Platform.runLater(() -> {
+
+            String[] colors = {
+                    "#23B07E",
+                    "#4C15AB",
+                    "#878A94",
+                    "#093287"
+            };
+
+            for (int i = 0; i < pieChartData.size(); i++) {
+
+                Node node =
+                        pieChartData.get(i).getNode();
+
+                if (node != null) {
+
+                    node.setStyle(
+                            "-fx-pie-color: "
+                                    + colors[i] + ";"
+                    );
+                }
+            }
+        });
+    }
+
+    private void refreshCustomerDashboard() {
+
+    initGrowthChartData();
+
+    loadCustomerGenderPieChart();
+
+    loadCustomerAgePieChart();
+}
+
+    
+
+
     
     @FXML
     public void onInventoryClick(ActionEvent event) {
@@ -1010,13 +1437,44 @@ public class ReportController implements Initializable {
         setActiveTab(btnTabCustomer);
     }
 
-    @FXML
-    public void handleToggleGrowth(ActionEvent event) {
-        areaChartCustGrowth.getData().clear();
-        if (chkTotal.isSelected()) areaChartCustGrowth.getData().add(seriesTotal);
-        if (chkNew.isSelected()) areaChartCustGrowth.getData().add(seriesNew);
-        if (chkReturning.isSelected()) areaChartCustGrowth.getData().add(seriesReturning);
+    private void setActiveCustomerButton(Button activeBtn) {
+
+        btnCustTotal.getStyleClass()
+                .remove("customer-metric-active");
+
+        btnCustNew.getStyleClass()
+                .remove("customer-metric-active");
+
+        btnCustReturning.getStyleClass()
+                .remove("customer-metric-active");
+
+        activeBtn.getStyleClass()
+                .add("customer-metric-active");
     }
+
+@FXML
+private void handleCustomerMetricChange(ActionEvent event) {
+
+    Button clicked = (Button) event.getSource();
+
+    currentCustomerMetric =
+            CustomerMetricType.TOTAL;
+
+    if (clicked == btnCustNew) {
+
+        currentCustomerMetric =
+                CustomerMetricType.NEW;
+    }
+    else if (clicked == btnCustReturning) {
+
+        currentCustomerMetric =
+                CustomerMetricType.RETURNING;
+    }
+
+    setActiveCustomerButton(clicked);
+
+    refreshCustomerDashboard();
+}
 
     @FXML
     private void handleMetricChange(ActionEvent event) {
@@ -1043,3 +1501,4 @@ public class ReportController implements Initializable {
     }
 }
 
+    

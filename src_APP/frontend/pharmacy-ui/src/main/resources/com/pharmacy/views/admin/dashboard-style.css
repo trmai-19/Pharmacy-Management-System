@@ -196,40 +196,40 @@
 
     -fx-background-radius: 8;
 }
-
 .dashboard-tab {
 
     -fx-background-color: white;
-
     -fx-border-color: #d1d5db;
 
-    -fx-border-radius: 18;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
 
-    -fx-background-radius: 18;
-
-    -fx-padding: 6 18;
+    -fx-text-fill: #111111;
 
     -fx-font-size: 13px;
-
-    -fx-font-weight: 700;
-
-    -fx-text-fill: #4b5563;
+    -fx-font-weight: bold;
 
     -fx-cursor: hand;
+
+    -fx-padding: 6 16;
 }
 
 .dashboard-tab:hover {
 
+    -fx-background-color: #f3f4f6;
     -fx-border-color: #00bfa5;
-
-    -fx-background-color: #f9fafb;
 }
 
 .dashboard-tab-active {
 
-    -fx-background-color: #111827;
+    -fx-background-color: #00bfa5;
+    -fx-border-color: #00bfa5;
 
     -fx-text-fill: white;
+}
 
-    -fx-border-color: #111827;
+.customer-metric-active {
+    -fx-background-color: #111827;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
 }
