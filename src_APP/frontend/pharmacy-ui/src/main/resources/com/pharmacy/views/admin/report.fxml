@@ -40,17 +40,17 @@
                   </Pane>
                   <HBox layoutX="441.0" layoutY="34.0" prefHeight="30.0" prefWidth="730.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbYear1" prefHeight="29.0" prefWidth="233.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbQuarter1" prefHeight="29.0" prefWidth="223.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup1" prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbCustomerType1" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbYear1" prefHeight="29.0" prefWidth="233.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbQuarter1" prefHeight="29.0" prefWidth="223.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbProductGroup1" prefHeight="37.0" prefWidth="229.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustomerType1" prefHeight="37.0" prefWidth="229.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
                   <HBox layoutX="41.0" layoutY="192.0" prefHeight="30.0" prefWidth="710.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
-                        <Button fx:id="btnCustTotal" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="239.0" styleClass="customer-metric-active" text="Tổng số khách hàng" />
-                        <Button fx:id="btnCustNew" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="232.0" styleClass="customer-metric-active" text="Số khách hàng mới" />
-                        <Button fx:id="btnCustReturning" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="235.0" styleClass="customer-metric-active" text="Số khách hàng quay lại" />
+                        <Button fx:id="btnCustTotal" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="239.0" styleClass="customer-metric-active" text="Total Customers" />
+                        <Button fx:id="btnCustNew" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="232.0" styleClass="customer-metric-active" text="New Customers" />
+                        <Button fx:id="btnCustReturning" mnemonicParsing="false" onAction="#handleCustomerMetricChange" prefHeight="29.0" prefWidth="235.0" styleClass="customer-metric-active" text="Returning Customers" />
                      </children>
                   </HBox>
                   <Pane layoutX="759.0" layoutY="483.0" prefHeight="215.0" prefWidth="409.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
@@ -464,19 +464,19 @@
                   </Pane>
                   <HBox layoutX="434.0" layoutY="36.0" prefHeight="30.0" prefWidth="730.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbYear" prefHeight="37.0" prefWidth="229.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup" prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbYear" prefHeight="37.0" prefWidth="229.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbProductGroup" prefHeight="37.0" prefWidth="229.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
                   <HBox layoutX="41.0" layoutY="192.0" prefHeight="30.0" prefWidth="807.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
                      <children>
-                        <Button fx:id="btnRevenue" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="144.0" text="Doanh Thu" />
-                        <Button fx:id="btnProfit" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="154.0" text="Lợi Nhuận" />
-                        <Button fx:id="btnLoss" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="150.0" text="Số tiền thua lỗ " />
-                        <Button fx:id="btnSpend" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="31.0" prefWidth="190.0" text="Số tiền bỏ ra" />
-                        <Button fx:id="btnOrders" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="171.0" text="Số lượng đơn hàng" />
+                        <Button fx:id="btnRevenue" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="144.0" text="Revenue" />
+                        <Button fx:id="btnProfit" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="154.0" text="Profit" />
+                        <Button fx:id="btnLoss" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="150.0" text="Loss" />
+                        <Button fx:id="btnSpend" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="31.0" prefWidth="190.0" text="Spend" />
+                        <Button fx:id="btnOrders" mnemonicParsing="false" onAction="#handleMetricChange" prefHeight="30.0" prefWidth="171.0" text="Total Orders" />
                      </children>
                   </HBox>
                   <Pane layoutX="858.0" layoutY="194.0" prefHeight="504.0" prefWidth="310.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">

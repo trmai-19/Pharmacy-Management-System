@@ -217,18 +217,18 @@ public class ReportController implements Initializable {
 
                 series.setName("Doanh thu 2026");
 
-                series.getData().add(new XYChart.Data<>("T1", 12000000));
-                series.getData().add(new XYChart.Data<>("T2", 15000000));
-                series.getData().add(new XYChart.Data<>("T3", 11000000));
-                series.getData().add(new XYChart.Data<>("T4", 18000000));
-                series.getData().add(new XYChart.Data<>("T5", 22000000));
-                series.getData().add(new XYChart.Data<>("T6", 21000000));
-                series.getData().add(new XYChart.Data<>("T7", 25000000));
-                series.getData().add(new XYChart.Data<>("T8", 27000000));
-                series.getData().add(new XYChart.Data<>("T9", 24000000));
-                series.getData().add(new XYChart.Data<>("T10", 30000000));
-                series.getData().add(new XYChart.Data<>("T11", 32000000));
-                series.getData().add(new XYChart.Data<>("T12", 35000000));
+                series.getData().add(new XYChart.Data<>("Jan", 12000000));
+                series.getData().add(new XYChart.Data<>("Feb", 15000000));
+                series.getData().add(new XYChart.Data<>("Mar", 11000000));
+                series.getData().add(new XYChart.Data<>("Apr", 18000000));
+                series.getData().add(new XYChart.Data<>("May", 22000000));
+                series.getData().add(new XYChart.Data<>("Jun", 21000000));
+                series.getData().add(new XYChart.Data<>("Jul", 25000000));
+                series.getData().add(new XYChart.Data<>("Aug", 27000000));
+                series.getData().add(new XYChart.Data<>("Sep", 24000000));
+                series.getData().add(new XYChart.Data<>("Oct", 30000000));
+                series.getData().add(new XYChart.Data<>("Nov", 32000000));
+                series.getData().add(new XYChart.Data<>("Dec", 35000000));
 
                 break;
 
@@ -236,18 +236,18 @@ public class ReportController implements Initializable {
 
                 series.setName("Lợi nhuận 2026");
 
-                series.getData().add(new XYChart.Data<>("T1", 8000000));
-                series.getData().add(new XYChart.Data<>("T2", 9500000));
-                series.getData().add(new XYChart.Data<>("T3", 7000000));
-                series.getData().add(new XYChart.Data<>("T4", 12000000));
-                series.getData().add(new XYChart.Data<>("T5", 14500000));
-                series.getData().add(new XYChart.Data<>("T6", 15000000));
-                series.getData().add(new XYChart.Data<>("T7", 17000000));
-                series.getData().add(new XYChart.Data<>("T8", 18000000));
-                series.getData().add(new XYChart.Data<>("T9", 16500000));
-                series.getData().add(new XYChart.Data<>("T10", 20000000));
-                series.getData().add(new XYChart.Data<>("T11", 21500000));
-                series.getData().add(new XYChart.Data<>("T12", 24000000));
+                series.getData().add(new XYChart.Data<>("Jan", 8000000));
+                series.getData().add(new XYChart.Data<>("Feb", 9500000));
+                series.getData().add(new XYChart.Data<>("Mar", 7000000));
+                series.getData().add(new XYChart.Data<>("Apr", 12000000));
+                series.getData().add(new XYChart.Data<>("May", 14500000));
+                series.getData().add(new XYChart.Data<>("Jun", 15000000));
+                series.getData().add(new XYChart.Data<>("Jul", 17000000));
+                series.getData().add(new XYChart.Data<>("Aug", 18000000));
+                series.getData().add(new XYChart.Data<>("Sep", 16500000));
+                series.getData().add(new XYChart.Data<>("Oct", 20000000));
+                series.getData().add(new XYChart.Data<>("Nov", 21500000));
+                series.getData().add(new XYChart.Data<>("Dec", 24000000));
 
                 break;
 
@@ -255,18 +255,18 @@ public class ReportController implements Initializable {
 
                 series.setName("Thua lỗ 2026");
 
-                series.getData().add(new XYChart.Data<>("T1", 2000000));
-                series.getData().add(new XYChart.Data<>("T2", 1800000));
-                series.getData().add(new XYChart.Data<>("T3", 2500000));
-                series.getData().add(new XYChart.Data<>("T4", 2200000));
-                series.getData().add(new XYChart.Data<>("T5", 1900000));
-                series.getData().add(new XYChart.Data<>("T6", 1700000));
-                series.getData().add(new XYChart.Data<>("T7", 2100000));
-                series.getData().add(new XYChart.Data<>("T8", 2400000));
-                series.getData().add(new XYChart.Data<>("T9", 2000000));
-                series.getData().add(new XYChart.Data<>("T10", 1800000));
-                series.getData().add(new XYChart.Data<>("T11", 1600000));
-                series.getData().add(new XYChart.Data<>("T12", 1500000));
+                series.getData().add(new XYChart.Data<>("Jan", 2000000));
+                series.getData().add(new XYChart.Data<>("Feb", 1800000));
+                series.getData().add(new XYChart.Data<>("Mar", 2500000));
+                series.getData().add(new XYChart.Data<>("Apr", 2200000));
+                series.getData().add(new XYChart.Data<>("May", 1900000));
+                series.getData().add(new XYChart.Data<>("Jun", 1700000));
+                series.getData().add(new XYChart.Data<>("Jul", 2100000));
+                series.getData().add(new XYChart.Data<>("Aug", 2400000));
+                series.getData().add(new XYChart.Data<>("Sep", 2000000));
+                series.getData().add(new XYChart.Data<>("Oct", 1800000));
+                series.getData().add(new XYChart.Data<>("Nov", 1600000));
+                series.getData().add(new XYChart.Data<>("Dec", 1500000));
 
                 break;
 
@@ -274,18 +274,18 @@ public class ReportController implements Initializable {
 
                 series.setName("Chi tiêu 2026");
 
-                series.getData().add(new XYChart.Data<>("T1", 5000000));
-                series.getData().add(new XYChart.Data<>("T2", 6000000));
-                series.getData().add(new XYChart.Data<>("T3", 5800000));
-                series.getData().add(new XYChart.Data<>("T4", 6500000));
-                series.getData().add(new XYChart.Data<>("T5", 7000000));
-                series.getData().add(new XYChart.Data<>("T6", 7500000));
-                series.getData().add(new XYChart.Data<>("T7", 8200000));
-                series.getData().add(new XYChart.Data<>("T8", 7900000));
-                series.getData().add(new XYChart.Data<>("T9", 8300000));
-                series.getData().add(new XYChart.Data<>("T10", 9000000));
-                series.getData().add(new XYChart.Data<>("T11", 9500000));
-                series.getData().add(new XYChart.Data<>("T12", 9800000));
+                series.getData().add(new XYChart.Data<>("Jan", 5000000));
+                series.getData().add(new XYChart.Data<>("Feb", 6000000));
+                series.getData().add(new XYChart.Data<>("Mar", 5800000));
+                series.getData().add(new XYChart.Data<>("Apr", 6500000));
+                series.getData().add(new XYChart.Data<>("May", 7000000));
+                series.getData().add(new XYChart.Data<>("Jun", 7500000));
+                series.getData().add(new XYChart.Data<>("Jul", 8200000));
+                series.getData().add(new XYChart.Data<>("Aug", 7900000));
+                series.getData().add(new XYChart.Data<>("Sep", 8300000));
+                series.getData().add(new XYChart.Data<>("Oct", 9000000));
+                series.getData().add(new XYChart.Data<>("Nov", 9500000));
+                series.getData().add(new XYChart.Data<>("Dec", 9800000));
 
                 break;
 
@@ -293,18 +293,18 @@ public class ReportController implements Initializable {
 
                 series.setName("Đơn hàng 2026");
 
-                series.getData().add(new XYChart.Data<>("T1", 300));
-                series.getData().add(new XYChart.Data<>("T2", 350));
-                series.getData().add(new XYChart.Data<>("T3", 320));
-                series.getData().add(new XYChart.Data<>("T4", 410));
-                series.getData().add(new XYChart.Data<>("T5", 480));
-                series.getData().add(new XYChart.Data<>("T6", 510));
-                series.getData().add(new XYChart.Data<>("T7", 560));
-                series.getData().add(new XYChart.Data<>("T8", 590));
-                series.getData().add(new XYChart.Data<>("T9", 570));
-                series.getData().add(new XYChart.Data<>("T10", 650));
-                series.getData().add(new XYChart.Data<>("T11", 700));
-                series.getData().add(new XYChart.Data<>("T12", 760));
+                series.getData().add(new XYChart.Data<>("Jan", 300));
+                series.getData().add(new XYChart.Data<>("Feb", 350));
+                series.getData().add(new XYChart.Data<>("Mar", 320));
+                series.getData().add(new XYChart.Data<>("Apr", 410));
+                series.getData().add(new XYChart.Data<>("May", 480));
+                series.getData().add(new XYChart.Data<>("Jun", 510));
+                series.getData().add(new XYChart.Data<>("Jul", 560));
+                series.getData().add(new XYChart.Data<>("Aug", 590));
+                series.getData().add(new XYChart.Data<>("Sep", 570));
+                series.getData().add(new XYChart.Data<>("Oct", 650));
+                series.getData().add(new XYChart.Data<>("Nov", 700));
+                series.getData().add(new XYChart.Data<>("Dec", 760));
 
                 break;
         }
@@ -635,8 +635,8 @@ private void loadInventoryKPIData() {
         seriesReturning.setName("Khách quay lại");
 
         String[] months = {
-                "T1","T2","T3","T4","T5","T6",
-                "T7","T8","T9","T10","T11","T12"
+                "Jan","Feb","Mar","Apr","May","Jun",
+                "Jul","Aug","Sep","Oct","Nov","Dec"
         };
 
         int[] totalData = {
