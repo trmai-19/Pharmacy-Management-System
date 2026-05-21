@@ -60,6 +60,7 @@ public class ReportController implements Initializable {
     @FXML private Label lblInvLowStock;
     @FXML private Label lblInvNearExpiry;
     @FXML private Label lblInvTotalValue;
+    @FXML private Label lblInvExpired;
 
     @FXML private TableView<Medicine> tableInventory;
     @FXML private TableColumn<Medicine, String> colMedId;
@@ -102,7 +103,6 @@ public class ReportController implements Initializable {
     
 
     @FXML private ComboBox<String> cbYear;
-    @FXML private ComboBox<String> cbMonth;
     @FXML private ComboBox<String> cbQuarter;
     @FXML private ComboBox<String> cbProductGroup;
     @FXML private ComboBox<String> cbCustomerType;
@@ -120,6 +120,12 @@ public class ReportController implements Initializable {
     @FXML private Button btnCustTotal;
     @FXML private Button btnCustNew;
     @FXML private Button btnCustReturning;
+
+    @FXML private Label lblInvTotalTrend;
+    @FXML private Label lblInvLowStockTrend;
+    @FXML private Label lblInvNearExpiryTrend;
+    @FXML private Label lblInvExpiredTrend;
+    @FXML private Label lblInvValueTrend;
 
     private enum MetricType {
         REVENUE,
@@ -159,6 +165,19 @@ public class ReportController implements Initializable {
         loadCustomerSegmentationChart();
         loadPerformanceKPIs();
         initFilters();
+        setActivePerformanceButton(btnRevenue);
+        setActiveCustomerButton(btnCustTotal);
+
+         // 2. Dùng Platform.runLater để ĐỢI giao diện vẽ xong mới refresh biểu đồ
+        Platform.runLater(() -> {
+            refreshPerformanceDashboard();
+            refreshCustomerDashboard();
+            
+            // Nếu bạn muốn inventory cũng mượt luôn lúc mới mở thì thêm dòng này:
+            loadInventoryPieChart(); 
+        });   
+
+        
     }
     
     private void setActiveTab(Button activeBtn) {
@@ -453,153 +472,64 @@ public class ReportController implements Initializable {
             }
         });
     }
-
     private void loadGenderPieChart(PieChart chart) {
-
-    ObservableList<PieChart.Data> pieChartData =
-            FXCollections.observableArrayList(
-
-            new PieChart.Data("Nam", 45),
-            new PieChart.Data("Nữ", 55)
-    );
-
-    
-
-    chart.setData(pieChartData);
-
-    chart.applyCss();
-    chart.layout();
-
-    Platform.runLater(() -> {
-
-        String[] colors = {
-                "#23B07E",
-                "#4C15AB"
-        };
-
-        // ===== PIE SLICE =====
-        for (int i = 0; i < pieChartData.size(); i++) {
-
-            PieChart.Data data = pieChartData.get(i);
-
-            Node node = data.getNode();
-
-            if (node != null) {
-
-                node.setStyle(
-                        "-fx-pie-color: " + colors[i] + ";"
-                );
-            }
-        }
-
-        // ===== LEGEND COLORS =====
-        Set<Node> items =
-                chart.lookupAll(
-                        "Label.chart-legend-item"
-                );
-
-        int index = 0;
-
-        for (Node item : items) {
-
-            Label label = (Label) item;
-
-            Node symbol = label.getGraphic();
-
-            if (symbol != null && index < colors.length) {
-
-                symbol.setStyle(
-                        "-fx-background-color: "
-                                + colors[index] + ";"
-                );
-            }
-
-            index++;
-        }
-    });
-}
-    private void loadAgePieChart(PieChart chart) {
-
         ObservableList<PieChart.Data> pieChartData =
                 FXCollections.observableArrayList(
+                new PieChart.Data("Nam", 45),
+                new PieChart.Data("Nữ", 55)
+        );
+        chart.setData(pieChartData);
 
+        String[] colors = {"#00bfa5", "#4C15AB"};
+        applyPieChartStyles(chart, pieChartData, colors);
+    }
+
+    private void loadAgePieChart(PieChart chart) {
+        ObservableList<PieChart.Data> pieChartData =
+                FXCollections.observableArrayList(
                 new PieChart.Data("18-24", 15),
                 new PieChart.Data("25-34", 40),
                 new PieChart.Data("35-44", 25),
                 new PieChart.Data("45+", 20)
         );
-
         chart.setData(pieChartData);
 
-        chart.applyCss();
-        chart.layout();
-
-        Platform.runLater(() -> {
-
-            String[] colors = {
-                    "#23B07E",
-                    "#4C15AB",
-                    "#878A94",
-                    "#093287"
-            };
-
-            // ===== PIE SLICE =====
-            for (int i = 0; i < pieChartData.size(); i++) {
-
-                PieChart.Data data = pieChartData.get(i);
-
-                Node node = data.getNode();
-
-                if (node != null) {
-
-                    node.setStyle(
-                            "-fx-pie-color: " + colors[i] + ";"
-                    );
-                }
-            }
-
-            // ===== LEGEND COLORS =====
-            Set<Node> items =
-                    chart.lookupAll(
-                            "Label.chart-legend-item"
-                    );
-
-            int index = 0;
-
-            for (Node item : items) {
-
-                Label label = (Label) item;
-
-                Node symbol = label.getGraphic();
-
-                if (symbol != null && index < colors.length) {
-
-                    symbol.setStyle(
-                            "-fx-background-color: "
-                                    + colors[index] + ";"
-                    );
-                }
-
-                index++;
-            }
-        });
+        String[] colors = {"#00bfa5", "#4C15AB", "#878A94", "#093287"};
+        applyPieChartStyles(chart, pieChartData, colors);
     }
         
 
-    private void loadInventoryKPIData() {
+private void loadInventoryKPIData() {
         int totalMeds = 450;
         int lowStock = 12;
         int nearExpiry = 8;
+        int expiredMeds = 5;
+
         double totalInvValue = 1250000000.0;
+        double valueInMillions = totalInvValue / 1000000.0;
 
         NumberFormat numF = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-        NumberFormat curF = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        NumberFormat curF =
+                NumberFormat.getCurrencyInstance(
+                        new Locale("vi", "VN")
+                );
 
-        if(lblInvTotalMeds != null) lblInvTotalMeds.setText(numF.format(totalMeds));
-        if(lblInvLowStock != null) lblInvLowStock.setText(numF.format(lowStock));
-        if(lblInvNearExpiry != null) lblInvNearExpiry.setText(numF.format(nearExpiry));
-        if(lblInvTotalValue != null) lblInvTotalValue.setText(curF.format(totalInvValue).replace("₫", "VNĐ"));
-    }
+        lblInvTotalMeds.setText(numF.format(totalMeds));
+
+        lblInvLowStock.setText(numF.format(lowStock));
+
+        lblInvNearExpiry.setText(numF.format(nearExpiry));
+
+        lblInvExpired.setText(numF.format(expiredMeds));
+
+        lblInvTotalValue.setText(numF.format(valueInMillions) + "M");
+
+        setTrendLabel(lblInvTotalTrend, 4.8);
+        setTrendLabel(lblInvLowStockTrend, -2.4);
+        setTrendLabel(lblInvNearExpiryTrend, -1.2);
+        setTrendLabel(lblInvExpiredTrend, -5.7);
+        setTrendLabel(lblInvValueTrend, 8.9);
+        }
 
     private void initInventoryTable() {
         colMedId.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -625,6 +555,13 @@ public class ReportController implements Initializable {
     private void loadInventoryBarChart() {
         if (barChartInventory == null) return;
         barChartInventory.getData().clear();
+
+        // Thêm 4 dòng này để tắt toàn bộ lưới dọc, ngang và nền xám so le
+        barChartInventory.setHorizontalGridLinesVisible(false);
+        barChartInventory.setVerticalGridLinesVisible(false);
+        barChartInventory.setAlternativeRowFillVisible(false);
+        barChartInventory.setAlternativeColumnFillVisible(false);
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng tồn (Hộp)");
         series.getData().add(new XYChart.Data<>("Panadol Extra", 150));
@@ -632,12 +569,14 @@ public class ReportController implements Initializable {
         series.getData().add(new XYChart.Data<>("Augmentin 1g", 45));
         series.getData().add(new XYChart.Data<>("Amoxicillin", 8));
         series.getData().add(new XYChart.Data<>("Paracetamol", 0));
+        
         barChartInventory.getData().add(series);
     }
 
     private void loadInventoryPieChart() {
         if (pieChartInventory == null) return;
         pieChartInventory.getData().clear();
+        
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
                 new PieChart.Data("Kháng sinh", 40),
                 new PieChart.Data("Thuốc giảm đau", 25),
@@ -646,6 +585,10 @@ public class ReportController implements Initializable {
                 new PieChart.Data("Khác", 5)
         );
         pieChartInventory.setData(pieChartData);
+        pieChartInventory.setLabelsVisible(false);
+
+        String[] colors = {"#00bfa5", "#4C15AB", "#b60000", "#0984e3", "#878A94"};
+        applyPieChartStyles(pieChartInventory, pieChartData, colors);
     }
 
     private void loadCustomerKPIs() {
@@ -750,25 +693,14 @@ public class ReportController implements Initializable {
         areaChartCustGrowth.applyCss();
         areaChartCustGrowth.layout();
 
-        Platform.runLater(() -> {
+       Platform.runLater(() -> {
+            // Dùng chung màu xanh ngọc chủ đạo cho tất cả các line
+            String strokeColor = "#00bfa5";
+            String fillColor = "rgba(0,191,165,0.18)";
 
-            styleCustomerSeries(
-                    seriesTotal,
-                    "#F5B700",
-                    "rgba(245,183,0,0.18)"
-            );
-
-            styleCustomerSeries(
-                    seriesNew,
-                    "#00B894",
-                    "rgba(0,184,148,0.18)"
-            );
-
-            styleCustomerSeries(
-                    seriesReturning,
-                    "#6C5CE7",
-                    "rgba(108,92,231,0.18)"
-            );
+            styleCustomerSeries(seriesTotal, strokeColor, fillColor);
+            styleCustomerSeries(seriesNew, strokeColor, fillColor);
+            styleCustomerSeries(seriesReturning, strokeColor, fillColor);
 
             setupCustomerYAxis();
         });
@@ -860,12 +792,32 @@ public class ReportController implements Initializable {
                 upperBound / 6
         );
     }
-
     private void loadTopSpendersChart() {
         if (barChartTopSpenders == null) return;
         barChartTopSpenders.getData().clear();
+
+        // 1. Dọn dẹp nền: Ẩn lưới dọc, ngang và các sọc nền so le
+        barChartTopSpenders.setHorizontalGridLinesVisible(false);
+        barChartTopSpenders.setVerticalGridLinesVisible(false);
+        barChartTopSpenders.setAlternativeRowFillVisible(false);
+        barChartTopSpenders.setAlternativeColumnFillVisible(false);
+
+        // 2. Format trục X rút gọn thành Triệu (M)
+        NumberAxis xAxis = (NumberAxis) barChartTopSpenders.getXAxis();
+        xAxis.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                if (object.doubleValue() == 0) return "0.0M";
+                double val = object.doubleValue() / 1000000.0;
+                // Dùng Locale.US để ra dấu chấm thập phân (ví dụ: 1.5M)
+                return String.format(Locale.US, "%.1fM", val); 
+            }
+            @Override
+            public Number fromString(String string) { return null; }
+        });
+
         XYChart.Series<Number, String> series = new XYChart.Series<>();
-        series.setName("Tổng chi tiêu (VNĐ)");
+        series.setName("Tổng chi tiêu");
         series.getData().add(new XYChart.Data<>(1500000, "Lê Văn C"));
         series.getData().add(new XYChart.Data<>(2100000, "Phạm Thị D"));
         series.getData().add(new XYChart.Data<>(2800000, "Hoàng Văn E"));
@@ -879,33 +831,32 @@ public class ReportController implements Initializable {
 
         barChartTopSpenders.getData().add(series);
 
-        barChartTopSpenders.setCategoryGap(12);
-        barChartTopSpenders.setBarGap(2);  
-        
+        // 3. Tăng độ dày cột một cách tự nhiên
+        barChartTopSpenders.setCategoryGap(12); // Khoảng cách giữa các khách hàng (càng nhỏ cột càng to)
+        barChartTopSpenders.setBarGap(0);
+
         Platform.runLater(() -> {
-        for (XYChart.Data<Number, String> data : series.getData()) {
-
-            Node node = data.getNode();
-
-            if (node != null) {
-
-                node.setStyle(
-                        "-fx-bar-fill: #14B8A6;" +
-                        "-fx-background-radius: 8;"
-                );
-
-                // tăng chiều cao bar
-                node.setScaleY(2.5);
+            for (XYChart.Data<Number, String> data : series.getData()) {
+                Node node = data.getNode();
+                if (node != null) {
+                    node.setStyle(
+                            "-fx-bar-fill: #4db6ac;" +   // Màu xanh dịu mắt giống ảnh mẫu (bạn có thể đổi về #00bfa5 nếu thích)
+                            "-fx-border-width: 0;" +     // Xóa bỏ hoàn toàn viền đen
+                            "-fx-background-insets: 0;"  // Làm phẳng hoàn toàn
+                    );
+                }
             }
-        }
-    });
+        });
     }
-
     private void loadCustomerSegmentationChart() {
-        if (barChartCustSeg == null) 
-            return;
-
+        if (barChartCustSeg == null) return;
         barChartCustSeg.getData().clear();
+
+        // Dọn dẹp nền: Ẩn lưới và các sọc nền so le
+        barChartCustSeg.setHorizontalGridLinesVisible(false);
+        barChartCustSeg.setVerticalGridLinesVisible(false);
+        barChartCustSeg.setAlternativeRowFillVisible(false);
+        barChartCustSeg.setAlternativeColumnFillVisible(false);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng thành viên");
@@ -914,33 +865,21 @@ public class ReportController implements Initializable {
         series.getData().add(new XYChart.Data<>("Lost (Rời bỏ)", 300));
 
         barChartCustSeg.getData().add(series);
-        barChartCustSeg.setCategoryGap(60);
-        barChartCustSeg.setBarGap(18);
+
+        // Chỉnh độ dày của cột một cách tự nhiên (Số càng nhỏ cột càng to)
+        barChartCustSeg.setCategoryGap(40); 
 
         Platform.runLater(() -> {
-            String[] colors = {
-                    "#14B8A6", // Loyal
-                    "#EAB308", // New
-                    "#DC2626"  // Lost
-            };
-
-            int index = 0;
-
             for (XYChart.Data<String, Number> data : series.getData()) {
-
                 Node node = data.getNode();
-
                 if (node != null) {
-
                     node.setStyle(
-                            "-fx-bar-fill: " + colors[index] + ";" +
-                            "-fx-background-radius: 0 0 0 0;"
+                            "-fx-bar-fill: #00bfa5;" +       // Xanh ngọc
+                            "-fx-border-width: 0;" +         // Xóa sạch viền đen
+                            "-fx-background-insets: 0;"      // Làm phẳng hoàn toàn
                     );
-
-                    node.setScaleX(2.5);
+                    // Lệnh node.setScaleX(2.5) đã bị tiễn vong
                 }
-
-                index++;
             }
         });
     }
@@ -976,24 +915,7 @@ public class ReportController implements Initializable {
     }
 
     private String getMetricColor() {
-
-        switch (currentMetric) {
-
-            case PROFIT:
-                return "#00b894";
-
-            case LOSS:
-                return "#d63031";
-
-            case SPEND:
-                return "#e17055";
-
-            case ORDERS:
-                return "#0984e3";
-
-            default:
-                return "#00bfa5";
-        }
+        return "#00bfa5";
     }
 
     private void setTrendLabel(Label label, double percent) {
@@ -1042,116 +964,63 @@ public class ReportController implements Initializable {
 
         // ===== YEAR =====
         cbYear.setItems(FXCollections.observableArrayList(
+                "Year",
                 "2023",
                 "2024",
                 "2025",
                 "2026"
         ));
-
-        // ===== MONTH =====
-        cbMonth.setItems(FXCollections.observableArrayList(
-                "Tất cả tháng",
-                "Tháng 1",
-                "Tháng 2",
-                "Tháng 3",
-                "Tháng 4",
-                "Tháng 5",
-                "Tháng 6",
-                "Tháng 7",
-                "Tháng 8",
-                "Tháng 9",
-                "Tháng 10",
-                "Tháng 11",
-                "Tháng 12"
-        ));
+        cbYear.setPromptText("Year");
 
         // ===== QUARTER =====
         cbQuarter.setItems(FXCollections.observableArrayList(
-                "Tất cả quý",
-                "Quý 1",
-                "Quý 2",
-                "Quý 3",
-                "Quý 4"
+                "All Quarters",
+                "Q1",
+                "Q2",
+                "Q3",
+                "Q4"
         ));
+        cbQuarter.setPromptText("Quarter");
 
         // ===== PRODUCT GROUP =====
         cbProductGroup.setItems(FXCollections.observableArrayList(
-                "Tất cả nhóm",
-                "Thuốc kháng sinh",
-                "Thuốc giảm đau",
-                "Vitamin & TPCN",
-                "Vật tư y tế",
-                "Thuốc cảm cúm",
-                "Thuốc tiêu hóa",
-                "Thuốc tim mạch",
-                "Thuốc tiểu đường"
+                "All Product Groups",
+                "Antibiotics",
+                "Painkillers",
+                "Vitamins & Supplements",
+                "Medical Supplies",
+                "Flu Medicine",
+                "Digestive Medicine",
+                "Cardiovascular",
+                "Diabetes"
         ));
+        cbProductGroup.setPromptText("Product Group");
 
         // ===== CUSTOMER TYPE =====
         cbCustomerType.setItems(FXCollections.observableArrayList(
-                "Tất cả khách hàng",
-                "Khách VIP",
-                "Khách mới",
-                "Khách thân thiết",
-                "Người cao tuổi",
-                "Phụ nữ mang thai",
-                "Trẻ em"
+                "All Customers",
+                "VIP",
+                "New Customers",
+                "Loyal Customers",
+                "Elderly",
+                "Pregnant Women",
+                "Children"
         ));
+        cbCustomerType.setPromptText("Customer Type");
 
         // ===== DEFAULT VALUES =====
         cbYear.setValue("2026");
-        cbMonth.setValue("Tất cả tháng");
-        cbQuarter.setValue("Tất cả quý");
-        cbProductGroup.setValue("Tất cả nhóm");
-        cbCustomerType.setValue("Tất cả khách hàng");
+        cbQuarter.setValue("All Quarters");
+        cbProductGroup.setValue("All Product Groups");
+        cbCustomerType.setValue("All Customers");
     }
 
     private String getMetricBarColor() {
-
-    switch (currentMetric) {
-
-            case REVENUE:
-                return "#E0CE2B";
-
-            case PROFIT:
-                return "#A4E02B";
-
-            case LOSS:
-                return "#E02B2B";
-
-            case SPEND:
-                return "#2B55E0";
-
-            case ORDERS:
-                return "#5E0482";
-
-            default:
-                return "#2BE0A1";
-        }
+        return "#00bfa5";
     }
 
     private String getMetricAreaFillColor() {
-
-    switch (currentMetric) {
-
-            case REVENUE:
-                return "rgba(245,158,11,0.18)";
-
-            case PROFIT:
-                return "rgba(78, 185, 16, 0.18)";
-
-            case LOSS:
-                return "rgba(220,38,38,0.18)";
-
-            case SPEND:
-                return "rgba(59,130,246,0.18)";
-
-            case ORDERS:
-                return "rgba(139,92,246,0.18)";
-
-            default:
-                return "rgba(0,191,165,0.18)";
-        }
+        return "rgba(0,191,165,0.18)";
     }
     private double roundNiceNumber(double value) {
 
@@ -1309,27 +1178,8 @@ public class ReportController implements Initializable {
         customerGenderPieChart.applyCss();
         customerGenderPieChart.layout();
 
-        Platform.runLater(() -> {
-
-            String[] colors = {
-                    "#23B07E",
-                    "#4C15AB"
-            };
-
-            for (int i = 0; i < pieChartData.size(); i++) {
-
-                Node node =
-                        pieChartData.get(i).getNode();
-
-                if (node != null) {
-
-                    node.setStyle(
-                            "-fx-pie-color: "
-                                    + colors[i] + ";"
-                    );
-                }
-            }
-        });
+        String[] colors = {"#00bfa5", "#4C15AB"}; // Dùng màu xanh ngọc chủ đạo
+        applyPieChartStyles(customerGenderPieChart, pieChartData, colors);
     }
 
     private void loadCustomerAgePieChart() {
@@ -1381,29 +1231,8 @@ public class ReportController implements Initializable {
         customerAgePieChart.applyCss();
         customerAgePieChart.layout();
 
-        Platform.runLater(() -> {
-
-            String[] colors = {
-                    "#23B07E",
-                    "#4C15AB",
-                    "#878A94",
-                    "#093287"
-            };
-
-            for (int i = 0; i < pieChartData.size(); i++) {
-
-                Node node =
-                        pieChartData.get(i).getNode();
-
-                if (node != null) {
-
-                    node.setStyle(
-                            "-fx-pie-color: "
-                                    + colors[i] + ";"
-                    );
-                }
-            }
-        });
+        String[] colors = {"#00bfa5", "#4C15AB", "#878A94", "#093287"}; 
+        applyPieChartStyles(customerAgePieChart, pieChartData, colors);
     }
 
     private void refreshCustomerDashboard() {
@@ -1415,14 +1244,54 @@ public class ReportController implements Initializable {
     loadCustomerAgePieChart();
 }
 
+    private void applyPieChartStyles(PieChart chart, ObservableList<PieChart.Data> pieData, String[] colors) {
+        chart.applyCss();
+        chart.layout();
+
+        // Tính tổng để chia phần trăm
+        double total = 0;
+        for (PieChart.Data d : pieData) {
+            total += d.getPieValue();
+        }
+        final double finalTotal = total;
+
+        Platform.runLater(() -> {
+            int index = 0;
+            for (PieChart.Data data : pieData) {
+                // 1. Đổi màu miếng bánh (Slice)
+                Node node = data.getNode();
+                if (node != null && index < colors.length) {
+                    node.setStyle("-fx-pie-color: " + colors[index] + ";");
+                }
+
+                // 2. Tính và gắn % vào Label (Ví dụ: Nam - 45.00%)
+                double percent = (data.getPieValue() / finalTotal) * 100;
+                String originalName = data.getName().split(" - ")[0]; // Cắt tên gốc nếu đã format trước đó
+                data.setName(String.format("%s (%.1f%%)", originalName, percent).replace(".0%", "%"));
+
+                index++;
+            }
+
+            // 3. Đổi màu Chú thích (Legend) - Fix dứt điểm lỗi sai màu
+            Set<Node> items = chart.lookupAll("Label.chart-legend-item");
+            int legendIndex = 0;
+            for (Node item : items) {
+                Label label = (Label) item;
+                Node symbol = label.getGraphic();
+                if (symbol != null && legendIndex < colors.length) {
+                    symbol.setStyle("-fx-background-color: " + colors[legendIndex] + ";");
+                }
+                legendIndex++;
+            }
+        });
+    }
+
     
 
 
     
     @FXML
     public void onInventoryClick(ActionEvent event) {
-
-        paneInventory.setStyle("-fx-background-color: red;");
         paneInventory.toFront();
         
 
@@ -1450,6 +1319,18 @@ public class ReportController implements Initializable {
 
         activeBtn.getStyleClass()
                 .add("customer-metric-active");
+    }
+
+    private void setActivePerformanceButton(Button activeBtn) {
+        // Xóa class active khỏi tất cả 5 nút của thanh Performance
+        btnRevenue.getStyleClass().remove("performance-metric-active");
+        btnProfit.getStyleClass().remove("performance-metric-active");
+        btnLoss.getStyleClass().remove("performance-metric-active");
+        btnSpend.getStyleClass().remove("performance-metric-active");
+        btnOrders.getStyleClass().remove("performance-metric-active");
+
+        // Thêm class active vào nút vừa được click
+        activeBtn.getStyleClass().add("performance-metric-active");
     }
 
 @FXML
@@ -1496,6 +1377,8 @@ private void handleCustomerMetricChange(ActionEvent event) {
         else if (clicked == btnOrders) {
             currentMetric = MetricType.ORDERS;
         }
+
+        setActivePerformanceButton(clicked);
 
         refreshPerformanceDashboard();
     }

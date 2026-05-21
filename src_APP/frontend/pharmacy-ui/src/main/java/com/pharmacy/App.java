@@ -28,7 +28,7 @@ public class App extends Application {
         stage.setTitle("Pharmacy Management System");
         stage.show();
     }
-
+    
     public static void main(String[] args) {
         launch(args);
     }
