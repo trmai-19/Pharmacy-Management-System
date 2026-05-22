@@ -209,6 +209,10 @@ public class ReportController implements Initializable {
    
     private void loadTrendAreaChart() {
         if (trendAreaChart == null || currentPerformanceData == null) return;
+        trendAreaChart.setAnimated(false); 
+        trendAreaChart.setCreateSymbols(false);
+        
+        trendAreaChart.getData().clear();
         
         trendAreaChart.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -266,6 +270,10 @@ public class ReportController implements Initializable {
     }
     private void loadTopProductsBarChart() {
         if (topProductsBarChart == null || currentPerformanceData == null) return;
+
+        topProductsBarChart.setAnimated(false);
+        CategoryAxis xAxis = (CategoryAxis) topProductsBarChart.getXAxis();
+        xAxis.setTickLabelRotation(45);
         
         topProductsBarChart.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
@@ -315,8 +323,11 @@ public class ReportController implements Initializable {
 
     private void updateGenderPieChart() {
         if (genderPieChart == null || currentPerformanceData == null) return;
+        genderPieChart.setLegendSide(javafx.geometry.Side.RIGHT);
+        genderPieChart.setPadding(new javafx.geometry.Insets(10, 25, 10, 10)); 
         
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        
         for (var item : currentPerformanceData.genderData) {
             pieChartData.add(new PieChart.Data(item.category, item.value));
         }
@@ -328,8 +339,12 @@ public class ReportController implements Initializable {
 
     private void updateAgePieChart() {
         if (agePieChart == null || currentPerformanceData == null) return;
+
+        agePieChart.setLegendSide(javafx.geometry.Side.RIGHT);
+        agePieChart.setPadding(new javafx.geometry.Insets(10, 25, 10, 10));
         
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        
         for (var item : currentPerformanceData.ageData) {
             pieChartData.add(new PieChart.Data(item.category, item.value));
         }
@@ -463,6 +478,7 @@ private void loadInventoryKPIData() {
     private void initGrowthChartData() {
 
         if (areaChartCustGrowth == null) return;
+        trendAreaChart.setCreateSymbols(false);
 
         areaChartCustGrowth.getData().clear();
 
@@ -791,50 +807,24 @@ private void loadInventoryKPIData() {
     }
 
     private void initFilters() {
-
         // ===== YEAR =====
-        cbYear.setItems(FXCollections.observableArrayList(
-                "Year",
-                "2023",
-                "2024",
-                "2025",
-                "2026"
-        ));
+        cbYear.setItems(FXCollections.observableArrayList("Year", "2023", "2024", "2025", "2026"));
         cbYear.setPromptText("Year");
 
         // ===== QUARTER =====
-        cbQuarter.setItems(FXCollections.observableArrayList(
-                "All Quarters",
-                "Q1",
-                "Q2",
-                "Q3",
-                "Q4"
-        ));
+        cbQuarter.setItems(FXCollections.observableArrayList("All Quarters", "Q1", "Q2", "Q3", "Q4"));
         cbQuarter.setPromptText("Quarter");
 
         // ===== PRODUCT GROUP =====
         cbProductGroup.setItems(FXCollections.observableArrayList(
-                "All Product Groups",
-                "Antibiotics",
-                "Painkillers",
-                "Vitamins & Supplements",
-                "Medical Supplies",
-                "Flu Medicine",
-                "Digestive Medicine",
-                "Cardiovascular",
-                "Diabetes"
+                "All Product Groups", "Thuốc cảm", "Kháng sinh", "Vitamin", 
+                "Tiêu hóa", "Tim mạch", "Da liễu", "Xương khớp", "Hô hấp", "Tiểu đường", "Mắt"
         ));
         cbProductGroup.setPromptText("Product Group");
 
         // ===== CUSTOMER TYPE =====
         cbCustomerType.setItems(FXCollections.observableArrayList(
-                "All Customers",
-                "VIP",
-                "New Customers",
-                "Loyal Customers",
-                "Elderly",
-                "Pregnant Women",
-                "Children"
+                "All Customers", "VIP", "New Customers", "Loyal Customers"
         ));
         cbCustomerType.setPromptText("Customer Type");
 
@@ -843,6 +833,11 @@ private void loadInventoryKPIData() {
         cbQuarter.setValue("All Quarters");
         cbProductGroup.setValue("All Product Groups");
         cbCustomerType.setValue("All Customers");
+
+        cbYear.setOnAction(event -> fetchAndLoadPerformanceData());
+        cbQuarter.setOnAction(event -> fetchAndLoadPerformanceData());
+        cbProductGroup.setOnAction(event -> fetchAndLoadPerformanceData());
+        cbCustomerType.setOnAction(event -> fetchAndLoadPerformanceData());
     }
 
     private String getMetricBarColor() {
@@ -1107,6 +1102,11 @@ private void loadInventoryKPIData() {
             int legendIndex = 0;
             for (Node item : items) {
                 Label label = (Label) item;
+                
+                // THÊM 2 DÒNG NÀY: Ép size chữ nhỏ lại và cho phép text bẻ dòng nếu thiếu chỗ
+                label.setStyle("-fx-font-size: 11px; -fx-text-fill: #444444;");
+                label.setWrapText(true);
+
                 Node symbol = label.getGraphic();
                 if (symbol != null && legendIndex < colors.length) {
                     symbol.setStyle("-fx-background-color: " + colors[legendIndex] + ";");
@@ -1164,42 +1164,56 @@ private void loadInventoryKPIData() {
     }
 
     private void fetchAndLoadPerformanceData() {
-        reportApiService.fetchPerformanceData().thenAccept(data -> {
+        String year = (cbYear.getValue() != null) ? cbYear.getValue() : "2026";
+        String quarter = (cbQuarter.getValue() != null) ? cbQuarter.getValue() : "All Quarters";
+        String productGroup = (cbProductGroup.getValue() != null) ? cbProductGroup.getValue() : "All Product Groups";
+        String customerType = (cbCustomerType.getValue() != null) ? cbCustomerType.getValue() : "All Customers";
+        String metric = (currentMetric != null) ? currentMetric.name() : "REVENUE";
+        
+        reportApiService.fetchPerformanceData(year, quarter, productGroup, customerType, metric).thenAccept(data -> {
             Platform.runLater(() -> {
-                // 1. Lưu dữ liệu lại để dùng cho các nút bấm chuyển đổi
                 this.currentPerformanceData = data;
 
-                // 2. Cập nhật thẻ KPI
+                // Cập nhật thẻ KPI
                 lblOrdersValue.setText(data.kpis.totalOrders);
                 setTrendLabel(lblOrdersTrend, data.kpis.ordersTrend);
-                
                 lblProfitValue.setText(data.kpis.profit);
                 setTrendLabel(lblProfitTrend, data.kpis.profitTrend);
-                
                 lblLossValue.setText(data.kpis.loss);
                 setTrendLabel(lblLossTrend, data.kpis.lossTrend);
-                
                 lblSpendValue.setText(data.kpis.spend);
                 setTrendLabel(lblSpendTrend, data.kpis.spendTrend);
-                
                 lblReturningRateValue.setText(data.kpis.returningRate);
                 setTrendLabel(lblReturningRateTrend, data.kpis.returningRateTrend);
                 
-                // 3. Đổ dữ liệu vào 2 biểu đồ Tròn
+                // Đổ dữ liệu vào tất cả biểu đồ (Cả biểu đồ tròn giờ đã nhận dữ liệu động theo bộ lọc)
                 updateGenderPieChart();
                 updateAgePieChart();
-
-                // 4. Đổ dữ liệu vào biểu đồ Đường và Cột
                 loadTrendAreaChart();
                 loadTopProductsBarChart();
             });
-            
         }).exceptionally(ex -> {
             System.err.println("Lỗi khi fetch API: " + ex.getMessage());
             return null;
         });
     }
 
+    // 3. Thay thế hàm handleMetricChange() để bắt ép biểu đồ tròn phải load lại dữ liệu từ DB khi đổi nút bấm
+    @FXML
+    private void handleMetricChange(ActionEvent event) {
+        Button clicked = (Button) event.getSource();
+        currentMetric = MetricType.REVENUE;
+
+        if (clicked == btnProfit) currentMetric = MetricType.PROFIT;
+        else if (clicked == btnLoss) currentMetric = MetricType.LOSS;
+        else if (clicked == btnSpend) currentMetric = MetricType.SPEND;
+        else if (clicked == btnOrders) currentMetric = MetricType.ORDERS;
+
+        setActivePerformanceButton(clicked);
+        
+        // Gọi lại hàm nạp dữ liệu toàn diện thay vì vẽ lại cục bộ
+        fetchAndLoadPerformanceData(); 
+    }
 @FXML
 private void handleCustomerMetricChange(ActionEvent event) {
 
@@ -1223,32 +1237,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
 
     refreshCustomerDashboard();
 }
-
-    @FXML
-    private void handleMetricChange(ActionEvent event) {
-
-        Button clicked =
-                (Button) event.getSource();
-
-        currentMetric = MetricType.REVENUE;
-
-        if (clicked == btnProfit) {
-            currentMetric = MetricType.PROFIT;
-        }
-        else if (clicked == btnLoss) {
-            currentMetric = MetricType.LOSS;
-        }
-        else if (clicked == btnSpend) {
-            currentMetric = MetricType.SPEND;
-        }
-        else if (clicked == btnOrders) {
-            currentMetric = MetricType.ORDERS;
-        }
-
-        setActivePerformanceButton(clicked);
-
-        refreshPerformanceDashboard();
-    }
 
     private final ReportApiService reportApiService = new ReportApiService();
 }

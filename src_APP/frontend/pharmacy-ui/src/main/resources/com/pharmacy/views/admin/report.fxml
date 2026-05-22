@@ -499,7 +499,7 @@
                   <Pane layoutX="464.0" layoutY="456.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="agePieChart" labelsVisible="false" layoutY="29.0" legendSide="RIGHT" prefHeight="186.0" prefWidth="384.0" />
-                        <Circle fill="WHITE" layoutX="138.0" layoutY="121.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="133.0" layoutY="123.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                         <Text layoutX="14.0" layoutY="19.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Age Performance" wrappingWidth="139.19999999999993">
                            <font>
                               <Font size="14.0" />
@@ -510,7 +510,7 @@
                   <Pane layoutX="42.0" layoutY="456.0" prefHeight="215.0" prefWidth="384.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="genderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="21.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="384.0" />
-                        <Circle fill="WHITE" layoutX="141.0" layoutY="123.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="132.0" layoutY="123.0" radius="39.0" stroke="WHITE" strokeType="INSIDE" />
                         <Text layoutX="14.0" layoutY="19.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Gender Performance" wrappingWidth="139.19999999999993">
                            <font>
                               <Font size="14.0" />
