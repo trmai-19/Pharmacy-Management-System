@@ -3,16 +3,30 @@ package com.pharmacy.dto;
 import java.util.List;
 
 public class InventoryReportDTO {
+    
+    // ==========================================
+    // CÁC BIẾN DỮ LIỆU
+    // ==========================================
     private String totalMedicines;
     private String lowStockCount;
     private String nearExpiryCount;
     private String expiredCount;
     private String inventoryValue;
+    
     private List<MedicineRow> tableData;
     private List<ChartData> categoryDistribution;
     private List<ChartData> slowestMoving;
 
-    // Getters and Setters
+    // Các biến chứa phần trăm (Trend)
+    private Double totalMedicinesTrend;
+    private Double lowStockTrend;
+    private Double nearExpiryTrend;
+    private Double expiredTrend;
+    private Double inventoryValueTrend;
+
+    // ==========================================
+    // GETTERS VÀ SETTERS CHO KPI CHÍNH
+    // ==========================================
     public String getTotalMedicines() { return totalMedicines; }
     public void setTotalMedicines(String totalMedicines) { this.totalMedicines = totalMedicines; }
 
@@ -28,6 +42,9 @@ public class InventoryReportDTO {
     public String getInventoryValue() { return inventoryValue; }
     public void setInventoryValue(String inventoryValue) { this.inventoryValue = inventoryValue; }
 
+    // ==========================================
+    // GETTERS VÀ SETTERS CHO BẢNG & BIỂU ĐỒ
+    // ==========================================
     public List<MedicineRow> getTableData() { return tableData; }
     public void setTableData(List<MedicineRow> tableData) { this.tableData = tableData; }
 
@@ -37,6 +54,27 @@ public class InventoryReportDTO {
     public List<ChartData> getSlowestMoving() { return slowestMoving; }
     public void setSlowestMoving(List<ChartData> slowestMoving) { this.slowestMoving = slowestMoving; }
 
+    // ==========================================
+    // GETTERS VÀ SETTERS CHO KPI TREND
+    // ==========================================
+    public Double getTotalMedicinesTrend() { return totalMedicinesTrend; }
+    public void setTotalMedicinesTrend(Double totalMedicinesTrend) { this.totalMedicinesTrend = totalMedicinesTrend; }
+
+    public Double getLowStockTrend() { return lowStockTrend; }
+    public void setLowStockTrend(Double lowStockTrend) { this.lowStockTrend = lowStockTrend; }
+
+    public Double getNearExpiryTrend() { return nearExpiryTrend; }
+    public void setNearExpiryTrend(Double nearExpiryTrend) { this.nearExpiryTrend = nearExpiryTrend; }
+
+    public Double getExpiredTrend() { return expiredTrend; }
+    public void setExpiredTrend(Double expiredTrend) { this.expiredTrend = expiredTrend; }
+
+    public Double getInventoryValueTrend() { return inventoryValueTrend; }
+    public void setInventoryValueTrend(Double inventoryValueTrend) { this.inventoryValueTrend = inventoryValueTrend; }
+
+    // ==========================================
+    // INNER CLASSES CHO MODEL DỮ LIỆU
+    // ==========================================
     public static class MedicineRow {
         private String maThuoc;
         private String tenThuoc;

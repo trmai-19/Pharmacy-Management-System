@@ -16,7 +16,7 @@ public class InventoryApiService {
     private final Gson gson = new Gson();
     private static final String BASE_API_URL = "http://localhost:8080/api/admin/reports/inventory/dashboard";
 
-    public CompletableFuture<InventoryReportDTO> fetchInventoryData(String year, String quarter, String productGroup, String customerType) {
+    public CompletableFuture<InventoryReportDTO> fetchInventoryData(String year, String quarter, String productGroup) {
         StringBuilder urlBuilder = new StringBuilder(BASE_API_URL).append("?");
         
         try {
@@ -28,9 +28,6 @@ public class InventoryApiService {
             }
             if (productGroup != null && !productGroup.equals("All Product Groups") && !productGroup.equals("Nhóm sản phẩm")) {
                 urlBuilder.append("productGroup=").append(java.net.URLEncoder.encode(productGroup, "UTF-8")).append("&");
-            }
-            if (customerType != null && !customerType.equals("All Customers") && !customerType.equals("Đối tượng khách hàng")) {
-                urlBuilder.append("customerType=").append(java.net.URLEncoder.encode(customerType, "UTF-8")).append("&");
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -28,7 +28,7 @@
                <children>
                   <Pane layoutX="31.0" layoutY="194.0" prefHeight="259.0" prefWidth="711.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <AreaChart fx:id="areaChartCustGrowth" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" legendSide="TOP" legendVisible="false" prefHeight="273.0" prefWidth="711.0" title="Customer Grow Trend " verticalGridLinesVisible="false">
+                        <AreaChart fx:id="areaChartCustGrowth" alternativeRowFillVisible="false" horizontalGridLinesVisible="false" layoutY="22.0" legendSide="TOP" legendVisible="false" prefHeight="237.0" prefWidth="711.0" verticalGridLinesVisible="false">
                            <xAxis>
                               <CategoryAxis side="BOTTOM" />
                            </xAxis>
@@ -36,14 +36,19 @@
                               <NumberAxis side="LEFT" />
                            </yAxis>
                         </AreaChart>
+                        <Text layoutX="14.0" layoutY="19.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Customer Grow Trend" wrappingWidth="224.79999999999984">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                        </Text>
                      </children>
                   </Pane>
                   <HBox layoutX="425.0" layoutY="11.0" prefHeight="34.0" prefWidth="814.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbYear1" prefHeight="33.0" prefWidth="251.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbQuarter1" prefHeight="38.0" prefWidth="208.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup1" prefHeight="42.0" prefWidth="178.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbCustomerType1" prefHeight="33.0" prefWidth="198.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustYear" prefHeight="33.0" prefWidth="251.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustQuarter" prefHeight="38.0" prefWidth="208.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustProductGroup" prefHeight="42.0" prefWidth="178.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbCustCustomerType" prefHeight="33.0" prefWidth="198.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
                   <HBox layoutX="31.0" layoutY="165.0" prefHeight="28.0" prefWidth="711.0" spacing="2.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" stylesheets="@dashboard-style.css">
@@ -73,7 +78,7 @@
                   <Pane layoutX="394.0" layoutY="462.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="customerAgePieChart" labelsVisible="false" layoutY="19.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="350.0" />
-                        <Circle fill="WHITE" layoutX="122.0" layoutY="118.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="127.0" layoutY="115.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
                         <Text layoutX="14.0" layoutY="24.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Age By Customers" wrappingWidth="224.79999999999984">
                            <font>
                               <Font size="14.0" />
@@ -84,7 +89,7 @@
                   <Pane layoutX="31.0" layoutY="462.0" prefHeight="215.0" prefWidth="350.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
                         <PieChart fx:id="customerGenderPieChart" labelsVisible="false" layoutX="-1.0" layoutY="21.0" legendSide="RIGHT" prefHeight="196.0" prefWidth="350.0" />
-                        <Circle fill="WHITE" layoutX="124.0" layoutY="123.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
+                        <Circle fill="WHITE" layoutX="128.0" layoutY="120.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
                         <Text layoutX="13.0" layoutY="26.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Gender By Customers" wrappingWidth="224.79999999999984">
                            <font>
                               <Font size="14.0" />
@@ -228,7 +233,7 @@
                   </HBox>
                   <Pane layoutX="753.0" layoutY="167.0" prefHeight="286.0" prefWidth="486.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="barChartTopSpenders" horizontalGridLinesVisible="false" layoutX="1.0" layoutY="21.0" legendVisible="false" prefHeight="267.0" prefWidth="486.0" verticalGridLinesVisible="false">
+                        <BarChart fx:id="barChartTopSpenders" horizontalGridLinesVisible="false" layoutX="1.0" layoutY="21.0" legendVisible="false" prefHeight="267.0" prefWidth="480.0" verticalGridLinesVisible="false">
                            <xAxis>
                               <NumberAxis side="BOTTOM" />
                            </xAxis>
@@ -250,7 +255,7 @@
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneInventory" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="paneInventory" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;" visible="false">
                <children>
                   <Pane layoutX="14.0" layoutY="161.0" prefHeight="510.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
@@ -268,10 +273,9 @@
                   </Pane>
                   <HBox layoutX="454.0" layoutY="14.0" prefHeight="30.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbInvYear" prefHeight="28.0" prefWidth="192.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbInvQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbInvProductGroup" prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbInvCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvYear" prefHeight="37.0" prefWidth="258.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvQuarter" prefHeight="29.0" prefWidth="274.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvProductGroup" prefHeight="29.0" prefWidth="256.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
                   <Pane layoutX="813.0" layoutY="412.0" prefHeight="259.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">

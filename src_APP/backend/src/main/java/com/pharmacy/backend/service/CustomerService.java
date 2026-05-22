@@ -1,6 +1,7 @@
 package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.CreateCustomerRequest;
+import com.pharmacy.backend.dto.CustomerReportResponse;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
@@ -16,4 +17,5 @@ public interface CustomerService {
     List<InvoiceResponse> getPurchaseHistory(String makh);
     CustomerStatsResponse getCustomerStats();
     List<CustomerResponse> getCustomerList(String search, String tier);
+    CustomerReportResponse getCustomerDashboard(Integer year, String quarter, String productGroup, String customerType);
 }

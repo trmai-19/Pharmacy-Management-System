@@ -92,7 +92,7 @@ public class InventoryController {
         String productGroup = cbProductGroup.getValue();
         String customerType = cbCustomerType.getValue();
 
-        apiService.fetchInventoryData(year, quarter, productGroup, customerType).thenAccept(data -> {
+        apiService.fetchInventoryData(year, quarter, productGroup).thenAccept(data -> {
             Platform.runLater(() -> {
                 // Cập nhật giá trị lên các thẻ KPI
                 lblTotalMedicines.setText(data.getTotalMedicines());

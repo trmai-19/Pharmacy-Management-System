@@ -79,4 +79,18 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     List<ChartProjection> getAgeStatistics(@Param("year") Integer year, @Param("quarter") Integer quarter, 
                                            @Param("productGroup") String productGroup, @Param("customerType") String customerType, 
                                            @Param("metric") String metric);
+
+
+       // 1. Đếm tổng khách hàng theo bộ lọc năm/quý (sử dụng JOIN với bảng HOADON)
+    @Query(value = "SELECT COUNT(DISTINCT K.MAKH) FROM KHACHHANG K " +
+                   "JOIN HOADON H ON K.MAKH = H.MAKH " +
+                   "WHERE (:year = 0 OR EXTRACT(YEAR FROM H.NGAYBAN) = :year) " +
+                   "AND (:quarter = 0 OR TO_CHAR(H.NGAYBAN, 'Q') = :quarter)", nativeQuery = true)
+    Long countTotalCustomers(@Param("year") int year, @Param("quarter") String quarter);
+
+    // 2. Lấy tổng doanh thu của top 10 khách hàng (Cho biểu đồ Bar ngang)
+    @Query(value = "SELECT * FROM (SELECT K.TENKH as label, SUM(C.THANHTIEN) as value " +
+                   "FROM KHACHHANG K JOIN HOADON H ON K.MAKH = H.MAKH JOIN CTHD C ON H.MAHD = C.MAHD " +
+                   "GROUP BY K.TENKH ORDER BY value DESC) WHERE ROWNUM <= 10", nativeQuery = true)
+    List<Object[]> getTopSpenders();
 }
