@@ -268,21 +268,27 @@
                   </Pane>
                   <HBox layoutX="454.0" layoutY="14.0" prefHeight="30.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: black;">
                      <children>
-                        <ComboBox fx:id="cbYear11" prefHeight="28.0" prefWidth="192.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbQuarter11" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup11" prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbCustomerType11" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvYear" prefHeight="28.0" prefWidth="192.0" promptText="Năm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quý" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvProductGroup" prefHeight="37.0" prefWidth="229.0" promptText="Nhóm sản phẩm" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbInvCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="Đối tượng khách hàng" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>
-                  <Pane layoutX="813.0" layoutY="456.0" prefHeight="215.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="813.0" layoutY="412.0" prefHeight="259.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <PieChart fx:id="pieChartInventory" layoutY="35.0" legendSide="RIGHT" prefHeight="186.0" prefWidth="410.0" />
-                        <Circle fill="WHITE" layoutX="122.0" layoutY="130.0" radius="43.0" stroke="WHITE" strokeType="INSIDE" />
                         <Text layoutX="12.0" layoutY="23.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Medicine Category Distribution" wrappingWidth="224.79999999999984">
                            <font>
                               <Font size="14.0" />
                            </font>
                         </Text>
+                        <BarChart fx:id="barChartCategory" layoutY="31.0" legendVisible="false" prefHeight="229.0" prefWidth="430.0">
+                           <xAxis>
+                              <CategoryAxis side="BOTTOM" />
+                           </xAxis>
+                           <yAxis>
+                              <NumberAxis side="LEFT" />
+                           </yAxis>
+                        </BarChart>
                      </children>
                   </Pane>
                   <AnchorPane layoutX="28.0" layoutY="45.0" prefHeight="116.0" prefWidth="231.0" styleClass="kpi-card">
@@ -419,9 +425,9 @@
                         </Button>
                      </children>
                   </HBox>
-                  <Pane layoutX="813.0" layoutY="161.0" prefHeight="294.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
+                  <Pane layoutX="813.0" layoutY="161.0" prefHeight="246.0" prefWidth="430.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
-                        <BarChart fx:id="barChartInventory" layoutY="23.0" legendVisible="false" prefHeight="273.0" prefWidth="430.0">
+                        <BarChart fx:id="barChartInventory" layoutY="23.0" legendVisible="false" prefHeight="229.0" prefWidth="430.0">
                            <xAxis>
                               <CategoryAxis side="BOTTOM" />
                            </xAxis>
@@ -443,7 +449,7 @@
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="panePerformance" prefHeight="648.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
+            <AnchorPane fx:id="panePerformance" prefHeight="648.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;" visible="false">
                <children>
                   <Pane layoutX="41.0" layoutY="199.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
