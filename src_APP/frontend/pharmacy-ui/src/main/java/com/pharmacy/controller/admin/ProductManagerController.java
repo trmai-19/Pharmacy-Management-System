@@ -16,8 +16,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.cell.PropertyValueFactory; // THÊM IMPORT NÀY
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 
 import java.text.DecimalFormat;
@@ -35,7 +37,7 @@ public class ProductManagerController {
     @FXML private TableColumn<Medicine, String> colProdId, colProdName, colProdActive, colProdCat, colProdUnit, colProdUsage;
     @FXML private TableColumn<Medicine, Number> colProdPrice;
     
-    // BẢNG LÔ HÀNG (ĐÃ THÊM CỘT GIÁ NHẬP)
+    // BẢNG LÔ HÀNG
     @FXML private TableView<Batch> tableBatch;
     @FXML private TableColumn<Batch, String> colBatchId, colBatchMfg, colBatchExp, colBatchImport, colBatchStatus, colBatchQty, colBatchImportPrice;
     
@@ -56,6 +58,13 @@ public class ProductManagerController {
     @FXML private Label lblCategoryModalTitle;
     @FXML private TextField txtCatName, txtCatNote;
     private Category currentEditingCategory = null;
+
+    // KHAI BÁO BỔ SUNG CHO TÍNH NĂNG AI SIDE-PANEL
+    @FXML private Button btnAiSuggest;
+    @FXML private VBox aiPanel;
+    @FXML private VBox aiPanelContent;
+    @FXML private VBox vboxAiResults;
+    private boolean isAiPanelOpen = false;
 
     // DATA LISTS
     private Map<String, String> categoryDictionary = new HashMap<>();
@@ -85,7 +94,6 @@ public class ProductManagerController {
     }
 
     private void setupTables() {
-        // MAP CHUẨN MODEL MEDICINE
         colProdId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colProdName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colProdActive.setCellValueFactory(new PropertyValueFactory<>("ingredient"));
@@ -101,17 +109,15 @@ public class ProductManagerController {
             }
         });
 
-        // MAP LÔ HÀNG (SỬ DỤNG PROPERTYVALUEFACTORY - KHÔNG DÙNG LAMBDA/INNER CLASS)
         colBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
         colBatchMfg.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
         colBatchExp.setCellValueFactory(new PropertyValueFactory<>("expDate"));
         colBatchImport.setCellValueFactory(new PropertyValueFactory<>("importDate"));
-        colBatchImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice")); // Cột giá nhập mới
+        colBatchImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice")); 
         colBatchQty.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
         colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         tableBatch.setItems(batchList);
 
-        // MAP DANH MỤC
         colCatId.setCellValueFactory(new PropertyValueFactory<>("categoryId"));
         colCatName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
         colCatNote.setCellValueFactory(new PropertyValueFactory<>("note"));
@@ -232,25 +238,20 @@ public class ProductManagerController {
                         batchList.clear();
                         for (JsonNode node : dataNode) {
                             String malo = node.path("malo").asText("");
-                            
                             String nsx = node.path("ngaysx").asText("");
                             if (nsx.isEmpty()) nsx = node.path("nsx").asText("");
-                            
                             String hsd = node.path("hsd").asText("");
                             String nhap = node.path("ngaynhap").asText("");
-                            
                             String qty = node.has("slsp") ? node.path("slsp").asText() : node.path("sl").asText("0");
                             String status = node.path("trangthai").asText("");
                             
-                            // LẤY GIÁ NHẬP (Format chuẩn VNĐ y hệt Warehouse)
                             String importPrice = "0";
                             if (node.has("gianhap")) {
                                 importPrice = String.format("%,.0f", node.get("gianhap").asDouble());
                             }
                             
                             batchList.add(new Batch(
-                                malo, 
-                                nsx.contains("T") ? nsx.split("T")[0] : nsx, 
+                                malo, nsx.contains("T") ? nsx.split("T")[0] : nsx, 
                                 hsd.contains("T") ? hsd.split("T")[0] : hsd, 
                                 nhap.contains("T") ? nhap.split("T")[0] : nhap, 
                                 qty, status, importPrice
@@ -271,6 +272,126 @@ public class ProductManagerController {
             });
         });
     }
+
+    // ==========================================
+    // LOGIC CHO PANEL GỢI Ý AI
+    // ==========================================
+
+    @FXML
+    void toggleAiPanel(ActionEvent event) {
+        isAiPanelOpen = !isAiPanelOpen;
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+        
+        if (isAiPanelOpen) {
+            aiPanelContent.setVisible(true);
+            btnAiSuggest.setText("Đóng Gợi ý");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.play();
+            
+            String keyword = txtProdName.getText().trim();
+            if (!keyword.isEmpty()) {
+                fetchAiSuggestions(keyword);
+            } else {
+                vboxAiResults.getChildren().clear();
+                vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+            }
+        } else {
+            btnAiSuggest.setText("Gợi ý AI");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.setOnFinished(e -> aiPanelContent.setVisible(false));
+            timeline.play();
+        }
+    }
+
+    private void fetchAiSuggestions(String keyword) {
+        vboxAiResults.getChildren().clear();
+        Label lblLoading = new Label("⏳ AI đang xử lý dữ liệu...");
+        lblLoading.setStyle("-fx-font-style: italic; -fx-text-fill: #64748b;");
+        vboxAiResults.getChildren().add(lblLoading);
+        btnAiSuggest.setDisable(true);
+
+        try {
+            String encodedKeyword = java.net.URLEncoder.encode(keyword, java.nio.charset.StandardCharsets.UTF_8);
+            ApiService.get("/api/medicines/ai-suggest?keyword=" + encodedKeyword).thenAccept(response -> {
+                Platform.runLater(() -> {
+                    btnAiSuggest.setDisable(false);
+                    vboxAiResults.getChildren().clear();
+                    
+                    if (response.statusCode() == 200) {
+                        try {
+                            JsonNode data = ApiService.mapper.readTree(response.body());
+                            if (data.isEmpty() || !data.isArray()) {
+                                vboxAiResults.getChildren().add(new Label("❌ Không tìm thấy thông tin phù hợp."));
+                                return;
+                            }
+                            for (JsonNode item : data) {
+                                vboxAiResults.getChildren().add(createAiResultCard(item));
+                            }
+                        } catch (Exception e) {
+                            vboxAiResults.getChildren().add(new Label("❌ Lỗi giải mã dữ liệu JSON."));
+                        }
+                    } else {
+                        vboxAiResults.getChildren().add(new Label("❌ Kết nối AI thất bại (Lỗi " + response.statusCode() + ")"));
+                    }
+                });
+            });
+        } catch (Exception e) {
+            btnAiSuggest.setDisable(false);
+        }
+    }
+
+    private VBox createAiResultCard(JsonNode item) {
+        VBox card = new VBox(8);
+        card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;");
+        
+        String tenChuan = item.path("tenChuan").asText("");
+        String donViTinh = item.path("donViTinh").asText("");
+        String thanhPhan = item.path("thanhPhan").asText("");
+        String congDung = item.path("congDung").asText("");
+        
+        Label lblName = new Label(tenChuan);
+        lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-font-size: 14px;");
+        lblName.setWrapText(true);
+        
+        Label lblUnit = new Label("• ĐVT: " + donViTinh);
+        lblUnit.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblActive = new Label("• TP: " + thanhPhan);
+        lblActive.setWrapText(true);
+        lblActive.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblUsage = new Label("• Chỉ định: " + congDung);
+        lblUsage.setWrapText(true);
+        lblUsage.setStyle("-fx-text-fill: #475569;");
+        
+        Button btnSelect = new Button("Thêm dữ liệu này");
+        btnSelect.setMaxWidth(Double.MAX_VALUE);
+        btnSelect.setStyle("-fx-background-color: #e0f2fe; -fx-text-fill: #0369a1; -fx-font-weight: bold; -fx-background-radius: 5;");
+        
+        btnSelect.setOnAction(e -> {
+            txtProdName.setText(tenChuan);
+            txtProdUnit.setText(donViTinh);
+            txtProdActive.setText(thanhPhan);
+            txtProdUsage.setText(congDung);
+            toggleAiPanel(null); // Đóng panel
+        });
+        
+        card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #94a3b8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        
+        return card;
+    }
+
+    // ==========================================
+    // CÁC SỰ KIỆN KHÁC 
+    // ==========================================
 
     @FXML void handleShowAddProduct(ActionEvent event) {
         currentEditingProduct = null;
@@ -375,7 +496,11 @@ public class ProductManagerController {
         }
     }
 
-    @FXML void handleCloseProductModal(ActionEvent e) { modalProduct.setVisible(false); }
+    @FXML void handleCloseProductModal(ActionEvent e) { 
+        modalProduct.setVisible(false); 
+        if (isAiPanelOpen) { toggleAiPanel(null); }
+    }
+    
     @FXML void handleCloseCategoryModal(ActionEvent e) { modalCategory.setVisible(false); }
     private void showAlert(AlertType t, String title, String content) { Alert a = new Alert(t); a.setTitle(title); a.setHeaderText(null); a.setContentText(content); a.showAndWait(); }
 }

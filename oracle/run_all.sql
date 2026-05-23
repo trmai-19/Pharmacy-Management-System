@@ -36,3 +36,4 @@ select * from CTHD;
 select * from PHIEUTRA_KH;
 select * from CTPT_KH;
 select * from DIEMTL;
+select * from MEDICINE_CACHE;

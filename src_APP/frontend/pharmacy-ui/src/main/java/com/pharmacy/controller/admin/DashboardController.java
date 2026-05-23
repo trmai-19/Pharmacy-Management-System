@@ -6,6 +6,8 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 
+import com.pharmacy.util.Session;
+
 public class DashboardController {
 
     @FXML private Label lblGreeting;
@@ -18,9 +20,9 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        System.out.println("📊 Dashboard chính đang được nạp...");
+        System.out.println("Dashboard chính đang được nạp...");
 
-        String adminName = "Nguyễn Văn Phát"; // Tên thật thay cho chữ Admin chung chung
+        String adminName = Session.getFullName() != null ? Session.getFullName() : "Admin User"; // Lấy tên admin từ session
         if (lblGreeting != null) {
             lblGreeting.setText("Chào mừng quay trở lại, " + adminName + "! 👋");
         }

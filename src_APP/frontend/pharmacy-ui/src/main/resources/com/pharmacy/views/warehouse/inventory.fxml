@@ -55,7 +55,7 @@
                      <items>
                         <VBox>
                            <children>
-                              <TableView fx:id="tableProduct" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5;" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="tableProduct" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5; -fx-selection-bar: #93c5fd;" VBox.vgrow="ALWAYS">
                                  <columns>
                                     <TableColumn fx:id="colId" prefWidth="90.0" text="Mã SP" />
                                     <TableColumn fx:id="colName" prefWidth="200.0" text="Tên sản phẩm" />
@@ -73,7 +73,7 @@
                         <VBox spacing="8.0">
                            <children>
                               <Label text="CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ" textFill="#0f766e"><font><Font name="System Bold" size="14.0" /></font><VBox.margin><Insets top="5.0" /></VBox.margin></Label>
-                              <TableView fx:id="tableBatch" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5;" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="tableBatch" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5; -fx-selection-bar: #93c5fd;" VBox.vgrow="ALWAYS">
                                  <columns>
                                     <TableColumn fx:id="colBatchId" prefWidth="100.0" text="Mã lô nhập" />
                                     <TableColumn fx:id="colMfgDate" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Ngày sản xuất" />
@@ -142,7 +142,7 @@
                      </children>
                   </GridPane>
 
-                  <TableView fx:id="tableImportItems" prefHeight="180.0" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5;">
+                  <TableView fx:id="tableImportItems" prefHeight="180.0" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5; -fx-selection-bar: #93c5fd;">
                      <columns>
                         <TableColumn fx:id="colImpProductName" prefWidth="220.0" text="Tên Sản Phẩm Thuốc" />
                         <TableColumn fx:id="colImpKho" prefWidth="100.0" text="Mã Kho" />
@@ -169,20 +169,22 @@
       </StackPane>
 
       <StackPane fx:id="modalAddProduct" style="-fx-background-color: rgba(0,0,0,0.6);" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <children>
-            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="600.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
-               <children>
+          <HBox alignment="CENTER" spacing="15.0" pickOnBounds="false" maxWidth="-Infinity">
+              <VBox minWidth="600.0" prefWidth="600.0" maxWidth="600.0" maxHeight="-Infinity" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
                   <HBox alignment="CENTER_LEFT">
-                     <children>
-                        <Label text="💊 Thêm Sản Phẩm Thuốc Mới" textFill="#3b82f6"><font><Font name="System Bold" size="20.0" /></font></Label>
-                        <Pane HBox.hgrow="ALWAYS" />
-                        <Button onAction="#onBtnHideModals" style="-fx-background-color: transparent; -fx-cursor: hand;" text="✕"><font><Font size="18.0" /></font></Button>
-                     </children>
+                      <Label text="💊 Thêm Sản Phẩm Mới" textFill="#3b82f6"><font><Font name="System Bold" size="20.0" /></font></Label>
+                      <Pane HBox.hgrow="ALWAYS" />
+                      <Button onAction="#onBtnHideModals" style="-fx-background-color: transparent; -fx-cursor: hand;" text="✕"><font><Font size="18.0" /></font></Button>
                   </HBox>
                   <Separator />
                   <VBox spacing="10.0">
                      <children>
-                        <Label text="Tên sản phẩm *" /><TextField fx:id="txtTenSpNew" prefHeight="35.0" promptText="VD: Panadol Extra" />
+                        <Label text="Tên sản phẩm *" />
+                        <HBox spacing="10.0">
+                            <TextField fx:id="txtTenSpNew" prefHeight="35.0" promptText="VD: Panadol Extra" HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="btnAiSuggestWh" text="Gợi ý AI" onAction="#toggleAiPanelWh" prefHeight="35.0" style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                        </HBox>
+                        
                         <HBox spacing="15.0">
                             <VBox spacing="5.0" HBox.hgrow="ALWAYS"><children><Label text="Danh mục thuốc *" /><ComboBox fx:id="cbCategoryNew" prefHeight="35.0" maxWidth="Infinity" promptText="Chọn danh mục" /></children></VBox>
                             <VBox spacing="5.0" HBox.hgrow="ALWAYS"><children><Label text="Đơn vị tính *" /><TextField fx:id="txtDvtSpNew" prefHeight="35.0" promptText="VD: Viên, Vỉ, Hộp..." /></children></VBox>
@@ -197,9 +199,21 @@
                         <Button onAction="#onBtnSubmitAddProduct" prefHeight="40.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold;" text="Lưu Sản Phẩm" />
                      </children>
                   </HBox>
-               </children>
-            </VBox>
-         </children>
+              </VBox>
+
+              <VBox fx:id="aiPanelWh" maxWidth="0.0" minWidth="0.0" prefWidth="0.0" opacity="0.0" maxHeight="450.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+                  <VBox fx:id="aiPanelContentWh" spacing="15.0" style="-fx-padding: 20;" visible="false">
+                      <Label text="✨ Gợi Ý Từ AI" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #8b5cf6;"/>
+                      <Separator />
+                      
+                      <Label text="Lưu ý: Gợi ý từ AI có thể có sai sót. Vui lòng kiểm tra kỹ thông tin trước khi xác nhận thêm thuốc!" style="-fx-text-fill: #0316e3; -fx-font-size: 12px; -fx-font-style: italic;" wrapText="true"/>
+                      
+                      <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent;">
+                          <VBox fx:id="vboxAiResultsWh" spacing="12.0" style="-fx-background-color: transparent;" />
+                      </ScrollPane>
+                  </VBox>
+              </VBox>
+          </HBox>
       </StackPane>
 
       <StackPane fx:id="modalAddSupplier" style="-fx-background-color: rgba(0,0,0,0.6);" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

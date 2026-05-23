@@ -10,6 +10,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
@@ -27,6 +29,8 @@ public class AddEmployeeController {
     @FXML private TextField txtPhone;
     @FXML private TextField txtEmail;
     @FXML private ComboBox<String> cbRole;
+    @FXML private Button btnSubmit;
+    @FXML private Button btnCancel;
 
     @FXML
     public void initialize() {
@@ -38,7 +42,7 @@ public class AddEmployeeController {
         ));
     }
 
-   @FXML
+    @FXML
     void handleIssueAccount(ActionEvent event) {
         String phone = txtPhone.getText().trim();
         String email = txtEmail.getText().trim();
@@ -51,6 +55,11 @@ public class AddEmployeeController {
             alert.showAndWait();
             return;
         }
+
+        // --- HIỆU ỨNG LOADING & KHÓA NUT CHỐNG DOUBLE CLICK ---
+        btnSubmit.setDisable(true);
+        btnCancel.setDisable(true);
+        btnSubmit.setText("⏳ Đang xử lý...");
 
         String backendRole = mapRoleToBackendValue(role);
         ObjectNode request = ApiService.mapper.createObjectNode()
@@ -66,22 +75,40 @@ public class AddEmployeeController {
                 .thenAccept(response -> {
                     if (response.statusCode() == 200) {
                         javafx.application.Platform.runLater(() -> {
+                            resetButtonState();
                             showCustomSuccessAlert(role, email);
                             handleCancel(event);
                         });
                     } else {
                         String errorMessage = String.format("Tạo tài khoản thất bại. Máy chủ trả về mã %d", response.statusCode());
-                        javafx.application.Platform.runLater(() -> showErrorAlert(errorMessage));
+                        javafx.application.Platform.runLater(() -> {
+                            resetButtonState();
+                            showErrorAlert(errorMessage);
+                        });
                     }
                 })
                 .exceptionally(ex -> {
                     ex.printStackTrace();
-                    javafx.application.Platform.runLater(() -> showErrorAlert("Không thể kết nối tới máy chủ. Vui lòng thử lại."));
+                    javafx.application.Platform.runLater(() -> {
+                        resetButtonState();
+                        showErrorAlert("Không thể kết nối tới máy chủ. Vui lòng thử lại.");
+                    });
                     return null;
                 });
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            resetButtonState();
             showErrorAlert("Lỗi định dạng dữ liệu yêu cầu. Vui lòng thử lại.");
+        }
+    }
+
+    private void resetButtonState() {
+        if (btnSubmit != null) {
+            btnSubmit.setDisable(false);
+            btnSubmit.setText(" CẤP TÀI KHOẢN");
+        }
+        if (btnCancel != null) {
+            btnCancel.setDisable(false);
         }
     }
 
@@ -106,19 +133,20 @@ public class AddEmployeeController {
         dialogStage.initModality(Modality.APPLICATION_MODAL);
         dialogStage.initStyle(StageStyle.TRANSPARENT); 
 
-        VBox box = new VBox(15);
+        VBox box = new VBox(20);
         box.setAlignment(Pos.CENTER);
         box.setStyle("-fx-background-color: white; " +
-                     "-fx-background-radius: 20; " +
-                     "-fx-padding: 30 40; " +
-                     "-fx-border-color: #10b981; " +
-                     "-fx-border-width: 3; " +
-                     "-fx-border-radius: 18; " +
-                     "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 10);");
-        box.setPrefWidth(400);
+                     "-fx-background-radius: 16; " +
+                     "-fx-padding: 35 40; " +
+                     "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 25, 0, 0, 10);");
+        box.setPrefWidth(420);
 
+        // Làm lại cụm Icon tròn tinh tế: nền Teal nhạt, dấu tích Teal đậm đồng bộ app
+        StackPane iconPane = new StackPane();
+        Circle circle = new Circle(35, Color.web("#ccfbf1")); 
         Label icon = new Label("✔");
-        icon.setStyle("-fx-font-size: 60px; -fx-text-fill: #10b981; -fx-font-weight: bold;");
+        icon.setStyle("-fx-font-size: 35px; -fx-text-fill: #0f766e; -fx-font-weight: bold;");
+        iconPane.getChildren().addAll(circle, icon);
 
         Label lblTitle = new Label("Cấp Tài Khoản Thành Công!");
         lblTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: #1e293b;");
@@ -126,17 +154,17 @@ public class AddEmployeeController {
         Label lblMessage = new Label("Tài khoản với quyền [" + role + "] đã được tạo.\nThông tin đăng nhập mặc định đã được gửi về email:\n" + email);
         lblMessage.setWrapText(true);
         lblMessage.setTextAlignment(TextAlignment.CENTER);
-        lblMessage.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-line-spacing: 4px;");
+        lblMessage.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-line-spacing: 5px;");
 
         Button btnOk = new Button("Tuyệt vời");
-        btnOk.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;");
+        btnOk.setStyle("-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;");
         
-        btnOk.setOnMouseEntered(e -> btnOk.setStyle("-fx-background-color: #059669; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"));
-        btnOk.setOnMouseExited(e -> btnOk.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"));
+        btnOk.setOnMouseEntered(e -> btnOk.setStyle("-fx-background-color: #115e59; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"));
+        btnOk.setOnMouseExited(e -> btnOk.setStyle("-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 8; -fx-padding: 12 40; -fx-cursor: hand;"));
 
         btnOk.setOnAction(e -> dialogStage.close());
 
-        box.getChildren().addAll(icon, lblTitle, lblMessage, btnOk);
+        box.getChildren().addAll(iconPane, lblTitle, lblMessage, btnOk);
 
         Scene scene = new Scene(box);
         scene.setFill(Color.TRANSPARENT);
@@ -156,7 +184,7 @@ public class AddEmployeeController {
                 SceneManager.loadContent(adminContentPane, "/com/pharmacy/views/admin/employee-management.fxml");
             }
         } catch (Exception e) {
-            System.err.println("❌ Lỗi khi quay lại trang Danh sách nhân sự!");
+            System.err.println("Lỗi khi quay lại trang Danh sách nhân sự!");
             e.printStackTrace();
         }
     }

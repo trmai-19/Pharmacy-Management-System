@@ -19,6 +19,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,10 +47,17 @@ public class InventoryController {
     @FXML private TableColumn<ImportItemRow, String> colImpProductName, colImpKho, colImpMfg, colImpExp, colImpAction;
     @FXML private TableColumn<ImportItemRow, Number> colImpQty, colImpPrice;
 
-    // Các biến của Modal Thêm Sản Phẩm Mới (Đã Xóa Giá Bán)
+    // Các biến của Modal Thêm Sản Phẩm Mới (Không Giá Bán)
     @FXML private Pane modalAddProduct;
     @FXML private TextField txtTenSpNew, txtDvtSpNew, txtThanhPhanNew, txtCongDungNew;
     @FXML private ComboBox<String> cbCategoryNew;
+
+    // KHAI BÁO BỔ SUNG CHO TÍNH NĂNG AI SIDE-PANEL (WAREHOUSE)
+    @FXML private Button btnAiSuggestWh;
+    @FXML private VBox aiPanelWh;
+    @FXML private VBox aiPanelContentWh;
+    @FXML private VBox vboxAiResultsWh;
+    private boolean isAiPanelWhOpen = false;
 
     // Các biến của Modal Thêm Nhà Cung Cấp Mới
     @FXML private Pane modalAddSupplier;
@@ -63,7 +71,6 @@ public class InventoryController {
 
     @FXML
     public void initialize() {
-        System.out.println("✅ Khởi tạo trang Quản Lý Tồn Kho - Cập nhật Form Thêm Mới Trực Tiếp (Không Giá Bán)");
         setupTableColumns();
         setupTemporaryTableColumns();
         setupDropdowns(); 
@@ -293,6 +300,121 @@ public class InventoryController {
     }
 
     // ==========================================
+    // LOGIC CHO PANEL GỢI Ý AI (KHO)
+    // ==========================================
+
+    @FXML
+    void toggleAiPanelWh(ActionEvent event) {
+        isAiPanelWhOpen = !isAiPanelWhOpen;
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+        
+        if (isAiPanelWhOpen) {
+            aiPanelContentWh.setVisible(true);
+            btnAiSuggestWh.setText("Đóng Gợi ý");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanelWh.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanelWh.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanelWh.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.play();
+            
+            String keyword = txtTenSpNew.getText().trim();
+            if (!keyword.isEmpty()) {
+                fetchAiSuggestionsWh(keyword);
+            } else {
+                vboxAiResultsWh.getChildren().clear();
+                vboxAiResultsWh.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+            }
+        } else {
+            btnAiSuggestWh.setText("Gợi ý AI");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanelWh.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanelWh.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanelWh.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.setOnFinished(e -> aiPanelContentWh.setVisible(false));
+            timeline.play();
+        }
+    }
+
+    private void fetchAiSuggestionsWh(String keyword) {
+        vboxAiResultsWh.getChildren().clear();
+        Label lblLoading = new Label("⏳ AI đang xử lý dữ liệu...");
+        lblLoading.setStyle("-fx-font-style: italic; -fx-text-fill: #64748b;");
+        vboxAiResultsWh.getChildren().add(lblLoading);
+        btnAiSuggestWh.setDisable(true);
+
+        try {
+            String encodedKeyword = java.net.URLEncoder.encode(keyword, java.nio.charset.StandardCharsets.UTF_8);
+            ApiService.get("/api/medicines/ai-suggest?keyword=" + encodedKeyword).thenAccept(response -> {
+                Platform.runLater(() -> {
+                    btnAiSuggestWh.setDisable(false);
+                    vboxAiResultsWh.getChildren().clear();
+                    
+                    if (response.statusCode() == 200) {
+                        try {
+                            JsonNode data = ApiService.mapper.readTree(response.body());
+                            if (data.isEmpty() || !data.isArray()) {
+                                vboxAiResultsWh.getChildren().add(new Label("❌ Không tìm thấy thông tin phù hợp."));
+                                return;
+                            }
+                            for (JsonNode item : data) {
+                                vboxAiResultsWh.getChildren().add(createAiResultCardWh(item));
+                            }
+                        } catch (Exception e) {
+                            vboxAiResultsWh.getChildren().add(new Label("❌ Lỗi giải mã dữ liệu JSON."));
+                        }
+                    } else {
+                        vboxAiResultsWh.getChildren().add(new Label("❌ Kết nối AI thất bại (Lỗi " + response.statusCode() + ")"));
+                    }
+                });
+            });
+        } catch (Exception e) {
+            btnAiSuggestWh.setDisable(false);
+        }
+    }
+
+    private VBox createAiResultCardWh(JsonNode item) {
+        VBox card = new VBox(8);
+        card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;");
+        
+        String tenChuan = item.path("tenChuan").asText("");
+        String donViTinh = item.path("donViTinh").asText("");
+        String thanhPhan = item.path("thanhPhan").asText("");
+        String congDung = item.path("congDung").asText("");
+        
+        Label lblName = new Label(tenChuan);
+        lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-font-size: 14px;");
+        lblName.setWrapText(true);
+        
+        Label lblUnit = new Label("• ĐVT: " + donViTinh);
+        lblUnit.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblActive = new Label("• TP: " + thanhPhan);
+        lblActive.setWrapText(true);
+        lblActive.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblUsage = new Label("• Chỉ định: " + congDung);
+        lblUsage.setWrapText(true);
+        lblUsage.setStyle("-fx-text-fill: #475569;");
+        
+        Button btnSelect = new Button("Thêm dữ liệu này");
+        btnSelect.setMaxWidth(Double.MAX_VALUE);
+        btnSelect.setStyle("-fx-background-color: #cffafe; -fx-text-fill: #0891b2; -fx-font-weight: bold; -fx-background-radius: 5;");
+        
+        btnSelect.setOnAction(e -> {
+            txtTenSpNew.setText(tenChuan);
+            txtDvtSpNew.setText(donViTinh);
+            txtThanhPhanNew.setText(thanhPhan);
+            txtCongDungNew.setText(congDung);
+            toggleAiPanelWh(null); // Đóng panel
+        });
+        
+        card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #94a3b8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        return card;
+    }
+
+    // ==========================================
     // LOGIC CHO MODAL THÊM SẢN PHẨM & NCC MỚI
     // ==========================================
 
@@ -318,7 +440,6 @@ public class InventoryController {
         json.put("email", txtEmailNccNew.getText().trim());
         json.put("diachi", txtDiaChiNccNew.getText().trim());
 
-        // LƯU Ý: Nếu API của ông đường dẫn khác (ví dụ "/api/suppliers") thì nhớ sửa lại chuỗi ở dưới nha
         ApiService.post("/api/warehouse/suppliers", json.toString()).thenAccept(response -> {
             Platform.runLater(() -> {
                 if (response.statusCode() == 200 || response.statusCode() == 201) {
@@ -332,8 +453,7 @@ public class InventoryController {
                         if (root.has("message") && !root.get("message").asText().isBlank()) {
                             errorMessage = root.get("message").asText();
                         }
-                    } catch (Exception ignored) {
-                    }
+                    } catch (Exception ignored) {}
                     showAlert(Alert.AlertType.ERROR, "Thất bại", errorMessage);
                 }
             });
@@ -389,9 +509,6 @@ public class InventoryController {
         });
     }
 
-    // ==========================================
-    // LOGIC CHO PHIẾU NHẬP KHO
-    // ==========================================
     @FXML void handleAddProduct(ActionEvent event) { 
         temporaryImportList.clear();
         lblTotalImportValue.setText("Tổng tiền phiếu: 0 VNĐ");
@@ -486,7 +603,10 @@ public class InventoryController {
 
     @FXML void onBtnHideModals(ActionEvent event) {
         if (modalNhapKho != null) modalNhapKho.setVisible(false);
-        if (modalAddProduct != null) modalAddProduct.setVisible(false);
+        if (modalAddProduct != null) {
+            modalAddProduct.setVisible(false);
+            if (isAiPanelWhOpen) { toggleAiPanelWh(null); }
+        }
         if (modalAddSupplier != null) modalAddSupplier.setVisible(false);
     }
 

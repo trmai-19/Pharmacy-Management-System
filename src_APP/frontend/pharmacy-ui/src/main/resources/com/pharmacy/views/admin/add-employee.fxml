@@ -48,8 +48,8 @@
 
                   <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 0 0 12 12; -fx-border-color: #e2e8f0; -fx-border-width: 1 0 0 0; -fx-padding: 20 35;">
                      <children>
-                        <Button onAction="#handleCancel" prefHeight="45.0" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 25; -fx-font-size: 14px;" text="HỦY BỎ" />
-                        <Button onAction="#handleIssueAccount" prefHeight="45.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 35; -fx-font-size: 14px;" text=" CẤP TÀI KHOẢN" />
+                        <Button fx:id="btnCancel" onAction="#handleCancel" prefHeight="45.0" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-cursor: hand; -fx-padding: 0 25; -fx-font-size: 14px;" text="HỦY BỎ" />
+                        <Button fx:id="btnSubmit" onAction="#handleIssueAccount" prefHeight="45.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 35; -fx-font-size: 14px;" text=" CẤP TÀI KHOẢN" />
                      </children>
                   </HBox>
 

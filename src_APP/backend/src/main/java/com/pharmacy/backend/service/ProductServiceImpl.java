@@ -19,6 +19,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse createProduct(ProductRequest request) {
+        
+        String tenThuocMoi = request.getTensanpham() != null ? request.getTensanpham().trim() : "";
+    
+        if (productRepository.existsByTensanphamIgnoreCase(tenThuocMoi)) {
+            // Ném Exception. Backend sẽ ngắt luồng tại đây và trả lỗi về cho Frontend
+            // (Thay IllegalArgumentException bằng CustomException của dự án bạn nếu có)
+            throw new RuntimeException("Sản phẩm với tên '" + tenThuocMoi + "' đã tồn tại trong hệ thống!");
+        }
+            
         Product product = new Product();
         
         productMapper.updateProductFromRequest(product, request);

@@ -15,4 +15,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
            "OR LOWER(p.congdung) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(p.thanhphan) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Product> searchProducts(@Param("keyword") String keyword);
+
+    boolean existsByTensanphamIgnoreCase(String tensanpham);
 }
