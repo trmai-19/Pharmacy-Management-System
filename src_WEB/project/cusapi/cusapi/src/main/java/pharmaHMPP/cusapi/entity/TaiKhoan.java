@@ -13,6 +13,7 @@ import java.time.LocalDate;
 public class TaiKhoan {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MATK", length = 20)
     private String maTK;
 

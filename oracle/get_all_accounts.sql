@@ -10,9 +10,7 @@ SELECT
 FROM TAIKHOAN tk
 LEFT JOIN NHANVIEN nv ON tk.MATK = nv.MATK
 WHERE tk.VAITRO = 'STAFF' OR tk.VAITRO = 'ADMIN'
-
 UNION ALL
-
 SELECT 
     tk.SDT AS username,
     NVL(kh.TENKH, 'Khách hàng vãng lai') AS ownerName, 

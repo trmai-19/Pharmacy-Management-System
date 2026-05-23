@@ -9,7 +9,7 @@ services:
       - APP_USER=nha_thuoc
       - APP_USER_PASSWORD=123456
     ports:
-      - "1521:1521"
+      - "1522:1521"
     volumes:
       - oracle_data:/opt/oracle/oradata
 
