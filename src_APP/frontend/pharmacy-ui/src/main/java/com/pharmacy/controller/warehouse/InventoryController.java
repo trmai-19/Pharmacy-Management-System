@@ -325,9 +325,16 @@ public class InventoryController {
                     showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã thêm nhà cung cấp mới thành công!");
                     modalAddSupplier.setVisible(false);
                     setupDropdowns(); 
-                    
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Thất bại", "Thêm nhà cung cấp lỗi: " + response.statusCode());
+                    String errorMessage = "Thêm nhà cung cấp lỗi: " + response.statusCode();
+                    try {
+                        JsonNode root = ApiService.mapper.readTree(response.body());
+                        if (root.has("message") && !root.get("message").asText().isBlank()) {
+                            errorMessage = root.get("message").asText();
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    showAlert(Alert.AlertType.ERROR, "Thất bại", errorMessage);
                 }
             });
         });

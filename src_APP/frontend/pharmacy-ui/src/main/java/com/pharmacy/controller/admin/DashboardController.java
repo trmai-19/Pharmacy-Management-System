@@ -20,20 +20,32 @@ public class DashboardController {
     public void initialize() {
         System.out.println("📊 Dashboard chính đang được nạp...");
 
-        // 1. Cập nhật lời chào (Sau này bạn có thể truyền tên từ lúc Login vào đây)
         String adminName = "Nguyễn Văn Phát"; // Tên thật thay cho chữ Admin chung chung
-        lblGreeting.setText("Chào mừng quay trở lại, " + adminName + "! 👋");
+        if (lblGreeting != null) {
+            lblGreeting.setText("Chào mừng quay trở lại, " + adminName + "! 👋");
+        }
 
-        // 2. Set dữ liệu cho các thẻ thống kê (Mock data)
-        lblMonthlyRevenue.setText("185.450.000đ");
-        lblActiveAccounts.setText("2,450");
-        lblMonthlyOrders.setText("1,128");
+        if (lblMonthlyRevenue != null) {
+            lblMonthlyRevenue.setText("185.450.000đ");
+        }
+        if (lblActiveAccounts != null) {
+            lblActiveAccounts.setText("2,450");
+        }
+        if (lblMonthlyOrders != null) {
+            lblMonthlyOrders.setText("1,128");
+        }
 
-        // 3. Nạp dữ liệu vào Biểu đồ Đường (Xu hướng doanh thu)
-        setupRevenueChart();
+        if (revenueChart != null) {
+            setupRevenueChart();
+        } else {
+            System.out.println("⚠️ revenueChart không được tìm thấy trong FXML, bỏ qua phần biểu đồ doanh thu.");
+        }
 
-        // 4. Nạp dữ liệu vào Biểu đồ Cột (Top sản phẩm)
-        setupTopProductsChart();
+        if (topProductsChart != null) {
+            setupTopProductsChart();
+        } else {
+            System.out.println("⚠️ topProductsChart không được tìm thấy trong FXML, bỏ qua phần biểu đồ top sản phẩm.");
+        }
     }
 
     private void setupRevenueChart() {
