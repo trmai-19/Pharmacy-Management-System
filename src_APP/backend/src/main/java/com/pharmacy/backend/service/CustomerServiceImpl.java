@@ -1,7 +1,9 @@
 package com.pharmacy.backend.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pharmacy.backend.dto.CreateCustomerRequest;
+import com.pharmacy.backend.dto.CustomerReportResponse;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
@@ -22,9 +25,9 @@ import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.CustomerRepository;
 import com.pharmacy.backend.repository.InvoiceRepository;
+import com.pharmacy.backend.repository.ChartProjection;
 
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
+
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
@@ -140,10 +144,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerResponse> getCustomerList(String search, String tier) {
-        // Gọi thẳng query tìm kiếm + lọc từ DB
         List<Customer> list = customerRepository.searchAndFilterCustomers(search, tier);
         
-        // Đóng gói sang DTO (Dùng luôn CustomerResponse cũ của ông là quá đẹp)
         return list.stream().map(c -> CustomerResponse.builder()
                 .makh(c.getMakh())
                 .tenkh(c.getTenkh())
@@ -154,6 +156,141 @@ public class CustomerServiceImpl implements CustomerService {
                 .diemtichluy(c.getDiemtichluy())
                 .hangtv(c.getHangtv())
                 .build()
-        ).collect(java.util.stream.Collectors.toList());
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public CustomerReportResponse getCustomerDashboard(Integer year, String quarter, String productGroup, String customerType) {
+        try {
+            int paramYear = (year != null) ? year : 0;
+            int paramQuarter = 0;
+            if (quarter != null && quarter.matches("Q[1-4]")) {
+                paramQuarter = Integer.parseInt(quarter.substring(1));
+            }
+            String pGroup = (productGroup != null) ? productGroup : "All Product Groups";
+            String cType = (customerType != null) ? customerType : "All Customers";
+
+            // 1. Kéo KPI thực tế từ Database
+            Long totalCust = customerRepository.countActiveCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long newCust = customerRepository.countNewCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long returningCust = customerRepository.countReturningCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long vipCust = customerRepository.countVipCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long lostCust = customerRepository.countLostCustomers(paramYear, paramQuarter, pGroup, cType);
+
+            totalCust = (totalCust != null) ? totalCust : 0L;
+            newCust = (newCust != null) ? newCust : 0L;
+            returningCust = (returningCust != null) ? returningCust : 0L;
+            vipCust = (vipCust != null) ? vipCust : 0L;
+            lostCust = (lostCust != null) ? lostCust : 0L;
+
+            double returnRate = (totalCust > 0) ? ((double) returningCust / totalCust) * 100.0 : 0.0;
+
+            // 2. Tính toán kỳ trước để làm Trend
+            int prevYear = paramYear;
+            int prevQuarter = paramQuarter;
+            if (paramYear > 0) {
+                if (paramQuarter == 0) { 
+                    prevYear = paramYear - 1; 
+                } else {
+                    if (paramQuarter == 1) { 
+                        prevQuarter = 4; prevYear = paramYear - 1; 
+                    } else { 
+                        prevQuarter = paramQuarter - 1; 
+                    }
+                }
+            }
+
+            Long prevTotal = customerRepository.countActiveCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevNew = customerRepository.countNewCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevReturning = customerRepository.countReturningCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevVip = customerRepository.countVipCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevLost = customerRepository.countLostCustomers(prevYear, prevQuarter, pGroup, cType);
+
+            prevTotal = (prevTotal != null) ? prevTotal : 0L;
+            prevNew = (prevNew != null) ? prevNew : 0L;
+            prevReturning = (prevReturning != null) ? prevReturning : 0L;
+            prevVip = (prevVip != null) ? prevVip : 0L;
+            prevLost = (prevLost != null) ? prevLost : 0L;
+
+            double prevReturnRate = (prevTotal > 0) ? ((double) prevReturning / prevTotal) * 100.0 : 0.0;
+
+            // Tính % Trend thực tế
+            double totalTrend = calculateTrend(totalCust, prevTotal);
+            double newTrend = calculateTrend(newCust, prevNew);
+            double returnRateTrend = returnRate - prevReturnRate;
+            double vipTrend = calculateTrend(vipCust, prevVip);
+            double lostTrend = calculateTrend(lostCust, prevLost);
+
+            // 3. Kéo dữ liệu đồ thị từ CSDL
+            List<Object[]> growthRaw = customerRepository.getCustomerGrowth(paramYear, paramQuarter, pGroup, cType);
+            List<CustomerReportResponse.GrowthData> growthList = new ArrayList<>();
+            for (Object[] obj : growthRaw) {
+                growthList.add(CustomerReportResponse.GrowthData.builder()
+                        .period((String) obj[0])
+                        .totalCustomers(((Number) obj[1]).longValue())
+                        .newCustomers(((Number) obj[2]).longValue())
+                        .returningCustomers(((Number) obj[3]).longValue())
+                        .build());
+            }
+
+            List<ChartProjection> topSpendersRaw = customerRepository.getTopSpendersReport(paramYear, paramQuarter, pGroup, cType);
+            List<CustomerReportResponse.ChartData> spenders = topSpendersRaw.stream().map(p -> 
+                CustomerReportResponse.ChartData.builder().label(p.getLabel()).value(p.getValue().doubleValue()).build()
+            ).collect(Collectors.toList());
+
+            // Tái sử dụng dữ liệu đã có cho Segmentation thay vì query lại
+            List<CustomerReportResponse.ChartData> segments = List.of(
+                CustomerReportResponse.ChartData.builder().label("Loyal (Thân thiết)").value((double) vipCust).build(),
+                CustomerReportResponse.ChartData.builder().label("New (Mới)").value((double) newCust).build(),
+                CustomerReportResponse.ChartData.builder().label("Lost (Rời bỏ)").value((double) lostCust).build()
+            );
+
+            // Fetch dữ liệu Nhân khẩu học tương ứng với 3 Metric
+            List<CustomerReportResponse.ChartData> genderTotal = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "TOTAL"));
+            List<CustomerReportResponse.ChartData> genderNew = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "NEW"));
+            List<CustomerReportResponse.ChartData> genderReturning = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "RETURNING"));
+
+            List<CustomerReportResponse.ChartData> ageTotal = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "TOTAL"));
+            List<CustomerReportResponse.ChartData> ageNew = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "NEW"));
+            List<CustomerReportResponse.ChartData> ageReturning = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "RETURNING"));
+
+            return CustomerReportResponse.builder()
+                    .totalCustomers(String.format("%,d", totalCust))
+                    .newCustomers(String.valueOf(newCust))
+                    .returnRate(String.format("%.1f%%", returnRate))
+                    .vipCustomers(String.valueOf(vipCust))
+                    .lostCustomers(String.valueOf(lostCust))
+                    
+                    .totalCustomersTrend(Math.round(totalTrend * 100.0) / 100.0)
+                    .newCustomersTrend(Math.round(newTrend * 100.0) / 100.0)
+                    .returnRateTrend(Math.round(returnRateTrend * 100.0) / 100.0)
+                    .vipCustomersTrend(Math.round(vipTrend * 100.0) / 100.0)
+                    .lostCustomersTrend(Math.round(lostTrend * 100.0) / 100.0)
+                    
+                    .customerGrowth(growthList)
+                    .topSpenders(spenders)
+                    .customerSegmentation(segments)
+                    
+                    .genderTotal(genderTotal).genderNew(genderNew).genderReturning(genderReturning)
+                    .ageTotal(ageTotal).ageNew(ageNew).ageReturning(ageReturning)
+                    .build();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi truy xuất dữ liệu Customer Dashboard: " + e.getMessage());
+        }
+    }
+
+    private double calculateTrend(double current, double previous) {
+        if (previous == 0) return current > 0 ? 100.0 : 0.0;
+        return ((current - previous) / previous) * 100.0;
+    }
+
+    private List<CustomerReportResponse.ChartData> mapChartData(List<ChartProjection> rawList) {
+        return rawList.stream().map(p -> 
+            CustomerReportResponse.ChartData.builder()
+                .label(p.getLabel())
+                .value(p.getValue().doubleValue())
+                .build()
+        ).collect(Collectors.toList());
     }
 }

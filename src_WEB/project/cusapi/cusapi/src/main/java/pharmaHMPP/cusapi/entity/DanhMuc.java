@@ -12,6 +12,7 @@ import lombok.*;
 public class DanhMuc {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MADM", length = 20)
     private String maDM;
 

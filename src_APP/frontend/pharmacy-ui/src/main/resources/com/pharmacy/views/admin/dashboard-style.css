@@ -10,10 +10,9 @@
 
 .axis-minor-tick-mark,
 .axis-tick-mark {
-    -fx-stroke: #1a1a1a;      
-    -fx-stroke-width: 1px;
+    -fx-stroke: transparent; 
+    -fx-stroke-width: 0;
 }
-
 /* ========================================================================
    2. CẤU HÌNH CHUNG CHO AREA & BAR CHART (MÀU XANH NGỌC)
    ======================================================================== */
@@ -22,7 +21,7 @@
     -fx-bar-fill: #00bfa5; 
     -fx-border-color: #111111; 
     -fx-border-width: 1px;
-    -fx-background-radius: 3 3 0 0;
+    -fx-background-radius: 0 0 0 0;
 }
 
 
@@ -55,22 +54,23 @@
 /* =========================================================
    PIE CHART
 ========================================================= */
-
 .chart-pie {
-
     -fx-border-width: 0;
-
     -fx-background-insets: 0;
-
-    -fx-pie-label-visible: false;
+    -fx-pie-label-visible: false; 
 }
 
-/* donut hole */
-
+/* 2. THÊM CSS NÀY ĐỂ ĐỊNH DẠNG ĐƯỜNG CHỈ NỐI VÀ CHỮ */
 .chart-pie-label-line {
-    -fx-stroke: transparent;
+    -fx-stroke: #9ca3af; /* Đường chỉ màu xám thanh lịch */
+    -fx-stroke-width: 1px;
 }
 
+.chart-pie-label {
+    -fx-fill: #374151; /* Màu chữ xám đậm */
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
 /* legend */
 
 .chart-legend {
@@ -100,18 +100,21 @@
    ======================================================================== */
 .kpi-card {
     -fx-background-color: white;
-    -fx-background-radius: 8;
-    -fx-border-color: #d1d5db;
-    -fx-border-width: 1.5px;
-    -fx-border-radius: 8;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 3, 0, 0, 2); 
+    -fx-background-radius: 0;          /* Bỏ hoàn toàn bo góc nền */
+    -fx-border-color: #d1d5db;         /* Màu viền xám nhạt */
+    /* CÚ PHÁP: Trên - Phải - Dưới - Trái. 
+       Chỉ giữ lại 1px bên phải để làm vách ngăn dọc */
+    -fx-border-width: 0 1px 0 0;       
+    -fx-border-radius: 0;              /* Bỏ bo góc viền */
+    -fx-effect: none;                  /* Xóa hiệu ứng đổ bóng */
 }
 
+/* Đổi hiệu ứng hover: Chỉ đổi nền nhẹ, không làm viền nổi màu lên nữa */
 .kpi-card:hover {
-    -fx-border-color: #00bfa5;
+    -fx-background-color: #f9fafb;
     -fx-cursor: hand;
+    -fx-border-color: #d1d5db;
 }
-
 .combo-box {
     -fx-background-color: white;
     -fx-border-color: #d1d5db;
@@ -195,4 +198,56 @@
     -fx-padding: 8 12 8 12;
 
     -fx-background-radius: 8;
+}
+.dashboard-tab {
+
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+
+    -fx-text-fill: #111111;
+
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+
+    -fx-cursor: hand;
+
+    -fx-padding: 6 16;
+}
+
+.dashboard-tab:hover {
+
+    -fx-background-color: #f3f4f6;
+    -fx-border-color: #00bfa5;
+}
+
+.dashboard-tab-active {
+
+    -fx-background-color: #00bfa5;
+    -fx-border-color: #00bfa5;
+
+    -fx-text-fill: white;
+}
+
+.customer-metric-active {
+    /* Đổi từ nền đen sang xám nhạt (tone Performance) */
+    -fx-background-color: #d1d5db; 
+    
+    /* Chữ đen thay vì trắng */
+    -fx-text-fill: #111111; 
+    
+    /* Thêm viền mỏng để nút nhìn chìm xuống, tạo cảm giác đang được bấm */
+    -fx-border-color: #a3a3a3; 
+    -fx-border-width: 1px;
+    -fx-font-weight: bold;
+}
+
+.performance-metric-active {
+    -fx-background-color: #d1d5db;    /* Màu xám đậm hơn nền một chút để nhận biết đang chọn */
+    -fx-text-fill: #111111;           /* Màu chữ đen đậm dễ đọc */
+    -fx-border-color: #a3a3a3;        /* Viền xám tạo độ chìm sâu cho nút */
+    -fx-border-width: 1px;
+    -fx-font-weight: bold;            /* Chữ đậm lên khi active */
 }

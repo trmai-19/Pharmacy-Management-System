@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class DiemTL {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MADTL", length = 20)
     private String maDTL;
 

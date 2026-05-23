@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pharmacy.util.ApiService;
 import com.pharmacy.model.Category;
-import com.pharmacy.model.Medicine; // Đã đổi sang Model Medicine siêu xịn của Warehouse
+import com.pharmacy.model.Medicine; 
 import com.pharmacy.model.Batch;
 
 import javafx.application.Platform;
@@ -16,6 +16,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.cell.PropertyValueFactory; // THÊM IMPORT NÀY
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 
@@ -29,25 +30,25 @@ public class ProductManagerController {
     
     // TAB SẢN PHẨM
     @FXML private TextField txtSearchProduct;
-    @FXML private ComboBox<String> cbCategoryFilter; // Bộ lọc dùng String như Warehouse
+    @FXML private ComboBox<String> cbCategoryFilter; 
     @FXML private TableView<Medicine> tableProduct;
     @FXML private TableColumn<Medicine, String> colProdId, colProdName, colProdActive, colProdCat, colProdUnit, colProdUsage;
     @FXML private TableColumn<Medicine, Number> colProdPrice;
     
-    // BẢNG LÔ HÀNG
+    // BẢNG LÔ HÀNG (ĐÃ THÊM CỘT GIÁ NHẬP)
     @FXML private TableView<Batch> tableBatch;
-    @FXML private TableColumn<Batch, String> colBatchId, colBatchMfg, colBatchExp, colBatchImport, colBatchStatus, colBatchQty;
+    @FXML private TableColumn<Batch, String> colBatchId, colBatchMfg, colBatchExp, colBatchImport, colBatchStatus, colBatchQty, colBatchImportPrice;
     
     // TAB DANH MỤC
     @FXML private TextField txtSearchCategory;
     @FXML private TableView<Category> tableCategory;
     @FXML private TableColumn<Category, String> colCatId, colCatName, colCatNote;
 
-    // MODAL SẢN PHẨM (Quyền lực Admin)
+    // MODAL SẢN PHẨM 
     @FXML private StackPane modalProduct;
     @FXML private Label lblProductModalTitle;
     @FXML private TextField txtProdName, txtProdUnit, txtProdActive, txtProdUsage, txtProdPrice;
-    @FXML private ComboBox<Category> cbProdCategory; // Thêm/Sửa bắt buộc dùng Object Category
+    @FXML private ComboBox<Category> cbProdCategory; 
     private Medicine currentEditingProduct = null;
 
     // MODAL DANH MỤC
@@ -68,7 +69,7 @@ public class ProductManagerController {
     @FXML
     public void initialize() {
         setupTables();
-        loadCategories(); // Gọi API Danh mục trước, sau đó nó tự gọi loadProducts()
+        loadCategories(); 
         loadLowStockAlert();
         setupSearchFilters();
 
@@ -76,7 +77,6 @@ public class ProductManagerController {
             if (newVal != null) loadBatchesForProduct(newVal.getId()); else batchList.clear();
         });
 
-        // Setup ComboBox Add/Edit Product
         cbProdCategory.setItems(categoryList);
         cbProdCategory.setConverter(new StringConverter<>() {
             @Override public String toString(Category c) { return c == null ? "" : c.getCategoryName(); }
@@ -86,14 +86,14 @@ public class ProductManagerController {
 
     private void setupTables() {
         // MAP CHUẨN MODEL MEDICINE
-        colProdId.setCellValueFactory(c -> c.getValue().idProperty());
-        colProdName.setCellValueFactory(c -> c.getValue().nameProperty());
-        colProdActive.setCellValueFactory(c -> c.getValue().ingredientProperty());
-        colProdCat.setCellValueFactory(c -> c.getValue().categoryProperty());
-        colProdUnit.setCellValueFactory(c -> c.getValue().unitProperty());
-        colProdUsage.setCellValueFactory(c -> c.getValue().usageProperty());
+        colProdId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colProdName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colProdActive.setCellValueFactory(new PropertyValueFactory<>("ingredient"));
+        colProdCat.setCellValueFactory(new PropertyValueFactory<>("category"));
+        colProdUnit.setCellValueFactory(new PropertyValueFactory<>("unit"));
+        colProdUsage.setCellValueFactory(new PropertyValueFactory<>("usage"));
         
-        colProdPrice.setCellValueFactory(c -> c.getValue().priceProperty());
+        colProdPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
         colProdPrice.setCellFactory(column -> new TableCell<>() {
             @Override protected void updateItem(Number item, boolean empty) {
                 super.updateItem(item, empty);
@@ -101,24 +101,24 @@ public class ProductManagerController {
             }
         });
 
-        // MAP LÔ HÀNG
-        colBatchId.setCellValueFactory(c -> c.getValue().batchIdProperty());
-        colBatchMfg.setCellValueFactory(c -> c.getValue().mfgDateProperty());
-        colBatchExp.setCellValueFactory(c -> c.getValue().expDateProperty());
-        colBatchImport.setCellValueFactory(c -> c.getValue().importDateProperty());
-        colBatchQty.setCellValueFactory(c -> c.getValue().currentQtyProperty());
-        colBatchStatus.setCellValueFactory(c -> c.getValue().statusProperty());
+        // MAP LÔ HÀNG (SỬ DỤNG PROPERTYVALUEFACTORY - KHÔNG DÙNG LAMBDA/INNER CLASS)
+        colBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
+        colBatchMfg.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
+        colBatchExp.setCellValueFactory(new PropertyValueFactory<>("expDate"));
+        colBatchImport.setCellValueFactory(new PropertyValueFactory<>("importDate"));
+        colBatchImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice")); // Cột giá nhập mới
+        colBatchQty.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
+        colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         tableBatch.setItems(batchList);
 
         // MAP DANH MỤC
-        colCatId.setCellValueFactory(c -> c.getValue().categoryIdProperty());
-        colCatName.setCellValueFactory(c -> c.getValue().categoryNameProperty());
-        colCatNote.setCellValueFactory(c -> c.getValue().noteProperty());
+        colCatId.setCellValueFactory(new PropertyValueFactory<>("categoryId"));
+        colCatName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
+        colCatNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         tableCategory.setItems(categoryList);
     }
 
     private void setupSearchFilters() {
-        // Bộ lọc Sản phẩm (Y hệt Warehouse)
         ObservableList<String> searchCategories = FXCollections.observableArrayList("Tất cả danh mục");
         cbCategoryFilter.setItems(searchCategories);
         cbCategoryFilter.getSelectionModel().selectFirst();
@@ -131,7 +131,6 @@ public class ProductManagerController {
         sortedProducts.comparatorProperty().bind(tableProduct.comparatorProperty());
         tableProduct.setItems(sortedProducts);
 
-        // Bộ lọc Danh mục
         filteredCategories = new FilteredList<>(categoryList, c -> true);
         txtSearchCategory.textProperty().addListener((obs, oldV, newV) -> {
             filteredCategories.setPredicate(c -> {
@@ -154,12 +153,8 @@ public class ProductManagerController {
             boolean matchesCat = selectedCat == null || selectedCat.equals("Tất cả danh mục") || product.getCategory().contains(selectedCat);
             return matchesSearch && matchesCat;
         });
-        batchList.clear(); // Clear chi tiết lô khi lọc
+        batchList.clear(); 
     }
-
-    // ==========================================
-    // --- GỌI API LOAD DỮ LIỆU ---
-    // ==========================================
 
     private void loadCategories() {
         ApiService.get("/api/warehouse/categories").thenAccept(response -> {
@@ -185,7 +180,7 @@ public class ProductManagerController {
                         cbCategoryFilter.setItems(searchCategories);
                         cbCategoryFilter.getSelectionModel().selectFirst();
                         
-                        loadProducts(); // Nạp danh mục xong mới nạp sản phẩm
+                        loadProducts(); 
                     } catch (Exception e) { e.printStackTrace(); }
                 }
             });
@@ -207,7 +202,6 @@ public class ProductManagerController {
                             String usage = node.has("congdung") ? node.get("congdung").asText() : "";
                             double price = node.has("giaban") ? node.get("giaban").asDouble() : 0.0;
                             
-                            // Map Tên Danh Mục thông minh
                             String categoryName = "Không xác định";
                             if (node.has("danhMuc") && !node.get("danhMuc").isNull()) {
                                 JsonNode dmNode = node.get("danhMuc");
@@ -239,7 +233,6 @@ public class ProductManagerController {
                         for (JsonNode node : dataNode) {
                             String malo = node.path("malo").asText("");
                             
-                            // XỬ LÝ DATE AN TOÀN TRÁNH CRASH NULL (Lấy phần trước dấu T)
                             String nsx = node.path("ngaysx").asText("");
                             if (nsx.isEmpty()) nsx = node.path("nsx").asText("");
                             
@@ -249,12 +242,18 @@ public class ProductManagerController {
                             String qty = node.has("slsp") ? node.path("slsp").asText() : node.path("sl").asText("0");
                             String status = node.path("trangthai").asText("");
                             
+                            // LẤY GIÁ NHẬP (Format chuẩn VNĐ y hệt Warehouse)
+                            String importPrice = "0";
+                            if (node.has("gianhap")) {
+                                importPrice = String.format("%,.0f", node.get("gianhap").asDouble());
+                            }
+                            
                             batchList.add(new Batch(
                                 malo, 
                                 nsx.contains("T") ? nsx.split("T")[0] : nsx, 
                                 hsd.contains("T") ? hsd.split("T")[0] : hsd, 
                                 nhap.contains("T") ? nhap.split("T")[0] : nhap, 
-                                qty, status, "0"
+                                qty, status, importPrice
                             ));
                         }
                     } catch (Exception e) { e.printStackTrace(); }
@@ -273,10 +272,6 @@ public class ProductManagerController {
         });
     }
 
-    // ==========================================
-    // --- XỬ LÝ SẢN PHẨM BẰNG MODAL ---
-    // ==========================================
-
     @FXML void handleShowAddProduct(ActionEvent event) {
         currentEditingProduct = null;
         lblProductModalTitle.setText("💊 Thêm Sản Phẩm Thuốc Mới");
@@ -293,14 +288,12 @@ public class ProductManagerController {
         }
         lblProductModalTitle.setText("✏ Sửa Thông Tin Sản Phẩm");
         
-        // ĐỔ DỮ LIỆU CÓ SẴN TỪ MODEL MEDICINE (Không cần gọi API thêm lần nữa)
         txtProdName.setText(currentEditingProduct.getName());
         txtProdUnit.setText(currentEditingProduct.getUnit());
         txtProdActive.setText(currentEditingProduct.getIngredient());
         txtProdUsage.setText(currentEditingProduct.getUsage());
-        txtProdPrice.setText(String.format("%.0f", currentEditingProduct.getPrice())); // Giá VNĐ
+        txtProdPrice.setText(String.format("%.0f", currentEditingProduct.getPrice())); 
         
-        // Chọn đúng Danh Mục trong ComboBox
         cbProdCategory.getItems().stream()
             .filter(c -> c.getCategoryName().equals(currentEditingProduct.getCategory()))
             .findFirst()
@@ -344,10 +337,6 @@ public class ProductManagerController {
             ApiService.postPublic("/api/warehouse/products/" + selected.getId() + "?_method=DELETE", "").thenAccept(res -> Platform.runLater(this::loadProducts));
         }
     }
-
-    // ==========================================
-    // --- XỬ LÝ DANH MỤC BẰNG MODAL ---
-    // ==========================================
 
     @FXML void handleShowAddCategory(ActionEvent event) { 
         currentEditingCategory = null;
