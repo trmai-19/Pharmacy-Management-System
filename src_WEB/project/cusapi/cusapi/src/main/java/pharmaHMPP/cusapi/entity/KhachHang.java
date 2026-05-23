@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public class KhachHang {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAKH", length = 20)
     private String maKH;
 

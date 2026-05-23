@@ -12,6 +12,7 @@ import lombok.*;
 public class SanPham {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MASP", length = 20)
     private String maSP;
 

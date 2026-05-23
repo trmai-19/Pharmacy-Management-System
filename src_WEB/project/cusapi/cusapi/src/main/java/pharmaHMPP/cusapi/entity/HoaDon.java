@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public class HoaDon {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAHD", length = 20)
     private String maHD;
 
