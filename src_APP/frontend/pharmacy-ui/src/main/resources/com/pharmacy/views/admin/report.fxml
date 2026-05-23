@@ -255,7 +255,7 @@
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="paneInventory" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;" visible="false">
+            <AnchorPane fx:id="paneInventory" prefHeight="670.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
                <children>
                   <Pane layoutX="14.0" layoutY="161.0" prefHeight="510.0" prefWidth="791.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
@@ -453,7 +453,7 @@
                   </Text>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="panePerformance" prefHeight="648.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;" visible="false">
+            <AnchorPane fx:id="panePerformance" prefHeight="648.0" prefWidth="1250.0" style="-fx-background-color: FAFCFC;">
                <children>
                   <Pane layoutX="41.0" layoutY="199.0" prefHeight="246.0" prefWidth="807.0" style="-fx-background-color: white; -fx-border-color: #C2C2C2;">
                      <children>
@@ -476,7 +476,7 @@
                      <children>
                         <ComboBox fx:id="cbYear" prefHeight="37.0" prefWidth="229.0" promptText="Year" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                         <ComboBox fx:id="cbQuarter" prefHeight="37.0" prefWidth="229.0" promptText="Quarter" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
-                        <ComboBox fx:id="cbProductGroup" prefHeight="37.0" prefWidth="229.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
+                        <ComboBox fx:id="cbProductGroup" prefHeight="54.0" prefWidth="202.0" promptText="All Product Groups" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                         <ComboBox fx:id="cbCustomerType" prefHeight="37.0" prefWidth="229.0" promptText="All Customers" style="-fx-background-color: white; -fx-border-color: #C2C2C2;" />
                      </children>
                   </HBox>

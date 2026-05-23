@@ -164,8 +164,32 @@ public class ReportController implements Initializable {
     private CustomerMetricType currentCustomerMetric =
         CustomerMetricType.TOTAL;
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        
+        // 1. GẮN GIÁ TRỊ MẶC ĐỊNH CHO CÁC SLICER (ComboBox) TRƯỚC TIÊN
+        // Lấy năm hiện tại của hệ thống (Ví dụ: 2026)
+        String currentYear = String.valueOf(java.time.Year.now().getValue()); 
+        
+        // Tab Performance Slicer
+        if (cbYear != null) {
+            // Nếu danh sách chưa có năm này thì thêm vào cho chắc
+            if (!cbYear.getItems().contains(currentYear)) {
+                cbYear.getItems().add(currentYear);
+            }
+            cbYear.setValue(currentYear); // Chọn mặc định năm nay
+        }
+        
+        // Tab Customer Slicer
+        if (cbCustYear != null) {
+            if (!cbCustYear.getItems().contains(currentYear)) {
+                cbCustYear.getItems().add(currentYear);
+            }
+            cbCustYear.setValue(currentYear); // Chọn mặc định năm nay
+        }
+
+        // 2. KHỞI TẠO CẤU TRÚC GIAO DIỆN (CHƯA CÓ DATA)
         loadTrendAreaChart();
         loadTopProductsBarChart();
         loadCustomerGenderPieChart();
@@ -179,23 +203,25 @@ public class ReportController implements Initializable {
         loadTopSpendersChart();
         loadCustomerSegmentationChart();
         // loadPerformanceKPIs();
+        
+        initFilters(); // Đăng ký các sự kiện onClick, onAction cho nút bấm và Slicer
+        setActivePerformanceButton(btnRevenue);
+        setActiveCustomerButton(btnCustTotal);
+        
+        // 3. GỌI API LẤY DỮ LIỆU (Lúc này Slicer đã có sẵn năm 2026 nên không sợ lỗi)
         fetchAndLoadPerformanceData();
         fetchAndLoadInventoryData();
         fetchAndLoadCustomerData();
-        initFilters();
-        setActivePerformanceButton(btnRevenue);
-        setActiveCustomerButton(btnCustTotal);
 
-         // 2. Dùng Platform.runLater để ĐỢI giao diện vẽ xong mới refresh biểu đồ
+        // 4. CẬP NHẬT GIAO DIỆN MƯỢT MÀ
+        // Dùng Platform.runLater để ĐỢI JavaFX vẽ xong khung sườn rồi mới nhét data và animation vào
         Platform.runLater(() -> {
             refreshPerformanceDashboard();
             refreshCustomerDashboard();
             
             // Nếu bạn muốn inventory cũng mượt luôn lúc mới mở thì thêm dòng này:
-            //loadInventoryPieChart(); 
+            // loadInventoryPieChart(); 
         });   
-
-        
     }
 
     
@@ -339,7 +365,11 @@ public class ReportController implements Initializable {
     }
 
     private void updateGenderPieChart() {
-        if (genderPieChart == null || currentPerformanceData == null) return;
+        if (genderPieChart == null || currentPerformanceData == null || currentPerformanceData.genderData == null) return;
+        
+        genderPieChart.setAnimated(false);
+        genderPieChart.getData().clear();
+
         genderPieChart.setLegendSide(javafx.geometry.Side.RIGHT);
         genderPieChart.setPadding(new javafx.geometry.Insets(10, 25, 10, 10)); 
         
@@ -355,7 +385,10 @@ public class ReportController implements Initializable {
     }
 
     private void updateAgePieChart() {
-        if (agePieChart == null || currentPerformanceData == null) return;
+        if (agePieChart == null || currentPerformanceData == null || currentPerformanceData.ageData == null) return;
+
+        agePieChart.setAnimated(false);
+        agePieChart.getData().clear();
 
         agePieChart.setLegendSide(javafx.geometry.Side.RIGHT);
         agePieChart.setPadding(new javafx.geometry.Insets(10, 25, 10, 10));
@@ -369,71 +402,76 @@ public class ReportController implements Initializable {
         agePieChart.setData(pieChartData);
         String[] colors = {"#00bfa5", "#4C15AB", "#878A94", "#093287"};
         applyPieChartStyles(agePieChart, pieChartData, colors);
-    }   
-
+    }
 
 
     private void loadCustomerKPIs() {
-
+        // Trạng thái chờ mặc định khi vừa mở form (Chưa có data từ DB)
         if (lblCustTotal != null)
-            lblCustTotal.setText("2,450");
+            lblCustTotal.setText("0");
 
         if (lblCustNew != null)
-            lblCustNew.setText("120");
+            lblCustNew.setText("0");
 
         if (lblCustReturnRate != null)
-            lblCustReturnRate.setText("68%");
+            lblCustReturnRate.setText("0.0%");
 
         if (lblCustVip != null)
-            lblCustVip.setText("315");
+            lblCustVip.setText("0");
 
         if (lblCustLost != null)
-            lblCustLost.setText("89");
+            lblCustLost.setText("0");
 
         // ===== Trend =====
-
-        setTrendLabel(lblCustTotalTrend, 12.4);
-
-        setTrendLabel(lblCustNewTrend, 8.2);
-
-        setTrendLabel(lblCustReturnTrend, 5.8);
-
-        setTrendLabel(lblCustVipTrend, 14.6);
-
-        setTrendLabel(lblCustLostTrend, -6.3);
+        // Set toàn bộ xu hướng về 0.0 trước khi nhận dữ liệu thật
+        setTrendLabel(lblCustTotalTrend, 0.0);
+        setTrendLabel(lblCustNewTrend, 0.0);
+        setTrendLabel(lblCustReturnTrend, 0.0);
+        setTrendLabel(lblCustVipTrend, 0.0);
+        setTrendLabel(lblCustLostTrend, 0.0);
     }
 
     private void initGrowthChartData() {
         if (areaChartCustGrowth == null || currentCustomerData == null || currentCustomerData.getCustomerGrowth() == null) return;
         
-        // 👇 FIX 1: Tắt Animation và Tắt dấu chấm (Marker) ĐÚNG tên biểu đồ 👇
         areaChartCustGrowth.setAnimated(false);
         areaChartCustGrowth.setCreateSymbols(false);
+        
+        // BẮT BUỘC CÓ: Xóa sạch bộ nhớ (cache) của trục X để nó co lại đúng số tháng
         CategoryAxis xAxis = (CategoryAxis) areaChartCustGrowth.getXAxis();
         xAxis.setAnimated(false); 
-        // 👆 ============================================================== 👆
-
+        xAxis.getCategories().clear(); 
+        
         areaChartCustGrowth.getData().clear();
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
+        
+        // Lấy giá trị Quý đang được chọn trên Slicer
+        String quarter = (cbCustQuarter != null) ? cbCustQuarter.getValue() : "All Quarters";
 
         switch (currentCustomerMetric) {
             case TOTAL:
                 series.setName("Tổng khách");
                 for (var item : currentCustomerData.getCustomerGrowth()) {
-                    series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getTotalCustomers()));
+                    if (isMonthInQuarter(item.getPeriod(), quarter)) {
+                        series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getTotalCustomers()));
+                    }
                 }
                 break;
             case NEW:
                 series.setName("Khách mới");
                 for (var item : currentCustomerData.getCustomerGrowth()) {
-                    series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getNewCustomers()));
+                    if (isMonthInQuarter(item.getPeriod(), quarter)) {
+                        series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getNewCustomers()));
+                    }
                 }
                 break;
             case RETURNING:
                 series.setName("Khách quay lại");
                 for (var item : currentCustomerData.getCustomerGrowth()) {
-                    series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getReturningCustomers()));
+                    if (isMonthInQuarter(item.getPeriod(), quarter)) {
+                        series.getData().add(new XYChart.Data<>(item.getPeriod(), item.getReturningCustomers()));
+                    }
                 }
                 break;
         }
@@ -446,62 +484,49 @@ public class ReportController implements Initializable {
             String strokeColor = "#00bfa5";
             String fillColor = "rgba(0,191,165,0.18)";
             styleCustomerSeries(series, strokeColor, fillColor);
-            setupCustomerYAxis(); // Gọi hàm chia trục đã được làm gọn ở dưới
+            setupCustomerYAxis(); // Định dạng lại trục Y số chẵn
         });
     }
 
-    
+    // Hàm phụ trợ để lọc tháng theo Quý
+    private boolean isMonthInQuarter(String month, String quarter) {
+        if (quarter == null || quarter.equals("All Quarters") || quarter.equals("Quý")) return true;
+        
+        return switch (quarter) {
+            case "Q1" -> month.matches("Jan|Feb|Mar");
+            case "Q2" -> month.matches("Apr|May|Jun");
+            case "Q3" -> month.matches("Jul|Aug|Sep");
+            case "Q4" -> month.matches("Oct|Nov|Dec");
+            default -> true;
+        };
+    }
+
     private void styleCustomerSeries(
             XYChart.Series<String, Number> series,
             String strokeColor,
             String fillColor
     ) {
-
         Platform.runLater(() -> {
             if (series.getNode() == null) return;
-            Node line = series.getNode()
-                    .lookup(".chart-series-area-line");
-
+            Node line = series.getNode().lookup(".chart-series-area-line");
             if (line != null) {
-
-                line.setStyle(
-                        "-fx-stroke: " + strokeColor + ";" +
-                        "-fx-stroke-width: 3px;"
-                );
+                line.setStyle("-fx-stroke: " + strokeColor + "; -fx-stroke-width: 3px;");
             }
 
-            Node fill = series.getNode()
-                    .lookup(".chart-series-area-fill");
-
+            Node fill = series.getNode().lookup(".chart-series-area-fill");
             if (fill != null) {
-
-                fill.setStyle(
-                        "-fx-fill: " + fillColor + ";"
-                );
+                fill.setStyle("-fx-fill: " + fillColor + ";");
             }
 
             for (XYChart.Data<String, Number> data : series.getData()) {
-
                 Node node = data.getNode();
-
                 if (node != null) {
-
-                    node.setStyle(
-                            "-fx-background-color: white, "
-                                    + strokeColor + ";" +
-
+                    node.setStyle("-fx-background-color: white, " + strokeColor + ";" +
                             "-fx-background-insets: 0, 2;" +
-
                             "-fx-background-radius: 100em;" +
+                            "-fx-padding: 5;");
 
-                            "-fx-padding: 5;"
-                    );
-
-                    Tooltip tooltip = new Tooltip(
-                            data.getXValue() + "\n"
-                                    + data.getYValue()
-                    );
-
+                    Tooltip tooltip = new Tooltip(data.getXValue() + "\n" + data.getYValue());
                     Tooltip.install(node, tooltip);
                 }
             }
@@ -590,7 +615,6 @@ public class ReportController implements Initializable {
         });
     }
 
-
     private void loadCustomerSegmentationChart() {
         if (barChartCustSeg == null || currentCustomerData == null || currentCustomerData.getCustomerSegmentation() == null) return;
         
@@ -676,22 +700,6 @@ public class ReportController implements Initializable {
         }
     }
     
-    private void loadPerformanceKPIs() {
-
-        // ===== VALUE =====
-        lblOrdersValue.setText("12,582");
-        lblProfitValue.setText("152.4M");
-        lblLossValue.setText("18.2M");
-        lblSpendValue.setText("64.8M");
-        lblReturningRateValue.setText("68%");
-
-        // ===== TREND =====
-        setTrendLabel(lblOrdersTrend, 8.42);
-        setTrendLabel(lblProfitTrend, 12.15);
-        setTrendLabel(lblLossTrend, -4.73);
-        setTrendLabel(lblSpendTrend, -2.18);
-        setTrendLabel(lblReturningRateTrend, 4.20);
-    }
 
     private void initFilters() {
         // ===== YEAR =====

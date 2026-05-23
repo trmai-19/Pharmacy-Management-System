@@ -3,6 +3,7 @@ package com.pharmacy.backend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,9 +25,9 @@ import com.pharmacy.backend.model.Customer;
 import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.CustomerRepository;
 import com.pharmacy.backend.repository.InvoiceRepository;
+import com.pharmacy.backend.repository.ChartProjection;
 
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
+
     /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
@@ -142,10 +144,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerResponse> getCustomerList(String search, String tier) {
-        // Gọi thẳng query tìm kiếm + lọc từ DB
         List<Customer> list = customerRepository.searchAndFilterCustomers(search, tier);
         
-        // Đóng gói sang DTO (Dùng luôn CustomerResponse cũ của ông là quá đẹp)
         return list.stream().map(c -> CustomerResponse.builder()
                 .makh(c.getMakh())
                 .tenkh(c.getTenkh())
@@ -156,85 +156,141 @@ public class CustomerServiceImpl implements CustomerService {
                 .diemtichluy(c.getDiemtichluy())
                 .hangtv(c.getHangtv())
                 .build()
-        ).collect(java.util.stream.Collectors.toList());
+        ).collect(Collectors.toList());
     }
-
 
     @Override
     public CustomerReportResponse getCustomerDashboard(Integer year, String quarter, String productGroup, String customerType) {
-        // Thuật toán "Seed" để tạo dữ liệu thay đổi theo Slicer
-        int seed = 10;
-        if (year != null) seed += (year % 100) * 5;
-        if (quarter != null && !quarter.equals("All Quarters") && !quarter.equals("Quý")) {
-            seed += (quarter.charAt(quarter.length() - 1) - '0') * 25;
+        try {
+            int paramYear = (year != null) ? year : 0;
+            int paramQuarter = 0;
+            if (quarter != null && quarter.matches("Q[1-4]")) {
+                paramQuarter = Integer.parseInt(quarter.substring(1));
+            }
+            String pGroup = (productGroup != null) ? productGroup : "All Product Groups";
+            String cType = (customerType != null) ? customerType : "All Customers";
+
+            // 1. Kéo KPI thực tế từ Database
+            Long totalCust = customerRepository.countActiveCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long newCust = customerRepository.countNewCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long returningCust = customerRepository.countReturningCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long vipCust = customerRepository.countVipCustomers(paramYear, paramQuarter, pGroup, cType);
+            Long lostCust = customerRepository.countLostCustomers(paramYear, paramQuarter, pGroup, cType);
+
+            totalCust = (totalCust != null) ? totalCust : 0L;
+            newCust = (newCust != null) ? newCust : 0L;
+            returningCust = (returningCust != null) ? returningCust : 0L;
+            vipCust = (vipCust != null) ? vipCust : 0L;
+            lostCust = (lostCust != null) ? lostCust : 0L;
+
+            double returnRate = (totalCust > 0) ? ((double) returningCust / totalCust) * 100.0 : 0.0;
+
+            // 2. Tính toán kỳ trước để làm Trend
+            int prevYear = paramYear;
+            int prevQuarter = paramQuarter;
+            if (paramYear > 0) {
+                if (paramQuarter == 0) { 
+                    prevYear = paramYear - 1; 
+                } else {
+                    if (paramQuarter == 1) { 
+                        prevQuarter = 4; prevYear = paramYear - 1; 
+                    } else { 
+                        prevQuarter = paramQuarter - 1; 
+                    }
+                }
+            }
+
+            Long prevTotal = customerRepository.countActiveCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevNew = customerRepository.countNewCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevReturning = customerRepository.countReturningCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevVip = customerRepository.countVipCustomers(prevYear, prevQuarter, pGroup, cType);
+            Long prevLost = customerRepository.countLostCustomers(prevYear, prevQuarter, pGroup, cType);
+
+            prevTotal = (prevTotal != null) ? prevTotal : 0L;
+            prevNew = (prevNew != null) ? prevNew : 0L;
+            prevReturning = (prevReturning != null) ? prevReturning : 0L;
+            prevVip = (prevVip != null) ? prevVip : 0L;
+            prevLost = (prevLost != null) ? prevLost : 0L;
+
+            double prevReturnRate = (prevTotal > 0) ? ((double) prevReturning / prevTotal) * 100.0 : 0.0;
+
+            // Tính % Trend thực tế
+            double totalTrend = calculateTrend(totalCust, prevTotal);
+            double newTrend = calculateTrend(newCust, prevNew);
+            double returnRateTrend = returnRate - prevReturnRate;
+            double vipTrend = calculateTrend(vipCust, prevVip);
+            double lostTrend = calculateTrend(lostCust, prevLost);
+
+            // 3. Kéo dữ liệu đồ thị từ CSDL
+            List<Object[]> growthRaw = customerRepository.getCustomerGrowth(paramYear, paramQuarter, pGroup, cType);
+            List<CustomerReportResponse.GrowthData> growthList = new ArrayList<>();
+            for (Object[] obj : growthRaw) {
+                growthList.add(CustomerReportResponse.GrowthData.builder()
+                        .period((String) obj[0])
+                        .totalCustomers(((Number) obj[1]).longValue())
+                        .newCustomers(((Number) obj[2]).longValue())
+                        .returningCustomers(((Number) obj[3]).longValue())
+                        .build());
+            }
+
+            List<ChartProjection> topSpendersRaw = customerRepository.getTopSpendersReport(paramYear, paramQuarter, pGroup, cType);
+            List<CustomerReportResponse.ChartData> spenders = topSpendersRaw.stream().map(p -> 
+                CustomerReportResponse.ChartData.builder().label(p.getLabel()).value(p.getValue().doubleValue()).build()
+            ).collect(Collectors.toList());
+
+            // Tái sử dụng dữ liệu đã có cho Segmentation thay vì query lại
+            List<CustomerReportResponse.ChartData> segments = List.of(
+                CustomerReportResponse.ChartData.builder().label("Loyal (Thân thiết)").value((double) vipCust).build(),
+                CustomerReportResponse.ChartData.builder().label("New (Mới)").value((double) newCust).build(),
+                CustomerReportResponse.ChartData.builder().label("Lost (Rời bỏ)").value((double) lostCust).build()
+            );
+
+            // Fetch dữ liệu Nhân khẩu học tương ứng với 3 Metric
+            List<CustomerReportResponse.ChartData> genderTotal = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "TOTAL"));
+            List<CustomerReportResponse.ChartData> genderNew = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "NEW"));
+            List<CustomerReportResponse.ChartData> genderReturning = mapChartData(customerRepository.getCustomerGenderStats(paramYear, paramQuarter, pGroup, cType, "RETURNING"));
+
+            List<CustomerReportResponse.ChartData> ageTotal = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "TOTAL"));
+            List<CustomerReportResponse.ChartData> ageNew = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "NEW"));
+            List<CustomerReportResponse.ChartData> ageReturning = mapChartData(customerRepository.getCustomerAgeStats(paramYear, paramQuarter, pGroup, cType, "RETURNING"));
+
+            return CustomerReportResponse.builder()
+                    .totalCustomers(String.format("%,d", totalCust))
+                    .newCustomers(String.valueOf(newCust))
+                    .returnRate(String.format("%.1f%%", returnRate))
+                    .vipCustomers(String.valueOf(vipCust))
+                    .lostCustomers(String.valueOf(lostCust))
+                    
+                    .totalCustomersTrend(Math.round(totalTrend * 100.0) / 100.0)
+                    .newCustomersTrend(Math.round(newTrend * 100.0) / 100.0)
+                    .returnRateTrend(Math.round(returnRateTrend * 100.0) / 100.0)
+                    .vipCustomersTrend(Math.round(vipTrend * 100.0) / 100.0)
+                    .lostCustomersTrend(Math.round(lostTrend * 100.0) / 100.0)
+                    
+                    .customerGrowth(growthList)
+                    .topSpenders(spenders)
+                    .customerSegmentation(segments)
+                    
+                    .genderTotal(genderTotal).genderNew(genderNew).genderReturning(genderReturning)
+                    .ageTotal(ageTotal).ageNew(ageNew).ageReturning(ageReturning)
+                    .build();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi truy xuất dữ liệu Customer Dashboard: " + e.getMessage());
         }
-        if (productGroup != null && !productGroup.equals("All Product Groups")) {
-            seed += productGroup.length() * 12;
-        }
-        if (customerType != null && !customerType.equals("All Customers")) {
-            seed += customerType.length() * 18;
-        }
+    }
 
-        // 1. Tính toán KPI
-        long baseCustomers = 1500 + (seed * 35L);
-        long newCust = 80 + (seed * 3L);
-        double retRate = 55.0 + (seed % 15);
-        long vipCust = 200 + (seed * 4L);
-        long lostCust = 50 + (seed % 40);
+    private double calculateTrend(double current, double previous) {
+        if (previous == 0) return current > 0 ? 100.0 : 0.0;
+        return ((current - previous) / previous) * 100.0;
+    }
 
-        // 2. Growth Chart (Dữ liệu 12 tháng)
-        List<CustomerReportResponse.GrowthData> growthList = new ArrayList<>();
-        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-        long currentTotal = baseCustomers - 500;
-        for (int i = 0; i < months.length; i++) {
-            long monthlyNew = 40 + (long)(Math.sin(i + seed) * 30) + (i * 5);
-            long monthlyRet = 100 + (i * 25) + (seed * 2);
-            currentTotal += monthlyNew - (10 + (i % 3));
-            growthList.add(CustomerReportResponse.GrowthData.builder()
-                    .period(months[i])
-                    .totalCustomers(currentTotal)
-                    .newCustomers(monthlyNew)
-                    .returningCustomers(monthlyRet)
-                    .build());
-        }
-
-        // 3. Top Spenders (Biểu đồ ngang)
-        List<CustomerReportResponse.ChartData> spenders = List.of(
-            CustomerReportResponse.ChartData.builder().label("Khách VIP 001").value(14000000.0 + (seed * 50000)).build(),
-            CustomerReportResponse.ChartData.builder().label("Nguyễn Văn A").value(10000000.0 + (seed * 30000)).build(),
-            CustomerReportResponse.ChartData.builder().label("Trần Thị B").value(8000000.0).build(),
-            CustomerReportResponse.ChartData.builder().label("Ngô Văn I").value(6000000.0).build(),
-            CustomerReportResponse.ChartData.builder().label("Bùi Thị H").value(5000000.0).build()
-        );
-
-        // 4. Segmentation
-        List<CustomerReportResponse.ChartData> segments = List.of(
-            CustomerReportResponse.ChartData.builder().label("Loyal (Thân thiết)").value((double) vipCust * 3).build(),
-            CustomerReportResponse.ChartData.builder().label("New (Mới)").value((double) newCust * 4).build(),
-            CustomerReportResponse.ChartData.builder().label("Lost (Rời bỏ)").value((double) lostCust * 2).build()
-        );
-
-        // 5. Nhân khẩu học (3 bộ dữ liệu độc lập cho 3 nút Metric)
-        return CustomerReportResponse.builder()
-                .totalCustomers(String.format("%,d", baseCustomers))
-                .newCustomers(String.valueOf(newCust))
-                .returnRate(String.format("%.1f%%", retRate))
-                .vipCustomers(String.valueOf(vipCust))
-                .lostCustomers(String.valueOf(lostCust))
-                .totalCustomersTrend((seed % 2 == 0) ? 12.4 : -3.2)
-                .newCustomersTrend((seed % 3 == 0) ? 8.2 : -1.5)
-                .returnRateTrend(5.8)
-                .vipCustomersTrend(14.6)
-                .lostCustomersTrend(-6.3)
-                .customerGrowth(growthList)
-                .topSpenders(spenders)
-                .customerSegmentation(segments)
-                .genderTotal(List.of(CustomerReportResponse.ChartData.builder().label("Nam").value(45.0).build(), CustomerReportResponse.ChartData.builder().label("Nữ").value(55.0).build()))
-                .genderNew(List.of(CustomerReportResponse.ChartData.builder().label("Nam").value(35.0).build(), CustomerReportResponse.ChartData.builder().label("Nữ").value(65.0).build()))
-                .genderReturning(List.of(CustomerReportResponse.ChartData.builder().label("Nam").value(52.0).build(), CustomerReportResponse.ChartData.builder().label("Nữ").value(48.0).build()))
-                .ageTotal(List.of(CustomerReportResponse.ChartData.builder().label("18-24").value(15.0).build(), CustomerReportResponse.ChartData.builder().label("25-34").value(40.0).build(), CustomerReportResponse.ChartData.builder().label("35-44").value(25.0).build(), CustomerReportResponse.ChartData.builder().label("45+").value(20.0).build()))
-                .ageNew(List.of(CustomerReportResponse.ChartData.builder().label("18-24").value(40.0).build(), CustomerReportResponse.ChartData.builder().label("25-34").value(35.0).build(), CustomerReportResponse.ChartData.builder().label("35-44").value(15.0).build(), CustomerReportResponse.ChartData.builder().label("45+").value(10.0).build()))
-                .ageReturning(List.of(CustomerReportResponse.ChartData.builder().label("18-24").value(10.0).build(), CustomerReportResponse.ChartData.builder().label("25-34").value(30.0).build(), CustomerReportResponse.ChartData.builder().label("35-44").value(40.0).build(), CustomerReportResponse.ChartData.builder().label("45+").value(20.0).build()))
-                .build();
+    private List<CustomerReportResponse.ChartData> mapChartData(List<ChartProjection> rawList) {
+        return rawList.stream().map(p -> 
+            CustomerReportResponse.ChartData.builder()
+                .label(p.getLabel())
+                .value(p.getValue().doubleValue())
+                .build()
+        ).collect(Collectors.toList());
     }
 }
