@@ -286,6 +286,7 @@ public class ReportController implements Initializable {
                 for (var item : currentPerformanceData.trendData) 
                     series.getData().add(new XYChart.Data<>(item.month, item.orders));
                 break;
+                
         }
 
         trendAreaChart.getData().add(series);
@@ -294,7 +295,16 @@ public class ReportController implements Initializable {
         trendAreaChart.applyCss();
         trendAreaChart.layout();
 
-        // Giữ nguyên phần style (màu viền, marker...)
+        double minVal = Double.MAX_VALUE;
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            double val = data.getYValue().doubleValue();
+            if (val < minVal) {
+                minVal = val;
+            }
+        }
+        final double finalMinVal = minVal;
+
+        // 2. Chỉnh style
         Platform.runLater(() -> {
             String strokeColor = getMetricBarColor();
             String fillColor = getMetricAreaFillColor();
@@ -307,7 +317,15 @@ public class ReportController implements Initializable {
 
             for (XYChart.Data<String, Number> data : series.getData()) {
                 Node node = data.getNode();
-                if (node != null) node.setStyle("-fx-background-color: white, " + strokeColor + "; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 5;");
+                if (node != null) {
+                    // HIGHLIGHT: Điểm chạm đáy -> Viền bôi đỏ, nút to hơn một chút
+                    if (data.getYValue().doubleValue() == finalMinVal) {
+                        node.setStyle("-fx-background-color: white, #ff5252; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 6;");
+                    } else {
+                        // Các điểm bình thường
+                        node.setStyle("-fx-background-color: white, " + strokeColor + "; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 5;");
+                    }
+                }
             }
         });
     }
@@ -605,11 +623,24 @@ public class ReportController implements Initializable {
         barChartTopSpenders.setCategoryGap(12);
         barChartTopSpenders.setBarGap(0);
 
+        double maxSpend = 0;
+        for (XYChart.Data<Number, String> d : series.getData()) {
+            if (d.getXValue().doubleValue() > maxSpend) {
+                maxSpend = d.getXValue().doubleValue();
+            }
+        }
+        final double finalMaxSpend = maxSpend;
+
         Platform.runLater(() -> {
             for (XYChart.Data<Number, String> data : series.getData()) {
                 Node node = data.getNode();
                 if (node != null) {
-                    node.setStyle("-fx-bar-fill: #4db6ac; -fx-border-width: 0; -fx-background-insets: 0;");
+                    // HIGHLIGHT: Người chi nhiều tiền nhất -> Bôi màu Vàng Gold
+                    if (data.getXValue().doubleValue() == finalMaxSpend && finalMaxSpend > 0) {
+                        node.setStyle("-fx-bar-fill: #f1c40f; -fx-border-width: 0;");
+                    } else {
+                        node.setStyle("-fx-bar-fill: #4db6ac; -fx-border-width: 0;");
+                    }
                 }
             }
         });
@@ -645,7 +676,14 @@ public class ReportController implements Initializable {
             for (XYChart.Data<String, Number> data : series.getData()) {
                 Node node = data.getNode();
                 if (node != null) {
-                    node.setStyle("-fx-bar-fill: #00bfa5; -fx-border-width: 0; -fx-background-insets: 0;");
+                    // HIGHLIGHT: Cột Khách hàng rời bỏ -> Màu đỏ san hô cảnh báo
+                    if (data.getXValue().contains("Lost") || data.getXValue().contains("Rời bỏ")) {
+                        node.setStyle("-fx-bar-fill: #ff5252; -fx-border-width: 0;");
+                    } 
+                    // Các cột Loyal và New giữ màu xanh ngọc
+                    else {
+                        node.setStyle("-fx-bar-fill: #00bfa5; -fx-border-width: 0;");
+                    }
                 }
             }
         });
@@ -1235,23 +1273,42 @@ private void handleCustomerMetricChange(ActionEvent event) {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng tồn (Hộp)");
         
+        // 1. Tìm ra giá trị tồn kho lớn nhất trong danh sách bán chậm
+        double maxStock = 0;
         for (var s : data.getSlowestMoving()) {
+            double currentVal = s.getValue().doubleValue();
+            if (currentVal > maxStock) {
+                maxStock = currentVal;
+            }
             series.getData().add(new XYChart.Data<>(s.getLabel(), s.getValue()));
         }
         
         barChartInventory.getData().add(series);
 
+        // Biến final để dùng được bên trong Platform.runLater
+        final double finalMaxStock = maxStock;
+
         Platform.runLater(() -> {
             for (XYChart.Data<String, Number> d : series.getData()) {
                 Node node = d.getNode();
                 if (node != null) {
-                    node.setStyle("-fx-bar-fill: #00bfa5; -fx-border-width: 0;");
+                    // 2. HIGHLIGHT: Nếu cột này là cột cao nhất -> Bôi màu Đỏ Cam cảnh báo
+                    if (d.getYValue().doubleValue() == finalMaxStock && finalMaxStock > 0) {
+                        node.setStyle("-fx-bar-fill: #ff5252; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
+                    } 
+                    // Nếu lớn hơn 1000 nhưng không phải cao nhất -> Bôi màu Vàng Cam (Tùy chọn thêm)
+                    else if (d.getYValue().doubleValue() > 1000) {
+                        node.setStyle("-fx-bar-fill: #ffa726; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
+                    }
+                    // Các cột còn lại ở mức an toàn -> Giữ màu Xanh ngọc mặc định
+                    else {
+                        node.setStyle("-fx-bar-fill: #00bfa5; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
+                    }
                 }
             }
         });
     }
 
-    // Dọn dẹp lại hàm khởi tạo bảng (chỉ giữ cấu trúc cột, xóa data giả)
     private void initInventoryTable() {
         colMedId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colMedName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -1259,8 +1316,43 @@ private void handleCustomerMetricChange(ActionEvent event) {
         colMedStock.setCellValueFactory(new PropertyValueFactory<>("stock"));
         colMedExpiry.setCellValueFactory(new PropertyValueFactory<>("expiryDate"));
         colMedStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        // Đã xóa phần ObservableList<Medicine> chứa data giả Panadol, Amoxicillin...
+
+        tableInventory.setRowFactory(tv -> new javafx.scene.control.TableRow<Medicine>() {
+            
+            // Khối khởi tạo: Lắng nghe sự kiện người dùng click chọn dòng
+            {
+                selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                    applyRowStyle(getItem(), emptyProperty().get(), isNowSelected);
+                });
+            }
+
+            @Override
+            protected void updateItem(Medicine item, boolean empty) {
+                super.updateItem(item, empty);
+                applyRowStyle(item, empty, isSelected());
+            }
+
+            // Hàm xử lý logic bôi màu chung
+            private void applyRowStyle(Medicine item, boolean empty, boolean isSelected) {
+                if (item == null || empty) {
+                    setStyle("");
+                } else if (isSelected) {
+                    // Dòng đang được click -> Xóa màu custom để JavaFX dùng màu xanh dương/chữ trắng mặc định
+                    setStyle(""); 
+                } else {
+                    // Trạng thái bình thường -> Bật highlight theo điều kiện
+                    if (item.getStock() < 50) {
+                        setStyle("-fx-background-color: #ffebee;"); 
+                    } else if (item.getStatus() != null && (item.getStatus().contains("Cận hạn") || item.getStatus().contains("Hết hạn"))) {
+                        setStyle("-fx-background-color: #fff3e0;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        });
     }
+
 
     private void fetchAndLoadCustomerData() {
         String year = (cbCustYear.getValue() != null && !cbCustYear.getValue().equals("Năm")) ? cbCustYear.getValue() : "2026";
