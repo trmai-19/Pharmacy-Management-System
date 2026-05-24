@@ -111,7 +111,6 @@ public class ReportController implements Initializable {
     @FXML private ComboBox<String> cbCustomerType;
 
 
-    // Slicer dành riêng cho tab Inventory
     @FXML private ComboBox<String> cbInvYear;
     @FXML private ComboBox<String> cbInvQuarter;
     @FXML private ComboBox<String> cbInvProductGroup;
@@ -167,60 +166,43 @@ public class ReportController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        
-        // 1. GẮN GIÁ TRỊ MẶC ĐỊNH CHO CÁC SLICER (ComboBox) TRƯỚC TIÊN
-        // Lấy năm hiện tại của hệ thống (Ví dụ: 2026)
+
         String currentYear = String.valueOf(java.time.Year.now().getValue()); 
-        
-        // Tab Performance Slicer
+
         if (cbYear != null) {
-            // Nếu danh sách chưa có năm này thì thêm vào cho chắc
             if (!cbYear.getItems().contains(currentYear)) {
                 cbYear.getItems().add(currentYear);
             }
-            cbYear.setValue(currentYear); // Chọn mặc định năm nay
+            cbYear.setValue(currentYear); 
         }
         
-        // Tab Customer Slicer
         if (cbCustYear != null) {
             if (!cbCustYear.getItems().contains(currentYear)) {
                 cbCustYear.getItems().add(currentYear);
             }
-            cbCustYear.setValue(currentYear); // Chọn mặc định năm nay
+            cbCustYear.setValue(currentYear);
         }
 
-        // 2. KHỞI TẠO CẤU TRÚC GIAO DIỆN (CHƯA CÓ DATA)
         loadTrendAreaChart();
         loadTopProductsBarChart();
         loadCustomerGenderPieChart();
         loadCustomerAgePieChart();
-        // loadInventoryKPIData();
         initInventoryTable();
-        //loadInventoryBarChart();
-        //loadInventoryPieChart();
         loadCustomerKPIs();
         initGrowthChartData();
         loadTopSpendersChart();
         loadCustomerSegmentationChart();
-        // loadPerformanceKPIs();
-        
-        initFilters(); // Đăng ký các sự kiện onClick, onAction cho nút bấm và Slicer
+        initFilters();
         setActivePerformanceButton(btnRevenue);
         setActiveCustomerButton(btnCustTotal);
         
-        // 3. GỌI API LẤY DỮ LIỆU (Lúc này Slicer đã có sẵn năm 2026 nên không sợ lỗi)
         fetchAndLoadPerformanceData();
         fetchAndLoadInventoryData();
         fetchAndLoadCustomerData();
-
-        // 4. CẬP NHẬT GIAO DIỆN MƯỢT MÀ
-        // Dùng Platform.runLater để ĐỢI JavaFX vẽ xong khung sườn rồi mới nhét data và animation vào
         Platform.runLater(() -> {
             refreshPerformanceDashboard();
             refreshCustomerDashboard();
-            
-            // Nếu bạn muốn inventory cũng mượt luôn lúc mới mở thì thêm dòng này:
-            // loadInventoryPieChart(); 
+
         });   
     }
 
@@ -304,7 +286,6 @@ public class ReportController implements Initializable {
         }
         final double finalMinVal = minVal;
 
-        // 2. Chỉnh style
         Platform.runLater(() -> {
             String strokeColor = getMetricBarColor();
             String fillColor = getMetricAreaFillColor();
@@ -318,11 +299,9 @@ public class ReportController implements Initializable {
             for (XYChart.Data<String, Number> data : series.getData()) {
                 Node node = data.getNode();
                 if (node != null) {
-                    // HIGHLIGHT: Điểm chạm đáy -> Viền bôi đỏ, nút to hơn một chút
                     if (data.getYValue().doubleValue() == finalMinVal) {
                         node.setStyle("-fx-background-color: white, #ff5252; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 6;");
                     } else {
-                        // Các điểm bình thường
                         node.setStyle("-fx-background-color: white, " + strokeColor + "; -fx-background-insets: 0, 2; -fx-background-radius: 100em; -fx-padding: 5;");
                     }
                 }
@@ -424,7 +403,6 @@ public class ReportController implements Initializable {
 
 
     private void loadCustomerKPIs() {
-        // Trạng thái chờ mặc định khi vừa mở form (Chưa có data từ DB)
         if (lblCustTotal != null)
             lblCustTotal.setText("0");
 
@@ -440,8 +418,6 @@ public class ReportController implements Initializable {
         if (lblCustLost != null)
             lblCustLost.setText("0");
 
-        // ===== Trend =====
-        // Set toàn bộ xu hướng về 0.0 trước khi nhận dữ liệu thật
         setTrendLabel(lblCustTotalTrend, 0.0);
         setTrendLabel(lblCustNewTrend, 0.0);
         setTrendLabel(lblCustReturnTrend, 0.0);
@@ -455,7 +431,6 @@ public class ReportController implements Initializable {
         areaChartCustGrowth.setAnimated(false);
         areaChartCustGrowth.setCreateSymbols(false);
         
-        // BẮT BUỘC CÓ: Xóa sạch bộ nhớ (cache) của trục X để nó co lại đúng số tháng
         CategoryAxis xAxis = (CategoryAxis) areaChartCustGrowth.getXAxis();
         xAxis.setAnimated(false); 
         xAxis.getCategories().clear(); 
@@ -464,7 +439,6 @@ public class ReportController implements Initializable {
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         
-        // Lấy giá trị Quý đang được chọn trên Slicer
         String quarter = (cbCustQuarter != null) ? cbCustQuarter.getValue() : "All Quarters";
 
         switch (currentCustomerMetric) {
@@ -502,11 +476,10 @@ public class ReportController implements Initializable {
             String strokeColor = "#00bfa5";
             String fillColor = "rgba(0,191,165,0.18)";
             styleCustomerSeries(series, strokeColor, fillColor);
-            setupCustomerYAxis(); // Định dạng lại trục Y số chẵn
+            setupCustomerYAxis(); 
         });
     }
 
-    // Hàm phụ trợ để lọc tháng theo Quý
     private boolean isMonthInQuarter(String month, String quarter) {
         if (quarter == null || quarter.equals("All Quarters") || quarter.equals("Quý")) return true;
         
@@ -554,7 +527,6 @@ public class ReportController implements Initializable {
     private void setupCustomerYAxis() {
         NumberAxis yAxis = (NumberAxis) areaChartCustGrowth.getYAxis();
         
-        // 1. Tự động tính toán lại trục Y dựa trên dữ liệu thật
         yAxis.setAutoRanging(false);
         yAxis.setForceZeroInRange(true);
 
@@ -565,17 +537,14 @@ public class ReportController implements Initializable {
             }
         }
 
-        // 2. Làm tròn upperBound lên số đẹp (ví dụ: 100, 150, 200...)
         double upperBound = Math.ceil(maxValue * 1.1 / 10.0) * 10;
         
-        // 3. Ép chia đúng 5 khoảng (5 vạch) để số luôn là số chẵn/đẹp
         double tickUnit = upperBound / 5;
         
         yAxis.setLowerBound(0);
         yAxis.setUpperBound(upperBound);
         yAxis.setTickUnit(tickUnit);
         
-        // 4. Format lại số hiển thị (xóa bỏ phần thập phân .000)
         yAxis.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
             @Override
             public String toString(Number n) {
@@ -635,7 +604,6 @@ public class ReportController implements Initializable {
             for (XYChart.Data<Number, String> data : series.getData()) {
                 Node node = data.getNode();
                 if (node != null) {
-                    // HIGHLIGHT: Người chi nhiều tiền nhất -> Bôi màu Vàng Gold
                     if (data.getXValue().doubleValue() == finalMaxSpend && finalMaxSpend > 0) {
                         node.setStyle("-fx-bar-fill: #f1c40f; -fx-border-width: 0;");
                     } else {
@@ -740,30 +708,23 @@ public class ReportController implements Initializable {
     
 
     private void initFilters() {
-        // ===== YEAR =====
         cbYear.setItems(FXCollections.observableArrayList("Year", "2023", "2024", "2025", "2026"));
         cbYear.setPromptText("Year");
 
-        // ===== QUARTER =====
         cbQuarter.setItems(FXCollections.observableArrayList("All Quarters", "Q1", "Q2", "Q3", "Q4"));
         cbQuarter.setPromptText("Quarter");
 
-        // ===== PRODUCT GROUP =====
         cbProductGroup.setItems(FXCollections.observableArrayList(
                 "All Product Groups", "Thuốc cảm", "Kháng sinh", "Vitamin", 
                 "Tiêu hóa", "Tim mạch", "Da liễu", "Xương khớp", "Hô hấp", "Tiểu đường", "Mắt"
         ));
         cbProductGroup.setPromptText("Product Group");
 
-        // ===== CUSTOMER TYPE =====
         cbCustomerType.setItems(FXCollections.observableArrayList(
                 "All Customers", "VIP", "New Customers", "Loyal Customers"
         ));
         cbCustomerType.setPromptText("Customer Type");
 
-        // =========================================================
-        // NẠP DỮ LIỆU CHO CÁC SLICER CỦA TAB INVENTORY
-        // =========================================================
         
         cbInvYear.setItems(FXCollections.observableArrayList("Năm", "2023", "2024", "2025", "2026"));
         cbInvQuarter.setItems(FXCollections.observableArrayList("Quý", "Q1", "Q2", "Q3", "Q4"));
@@ -772,9 +733,6 @@ public class ReportController implements Initializable {
                 "Tiêu hóa", "Tim mạch", "Da liễu", "Xương khớp", "Hô hấp", "Tiểu đường", "Mắt"
         ));
 
-        // =========================================================
-        // NẠP DỮ LIỆU CHO CÁC SLICER CỦA TAB CUSTOMER
-        // =========================================================
         cbCustYear.setItems(FXCollections.observableArrayList("Năm", "2023", "2024", "2025", "2026"));
         cbCustQuarter.setItems(FXCollections.observableArrayList("Quý", "Q1", "Q2", "Q3", "Q4"));
         cbCustProductGroup.setItems(FXCollections.observableArrayList(
@@ -785,30 +743,25 @@ public class ReportController implements Initializable {
                 "All Customers", "VIP", "New Customers", "Loyal Customers"
         ));
 
-        // Đặt giá trị mặc định khi vừa mở tab
         cbCustYear.setValue("2026");
         cbCustQuarter.setValue("Quý");
         cbCustProductGroup.setValue("All Product Groups");
         cbCustCustomerType.setValue("All Customers");
 
-        // Gắn sự kiện: Chỉ gọi API của Customer khi tương tác với Slicer của Customer
         cbCustYear.setOnAction(event -> fetchAndLoadCustomerData());
         cbCustQuarter.setOnAction(event -> fetchAndLoadCustomerData());
         cbCustProductGroup.setOnAction(event -> fetchAndLoadCustomerData());
         cbCustCustomerType.setOnAction(event -> fetchAndLoadCustomerData());
 
 
-        // Giá trị mặc định khi vừa mở tab
         cbInvYear.setValue("2026");
         cbInvQuarter.setValue("Quý");
         cbInvProductGroup.setValue("All Product Groups");
 
-        // Đăng ký sự kiện: Chọn Slicer bên tab Inventory thì CHỈ cập nhật dữ liệu Inventory
         cbInvYear.setOnAction(event -> fetchAndLoadInventoryData());
         cbInvQuarter.setOnAction(event -> fetchAndLoadInventoryData());
         cbInvProductGroup.setOnAction(event -> fetchAndLoadInventoryData());
 
-        // ===== DEFAULT VALUES =====
         cbYear.setValue("2026");
         cbQuarter.setValue("All Quarters");
         cbProductGroup.setValue("All Product Groups");
@@ -922,13 +875,10 @@ public class ReportController implements Initializable {
             }
         }
 
-        // thêm khoảng trống phía trên
         double upperBound = maxValue * 1.03;
 
-        // làm tròn đẹp
         upperBound = roundNiceNumber(upperBound);
 
-        // chia trục thành 5 đoạn
         double tickUnit = upperBound / 5;
 
         yAxis.setAutoRanging(false);
@@ -997,7 +947,6 @@ public class ReportController implements Initializable {
         chart.applyCss();
         chart.layout();
 
-        // Tính tổng để chia phần trăm
         double total = 0;
         for (PieChart.Data d : pieData) {
             total += d.getPieValue();
@@ -1007,13 +956,11 @@ public class ReportController implements Initializable {
         Platform.runLater(() -> {
             int index = 0;
             for (PieChart.Data data : pieData) {
-                // 1. Đổi màu miếng bánh (Slice)
                 Node node = data.getNode();
                 if (node != null && index < colors.length) {
                     node.setStyle("-fx-pie-color: " + colors[index] + ";");
                 }
 
-                // 2. Tính và gắn % vào Label (Ví dụ: Nam - 45.00%)
                 double percent = (data.getPieValue() / finalTotal) * 100;
                 String originalName = data.getName().split(" - ")[0]; // Cắt tên gốc nếu đã format trước đó
                 data.setName(String.format("%s (%.1f%%)", originalName, percent).replace(".0%", "%"));
@@ -1021,13 +968,11 @@ public class ReportController implements Initializable {
                 index++;
             }
 
-            // 3. Đổi màu Chú thích (Legend) - Fix dứt điểm lỗi sai màu
             Set<Node> items = chart.lookupAll("Label.chart-legend-item");
             int legendIndex = 0;
             for (Node item : items) {
                 Label label = (Label) item;
                 
-                // THÊM 2 DÒNG NÀY: Ép size chữ nhỏ lại và cho phép text bẻ dòng nếu thiếu chỗ
                 label.setStyle("-fx-font-size: 11px; -fx-text-fill: #444444;");
                 label.setWrapText(true);
 
@@ -1076,14 +1021,12 @@ public class ReportController implements Initializable {
     }
 
     private void setActivePerformanceButton(Button activeBtn) {
-        // Xóa class active khỏi tất cả 5 nút của thanh Performance
         btnRevenue.getStyleClass().remove("performance-metric-active");
         btnProfit.getStyleClass().remove("performance-metric-active");
         btnLoss.getStyleClass().remove("performance-metric-active");
         btnSpend.getStyleClass().remove("performance-metric-active");
         btnOrders.getStyleClass().remove("performance-metric-active");
 
-        // Thêm class active vào nút vừa được click
         activeBtn.getStyleClass().add("performance-metric-active");
     }
 
@@ -1098,7 +1041,6 @@ public class ReportController implements Initializable {
             Platform.runLater(() -> {
                 this.currentPerformanceData = data;
 
-                // Cập nhật thẻ KPI
                 lblOrdersValue.setText(data.kpis.totalOrders);
                 setTrendLabel(lblOrdersTrend, data.kpis.ordersTrend);
                 lblProfitValue.setText(data.kpis.profit);
@@ -1110,7 +1052,6 @@ public class ReportController implements Initializable {
                 lblReturningRateValue.setText(data.kpis.returningRate);
                 setTrendLabel(lblReturningRateTrend, data.kpis.returningRateTrend);
                 
-                // Đổ dữ liệu vào tất cả biểu đồ (Cả biểu đồ tròn giờ đã nhận dữ liệu động theo bộ lọc)
                 updateGenderPieChart();
                 updateAgePieChart();
                 loadTrendAreaChart();
@@ -1122,7 +1063,6 @@ public class ReportController implements Initializable {
         });
     }
 
-    // 3. Thay thế hàm handleMetricChange() để bắt ép biểu đồ tròn phải load lại dữ liệu từ DB khi đổi nút bấm
     @FXML
     private void handleMetricChange(ActionEvent event) {
         Button clicked = (Button) event.getSource();
@@ -1135,7 +1075,6 @@ public class ReportController implements Initializable {
 
         setActivePerformanceButton(clicked);
         
-        // Gọi lại hàm nạp dữ liệu toàn diện thay vì vẽ lại cục bộ
         fetchAndLoadPerformanceData(); 
     }
 @FXML
@@ -1166,9 +1105,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
     private final com.pharmacy.util.InventoryApiService inventoryApiService = new com.pharmacy.util.InventoryApiService();
 
 
-    // =========================================================================
-    // HỆ THỐNG DỮ LIỆU THẬT CHO TAB INVENTORY
-    // =========================================================================
     private void fetchAndLoadInventoryData() {
         String year = (cbInvYear.getValue() != null) ? cbInvYear.getValue() : "Năm";
         String quarter = (cbInvQuarter.getValue() != null) ? cbInvQuarter.getValue() : "Quý";
@@ -1176,22 +1112,18 @@ private void handleCustomerMetricChange(ActionEvent event) {
 
         inventoryApiService.fetchInventoryData(year, quarter, productGroup).thenAccept(data -> {
             Platform.runLater(() -> {
-                // 1. Cập nhật các thẻ KPI
                 lblInvTotalMeds.setText(data.getTotalMedicines());
                 lblInvLowStock.setText(data.getLowStockCount());
                 lblInvNearExpiry.setText(data.getNearExpiryCount());
                 lblInvExpired.setText(data.getExpiredCount());
                 lblInvTotalValue.setText(data.getInventoryValue());
 
-                // 👇 THÊM PHẦN CẬP NHẬT TREND VÀO NGAY ĐÂY 👇
                 setTrendLabel(lblInvTotalTrend, data.getTotalMedicinesTrend() != null ? data.getTotalMedicinesTrend() : 0.0);
                 setTrendLabel(lblInvLowStockTrend, data.getLowStockTrend() != null ? data.getLowStockTrend() : 0.0);
                 setTrendLabel(lblInvNearExpiryTrend, data.getNearExpiryTrend() != null ? data.getNearExpiryTrend() : 0.0);
                 setTrendLabel(lblInvExpiredTrend, data.getExpiredTrend() != null ? data.getExpiredTrend() : 0.0);
                 setTrendLabel(lblInvValueTrend, data.getInventoryValueTrend() != null ? data.getInventoryValueTrend() : 0.0);
-                // 👆 KẾT THÚC PHẦN THÊM MỚI 👆
 
-                // 2. Cập nhật Bảng TableView (Ép kiểu từ DTO sang Model Medicine của giao diện)
                 ObservableList<Medicine> inventoryList = FXCollections.observableArrayList();
                 for (com.pharmacy.dto.InventoryReportDTO.MedicineRow row : data.getTableData()) {
                     inventoryList.add(new Medicine(
@@ -1205,10 +1137,8 @@ private void handleCustomerMetricChange(ActionEvent event) {
                 }
                 tableInventory.setItems(inventoryList);
 
-                // 3. Cập nhật Biểu đồ cột danh mục (đã đổi từ Pie Chart)
                 updateCategoryBarChart(data);
 
-                // 4. Cập nhật Biểu đồ cột Top Moving
                 updateInventoryBarChart(data);
             });
         }).exceptionally(ex -> {
@@ -1224,14 +1154,12 @@ private void handleCustomerMetricChange(ActionEvent event) {
         barChartCategory.setAnimated(false);
         barChartCategory.getData().clear();
         
-        // Dọn dẹp lưới nền cho sạch sẽ
         barChartCategory.setHorizontalGridLinesVisible(false);
         barChartCategory.setVerticalGridLinesVisible(false);
         barChartCategory.setAlternativeRowFillVisible(false);
         barChartCategory.setAlternativeColumnFillVisible(false);
-        barChartCategory.setLegendVisible(false); // Ẩn legend vì tên đã nằm ở trục X
+        barChartCategory.setLegendVisible(false); 
 
-        // Xoay label trục X chéo 45 độ để chữ không bị đè nhau
         CategoryAxis xAxis = (CategoryAxis) barChartCategory.getXAxis();
         xAxis.setTickLabelRotation(45);
 
@@ -1244,7 +1172,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
         
         barChartCategory.getData().add(series);
 
-        // Đổ bảng màu đa dạng cho các cột (giữ lại các màu cũ của Pie Chart)
         Platform.runLater(() -> {
             String[] colors = {"#00bfa5", "#4C15AB", "#b60000", "#0984e3", "#878A94", "#f39c12", "#8e44ad", "#27ae60", "#d35400", "#2c3e50"};
             int index = 0;
@@ -1252,7 +1179,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
                 Node node = d.getNode();
                 if (node != null) {
                     String color = colors[index % colors.length];
-                    // Bo góc trên của cột cho mềm mại
                     node.setStyle("-fx-bar-fill: " + color + "; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
                 }
                 index++;
@@ -1273,7 +1199,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng tồn (Hộp)");
         
-        // 1. Tìm ra giá trị tồn kho lớn nhất trong danh sách bán chậm
         double maxStock = 0;
         for (var s : data.getSlowestMoving()) {
             double currentVal = s.getValue().doubleValue();
@@ -1285,22 +1210,18 @@ private void handleCustomerMetricChange(ActionEvent event) {
         
         barChartInventory.getData().add(series);
 
-        // Biến final để dùng được bên trong Platform.runLater
         final double finalMaxStock = maxStock;
 
         Platform.runLater(() -> {
             for (XYChart.Data<String, Number> d : series.getData()) {
                 Node node = d.getNode();
                 if (node != null) {
-                    // 2. HIGHLIGHT: Nếu cột này là cột cao nhất -> Bôi màu Đỏ Cam cảnh báo
                     if (d.getYValue().doubleValue() == finalMaxStock && finalMaxStock > 0) {
                         node.setStyle("-fx-bar-fill: #ff5252; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
                     } 
-                    // Nếu lớn hơn 1000 nhưng không phải cao nhất -> Bôi màu Vàng Cam (Tùy chọn thêm)
                     else if (d.getYValue().doubleValue() > 1000) {
                         node.setStyle("-fx-bar-fill: #ffa726; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
                     }
-                    // Các cột còn lại ở mức an toàn -> Giữ màu Xanh ngọc mặc định
                     else {
                         node.setStyle("-fx-bar-fill: #00bfa5; -fx-border-width: 0; -fx-background-radius: 4 4 0 0;");
                     }
@@ -1319,7 +1240,6 @@ private void handleCustomerMetricChange(ActionEvent event) {
 
         tableInventory.setRowFactory(tv -> new javafx.scene.control.TableRow<Medicine>() {
             
-            // Khối khởi tạo: Lắng nghe sự kiện người dùng click chọn dòng
             {
                 selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
                     applyRowStyle(getItem(), emptyProperty().get(), isNowSelected);
@@ -1332,15 +1252,12 @@ private void handleCustomerMetricChange(ActionEvent event) {
                 applyRowStyle(item, empty, isSelected());
             }
 
-            // Hàm xử lý logic bôi màu chung
             private void applyRowStyle(Medicine item, boolean empty, boolean isSelected) {
                 if (item == null || empty) {
                     setStyle("");
                 } else if (isSelected) {
-                    // Dòng đang được click -> Xóa màu custom để JavaFX dùng màu xanh dương/chữ trắng mặc định
                     setStyle(""); 
                 } else {
-                    // Trạng thái bình thường -> Bật highlight theo điều kiện
                     if (item.getStock() < 50) {
                         setStyle("-fx-background-color: #ffebee;"); 
                     } else if (item.getStatus() != null && (item.getStatus().contains("Cận hạn") || item.getStatus().contains("Hết hạn"))) {
@@ -1360,30 +1277,25 @@ private void handleCustomerMetricChange(ActionEvent event) {
         String productGroup = (cbCustProductGroup.getValue() != null) ? cbCustProductGroup.getValue() : "All Product Groups";
         String customerType = (cbCustCustomerType.getValue() != null) ? cbCustCustomerType.getValue() : "All Customers";
 
-        // Giả định hàm này đã được định nghĩa trong ReportApiService giống như Performance
         reportApiService.fetchCustomerData(year, quarter, productGroup, customerType).thenAccept(data -> {
             Platform.runLater(() -> {
                 this.currentCustomerData = data;
 
-                // 1. Cập nhật giá trị hiển thị lên 5 thẻ KPI chính
                 lblCustTotal.setText(data.getTotalCustomers());
                 lblCustNew.setText(data.getNewCustomers());
                 lblCustReturnRate.setText(data.getReturnRate());
                 lblCustVip.setText(data.getVipCustomers());
                 lblCustLost.setText(data.getLostCustomers());
 
-                // 2. Cập nhật phần trăm Trend (+/-) tương ứng kèm màu sắc tự động
                 setTrendLabel(lblCustTotalTrend, data.getTotalCustomersTrend() != null ? data.getTotalCustomersTrend() : 0.0);
                 setTrendLabel(lblCustNewTrend, data.getNewCustomersTrend() != null ? data.getNewCustomersTrend() : 0.0);
                 setTrendLabel(lblCustReturnTrend, data.getReturnRateTrend() != null ? data.getReturnRateTrend() : 0.0);
                 setTrendLabel(lblCustVipTrend, data.getVipCustomersTrend() != null ? data.getVipCustomersTrend() : 0.0);
                 setTrendLabel(lblCustLostTrend, data.getLostCustomersTrend() != null ? data.getLostCustomersTrend() : 0.0);
 
-                // 3. Đổ dữ liệu vào 2 biểu đồ dạng tĩnh (Không đổi theo nút bấm)
                 loadTopSpendersChart();
                 loadCustomerSegmentationChart();
 
-                // 4. Đồng bộ hóa lại các biểu đồ phân tích sâu (Growth, Gender, Age)
                 refreshCustomerDashboard();
             });
         }).exceptionally(ex -> {
