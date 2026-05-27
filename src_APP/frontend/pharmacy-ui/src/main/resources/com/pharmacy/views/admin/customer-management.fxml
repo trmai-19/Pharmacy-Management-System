@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.sales.CustomerManagerController">
+<AnchorPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.CustomerManagerController">
    <children>
       <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="20.0">
          <children>
@@ -47,7 +47,7 @@
                <children>
                   <HBox alignment="CENTER_LEFT" prefHeight="60.0" spacing="15.0">
                      <children>
-                        <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="320.0" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8; -fx-padding: 0 15;">
+                       <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="320.0" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8; -fx-padding: 0 15;">
                            <children>
                               <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px;" text="🔍" />
                               <TextField fx:id="txtSearch" onAction="#handleSearchData" prefHeight="35.0" promptText="Gõ Tên/SĐT rồi ấn Enter..." style="-fx-background-color: transparent; -fx-font-size: 14px;" HBox.hgrow="ALWAYS" />
@@ -57,6 +57,9 @@
                         <ComboBox fx:id="cbTier" onAction="#handleSearchData" prefHeight="40.0" prefWidth="201.0" promptText="Tất cả hạng mức" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8; -fx-font-size: 14px;" />
                         
                         <Region HBox.hgrow="ALWAYS" />
+                        
+                        <Button fx:id="btnShowUpgradeForm" onAction="#handleShowUpgradeForm" prefHeight="40.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-cursor: hand;" text="+ TẠO TÀI KHOẢN" />
+                        
                         <Button fx:id="btnShowCreateForm" onAction="#handleShowCreateForm" prefHeight="40.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-cursor: hand;" text="+ TẠO HỒ SƠ" />
                      </children>
                      <VBox.margin><Insets bottom="15.0" /></VBox.margin>
@@ -132,6 +135,7 @@
             </VBox>
          </children>
       </StackPane>
+      
       <StackPane fx:id="modalInvoiceHistory" alignment="CENTER" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.4);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <VBox StackPane.alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="900.0" prefHeight="650.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);">
@@ -175,5 +179,41 @@
          </children>
       </StackPane>
 
+      <StackPane fx:id="modalUpgradeAccount" alignment="CENTER" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.4);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox StackPane.alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="550.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 20, 0, 0, 10);">
+               <children>
+                  <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: white; -fx-background-radius: 12 12 0 0; -fx-padding: 25; -fx-border-color: transparent transparent #e2e8f0 transparent; -fx-border-width: 0 0 1 0;">
+                     <children>
+                        <Label style="-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="TẠO TÀI KHOẢN KHÁCH HÀNG" />
+                        <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px;" text="Cấp tài khoản đăng nhập cho khách hàng" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="20.0" style="-fx-background-color: white; -fx-padding: 30;">
+                     <children>
+                        <VBox spacing="8.0">
+                           <children>
+                              <Label style="-fx-font-weight: bold; -fx-text-fill: #334155; -fx-font-size: 14px;" text="Mã Khách Hàng" />
+                              <TextField fx:id="txtUpgradeMaKH" disable="true" prefHeight="45.0" style="-fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px; -fx-opacity: 1;" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="8.0">
+                           <children>
+                              <Label style="-fx-font-weight: bold; -fx-text-fill: #334155; -fx-font-size: 14px;" text="Email nhận thông tin (*)" />
+                              <TextField fx:id="txtUpgradeEmail" prefHeight="45.0" promptText="Nhập email của khách hàng..." style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-background-color: white; -fx-padding: 20 30 30 30; -fx-background-radius: 0 0 12 12;">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#handleCloseUpgradeForm" prefHeight="40.0" prefWidth="120.0" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand;" text="HỦY BỎ" />
+                        <Button fx:id="btnConfirmUpgrade" mnemonicParsing="false" onAction="#handleConfirmUpgrade" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="XÁC NHẬN" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
    </children>
 </AnchorPane>

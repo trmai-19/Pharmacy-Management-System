@@ -14,7 +14,6 @@ import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
-import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import com.pharmacy.backend.service.CustomerService;
 
@@ -48,13 +47,6 @@ public class CustomerController {
         CustomerResponse data = customerService.createCustomer(request);
         
         return ResponseEntity.ok(new ApiResponse<>(200, "Tạo hồ sơ khách hàng thành công", data));
-    }
-
-
-    @PostMapping("/quick-create")
-    public ResponseEntity<ApiResponse<CustomerResponse>> quickCreate(@Valid @RequestBody QuickCreateCustomerRequest request) {
-        CustomerResponse data = customerService.quickCreate(request);
-        return ResponseEntity.ok(new ApiResponse<>(200, "Đã tạo hồ sơ tích điểm thành công", data));
     }
 
     @PostMapping("/{makh}/upgrade")

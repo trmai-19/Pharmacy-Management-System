@@ -16,7 +16,6 @@ import com.pharmacy.backend.dto.CustomerReportResponse;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
-import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import com.pharmacy.backend.mapper.CustomerMapper;
 import com.pharmacy.backend.mapper.InvoiceMapper;
@@ -39,26 +38,6 @@ public class CustomerServiceImpl implements CustomerService {
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
 
-    /* Tạo hồ sơ KH chỉ dùng sdt */
-    @Override
-    @Transactional
-    public CustomerResponse quickCreate(QuickCreateCustomerRequest request) {
-        if (customerRepository.findBySdt(request.getSdt()).isPresent()) {
-            throw new RuntimeException("Số điện thoại này đã được đăng ký tích điểm!"); 
-        }
-
-        Customer customer = new Customer();
-        customer.setSdt(request.getSdt());
-        customer.setTenkh(request.getTenkh() != null && !request.getTenkh().isEmpty() 
-            ? request.getTenkh() : "Khách tích điểm SĐT");
-        customer.setTongdoanhthu(0.0);
-        customer.setGioitinh(request.getGioitinh());
-        customer.setHangtv("THANH VIEN");
-
-        Customer savedCustomer = customerRepository.save(customer);
-        return customerMapper.toResponse(savedCustomer);
-    }
-
     @Override
     @Transactional
     public void upgradeToAccount(String makh, UpgradeAccountRequest request) {
@@ -77,6 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
         account.setVaitro("CUSTOMER");
         account.setEmail(request.getEmail());
         account.setTrangthai("ACTIVE");
+        account.setFirstLogin(true);
         account.setNgaytao(new Date());
         accountRepository.save(account);
 

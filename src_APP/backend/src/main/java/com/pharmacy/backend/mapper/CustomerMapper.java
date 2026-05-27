@@ -13,6 +13,7 @@ public class CustomerMapper {
                 .makh(customer.getMakh())
                 .tenkh(customer.getTenkh())
                 .gioitinh(customer.getGioitinh())
+                .ngaysinh(customer.getNgaysinh())
                 .sdt(customer.getSdt())
                 .tongdoanhthu(customer.getTongdoanhthu())
                 .diemtichluy(customer.getDiemtichluy())
@@ -24,6 +25,7 @@ public class CustomerMapper {
         customer.setTenkh(request.getTenkh());
         customer.setGioitinh(request.getGioitinh());
         customer.setSdt(request.getSdt());
+        customer.setNgaysinh(request.getNgaysinh());
     }
 
     public void updateProfileFromRequest(Customer customer, UpdateProfileRequest request) {
