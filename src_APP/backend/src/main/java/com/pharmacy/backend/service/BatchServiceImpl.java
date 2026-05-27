@@ -2,7 +2,6 @@ package com.pharmacy.backend.service;
 
 import com.pharmacy.backend.dto.BatchResponse;
 import com.pharmacy.backend.dto.WarehouseResponse;
-import com.pharmacy.backend.mapper.WarehouseMapper;
 import com.pharmacy.backend.repository.BatchRepository;
 import com.pharmacy.backend.repository.WarehouseRepository;
 
@@ -18,7 +17,6 @@ import java.util.Date;
 public class BatchServiceImpl implements BatchService {
 
     private final BatchRepository batchRepository;
-    private final WarehouseMapper warehouseMapper;
     private final WarehouseRepository warehouseRepository;
 
     @Override
@@ -28,9 +26,8 @@ public class BatchServiceImpl implements BatchService {
 
     @Override
     public List<BatchResponse> getLowStockAlerts() {
-        return batchRepository.findBySlspBetween(1, 10).stream()
-                .map(warehouseMapper::toBatchResponse)
-                .toList();
+        // Gọi query mới
+        return batchRepository.findLowStockAlerts();
     }
 
     @Override
@@ -41,9 +38,7 @@ public class BatchServiceImpl implements BatchService {
         cal.add(Calendar.MONTH, 3);
         Date threeMonthsLater = cal.getTime();
 
-        return batchRepository.findByHsdBetween(today, threeMonthsLater).stream()
-                .map(warehouseMapper::toBatchResponse)
-                .toList();
+        return batchRepository.findExpiringSoonAlerts(today, threeMonthsLater);
     }
 
     @Override

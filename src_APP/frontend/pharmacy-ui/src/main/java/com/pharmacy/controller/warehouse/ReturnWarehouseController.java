@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pharmacy.model.ImportReceipt;
 import com.pharmacy.model.ReturnItemRow;
 import com.pharmacy.model.SupplierReturnTicket;
+import com.pharmacy.model.ViewImportDetailRow; 
+import com.pharmacy.model.ViewReturnDetailRow; 
 import com.pharmacy.util.ApiService;
 import com.pharmacy.util.Session;
 import javafx.application.Platform;
@@ -49,7 +51,7 @@ public class ReturnWarehouseController {
     @FXML private Pane modalViewImport;
     @FXML private Label lblViewImpId, lblViewImpDate, lblViewImpNcc, lblViewImpTotal;
     @FXML private TableView<ViewImportDetailRow> tableViewImportItems;
-    @FXML private TableColumn<ViewImportDetailRow, String> colViewImpMalo;
+    @FXML private TableColumn<ViewImportDetailRow, String> colViewImpProductName, colViewImpMalo;
     @FXML private TableColumn<ViewImportDetailRow, Integer> colViewImpQty;
     @FXML private TableColumn<ViewImportDetailRow, Double> colViewImpPrice, colViewImpTotal;
 
@@ -57,7 +59,7 @@ public class ReturnWarehouseController {
     @FXML private Pane modalViewReturn;
     @FXML private Label lblViewRetId, lblViewRetOriginalId, lblViewRetDate, lblViewRetReason, lblViewRetTotal;
     @FXML private TableView<ViewReturnDetailRow> tableViewReturnItems;
-    @FXML private TableColumn<ViewReturnDetailRow, String> colViewRetMalo;
+    @FXML private TableColumn<ViewReturnDetailRow, String> colViewRetProductName, colViewRetMalo;
     @FXML private TableColumn<ViewReturnDetailRow, Integer> colViewRetQty;
     @FXML private TableColumn<ViewReturnDetailRow, Double> colViewRetPrice, colViewRetTotal;
 
@@ -69,24 +71,25 @@ public class ReturnWarehouseController {
     public void initialize() {
         System.out.println("🔄 Đã nạp giao diện Quản Lý Đổi Trả Kho - Tích hợp Tìm kiếm Real-time");
 
+        tableImportReceipts.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableReturn.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableReturnItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableViewImportItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableViewReturnItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        // Đã xóa hàm styleTableHeaders() ở đây để trả về style gốc của hệ thống
+
         setupTableColumns();
         hideAllModals();
         
-        // ========================================================
-        // GẮN SỰ KIỆN TÌM KIẾM CHO THANH SEARCH MÀ KHÔNG CẦN FXML
-        // ========================================================
-        
-        // 1. Khi ấn Enter trong thanh tìm kiếm
         txtSearchImport.setOnAction(e -> loadImportReceipts());
         
-        // 2. Khi người dùng xóa trắng (Backspace) -> Tự load lại full
         txtSearchImport.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == null || newVal.trim().isEmpty()) {
                 loadImportReceipts();
             }
         });
 
-        // Load dữ liệu ban đầu
         loadImportReceipts();
 
         tableImportReceipts.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -103,7 +106,6 @@ public class ReturnWarehouseController {
     }
 
     private void setupTableColumns() {
-        // --- Cột Master ---
         colImpId.setCellValueFactory(new PropertyValueFactory<>("mapn"));
         colImpDate.setCellValueFactory(new PropertyValueFactory<>("ngaynhap"));
         colImpNcc.setCellValueFactory(new PropertyValueFactory<>("mancc"));
@@ -121,7 +123,7 @@ public class ReturnWarehouseController {
         colImpActionView.setCellFactory(param -> new TableCell<>() {
             private final Button viewBtn = new Button("👁");
             {
-                viewBtn.setStyle("-fx-background-color: #0f766e; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px;");
+                viewBtn.setStyle("-fx-background-color: #0f766e; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 5;");
                 viewBtn.setOnAction(e -> handleViewImportReceipt(getTableView().getItems().get(getIndex())));
             }
             @Override protected void updateItem(String item, boolean empty) {
@@ -130,7 +132,6 @@ public class ReturnWarehouseController {
             }
         });
 
-        // --- Cột Detail ---
         colRetId.setCellValueFactory(new PropertyValueFactory<>("maptNcc"));
         colRetDate.setCellValueFactory(new PropertyValueFactory<>("ngaytra"));
         colRetReason.setCellValueFactory(new PropertyValueFactory<>("lydotra"));
@@ -147,7 +148,7 @@ public class ReturnWarehouseController {
         colRetActionView.setCellFactory(param -> new TableCell<>() {
             private final Button viewBtn = new Button("👁");
             {
-                viewBtn.setStyle("-fx-background-color: #c2410c; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px;");
+                viewBtn.setStyle("-fx-background-color: #c2410c; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 5;");
                 viewBtn.setOnAction(e -> handleViewReturnTicket(getTableView().getItems().get(getIndex())));
             }
             @Override protected void updateItem(String item, boolean empty) {
@@ -156,7 +157,6 @@ public class ReturnWarehouseController {
             }
         });
 
-        // --- Cột Bảng Tạm Trả Hàng ---
         colRetMaLo.setCellValueFactory(new PropertyValueFactory<>("malo"));
         colRetQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
         colRetAction.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>("Xóa"));
@@ -173,7 +173,7 @@ public class ReturnWarehouseController {
         });
         tableReturnItems.setItems(temporaryReturnList);
 
-        // --- Cột Modal Xem Lịch Sử Phiếu Nhập ---
+        colViewImpProductName.setCellValueFactory(new PropertyValueFactory<>("tensanpham"));
         colViewImpMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
         colViewImpQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
         colViewImpPrice.setCellValueFactory(new PropertyValueFactory<>("gianhap"));
@@ -192,7 +192,7 @@ public class ReturnWarehouseController {
             }
         });
 
-        // --- Cột Modal Xem Lịch Sử Phiếu Trả ---
+        colViewRetProductName.setCellValueFactory(new PropertyValueFactory<>("tensanpham"));
         colViewRetMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
         colViewRetQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
         colViewRetPrice.setCellValueFactory(new PropertyValueFactory<>("dongiatra"));
@@ -258,10 +258,6 @@ public class ReturnWarehouseController {
         });
     }
 
-    // ===============================================
-    // HÀM XỬ LÝ CLICK NÚT MẮT 👁 (VIEW DETAIL)
-    // ===============================================
-
     private void handleViewImportReceipt(ImportReceipt receipt) {
         lblViewImpId.setText(receipt.getMapn());
         lblViewImpDate.setText(receipt.getNgaynhap());
@@ -278,10 +274,11 @@ public class ReturnWarehouseController {
                         JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
                         for (JsonNode node : dataNode) {
                             String malo = node.has("malo") ? node.get("malo").asText() : "";
+                            String tensanpham = node.has("tensanpham") ? node.get("tensanpham").asText() : "Chưa cập nhật";
                             int sl = node.has("sl") ? node.get("sl").asInt() : 0;
                             double gianhap = node.has("gianhap") ? node.get("gianhap").asDouble() : 0.0;
                             double thanhtien = sl * gianhap;
-                            details.add(new ViewImportDetailRow(malo, sl, gianhap, thanhtien));
+                            details.add(new ViewImportDetailRow(tensanpham, malo, sl, gianhap, thanhtien));
                         }
                     } catch (Exception e) { e.printStackTrace(); }
                 }
@@ -313,10 +310,11 @@ public class ReturnWarehouseController {
                                 JsonNode itemsArray = node.get("items");
                                 for (JsonNode item : itemsArray) {
                                     String malo = item.has("malo") ? item.get("malo").asText() : "";
+                                    String tensanpham = item.has("tensanpham") ? item.get("tensanpham").asText() : "Chưa cập nhật";
                                     int sl = item.has("sl") ? item.get("sl").asInt() : 0;
                                     double dongia = item.has("dongiatra") ? item.get("dongiatra").asDouble() : 0.0;
                                     double thanhTien = item.has("thanhtien") ? item.get("thanhtien").asDouble() : (sl * dongia);
-                                    details.add(new ViewReturnDetailRow(malo, sl, dongia, thanhTien));
+                                    details.add(new ViewReturnDetailRow(tensanpham, malo, sl, dongia, thanhTien));
                                 }
                                 break; 
                             }
@@ -327,10 +325,6 @@ public class ReturnWarehouseController {
         });
         modalViewReturn.setVisible(true);
     }
-
-    // ===============================================
-    // CÁC HÀM XỬ LÝ LẬP PHIẾU
-    // ===============================================
 
     @FXML
     void onBtnShowReturnNCC(ActionEvent event) {
@@ -447,30 +441,5 @@ public class ReturnWarehouseController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    // ===============================================
-    // LỚP DỮ LIỆU TẠM THỜI CHO MODAL XEM CHI TIẾT 
-    // ===============================================
-    public static class ViewImportDetailRow {
-        private String malo; private int sl; private double gianhap; private double thanhtien;
-        public ViewImportDetailRow(String malo, int sl, double gianhap, double thanhtien) {
-            this.malo = malo; this.sl = sl; this.gianhap = gianhap; this.thanhtien = thanhtien;
-        }
-        public String getMalo() { return malo; }
-        public int getSl() { return sl; }
-        public double getGianhap() { return gianhap; }
-        public double getThanhtien() { return thanhtien; }
-    }
-
-    public static class ViewReturnDetailRow {
-        private String malo; private int sl; private double dongiatra; private double thanhtien;
-        public ViewReturnDetailRow(String malo, int sl, double dongiatra, double thanhtien) {
-            this.malo = malo; this.sl = sl; this.dongiatra = dongiatra; this.thanhtien = thanhtien;
-        }
-        public String getMalo() { return malo; }
-        public int getSl() { return sl; }
-        public double getDongiatra() { return dongiatra; }
-        public double getThanhtien() { return thanhtien; }
     }
 }

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImportReceiptDetailResponse {
     private String malo;
+    private String tensanpham;
     private Integer sl;
     private Double gianhap;
 }

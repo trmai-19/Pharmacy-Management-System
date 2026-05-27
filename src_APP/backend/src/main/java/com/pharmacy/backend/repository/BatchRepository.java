@@ -25,4 +25,14 @@ public interface BatchRepository extends JpaRepository<Batch, String> {
     List<Batch> findBySlspBetween(Integer min, Integer max);
 
     java.util.List<Batch> findByMaspOrderByHsdAsc(String masp);
+
+    @Query("SELECT new com.pharmacy.backend.dto.BatchResponse(b.malo, b.masp, b.ngaysx, b.ngaynhap, b.hsd, b.slsp, b.trangthai, c.gianhap) " +
+           "FROM Batch b LEFT JOIN ImportReceiptDetail c ON b.malo = c.malo " +
+           "WHERE b.slsp > 0 AND b.slsp <= 10")
+    List<BatchResponse> findLowStockAlerts();
+
+    @Query("SELECT new com.pharmacy.backend.dto.BatchResponse(b.malo, b.masp, b.ngaysx, b.ngaynhap, b.hsd, b.slsp, b.trangthai, c.gianhap) " +
+           "FROM Batch b LEFT JOIN ImportReceiptDetail c ON b.malo = c.malo " +
+           "WHERE b.hsd >= :today AND b.hsd <= :threeMonthsLater AND b.slsp > 0")
+    List<BatchResponse> findExpiringSoonAlerts(@Param("today") Date today, @Param("threeMonthsLater") Date threeMonthsLater);
 }

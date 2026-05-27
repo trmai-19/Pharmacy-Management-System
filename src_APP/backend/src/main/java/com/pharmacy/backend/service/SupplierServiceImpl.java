@@ -7,7 +7,6 @@ import com.pharmacy.backend.model.Supplier;
 import com.pharmacy.backend.repository.SupplierRepository;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,18 +50,12 @@ public class SupplierServiceImpl implements SupplierService {
     public List<SupplierResponse> searchSuppliers(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return supplierRepository.findAll().stream()
-                    .map(s -> SupplierResponse.builder()
-                            .mancc(s.getMancc())
-                            .tenncc(s.getTenncc())
-                            .build())
+                    .map(warehouseMapper::toSupplierResponse)
                     .toList();
         }
         
         return supplierRepository.searchSuppliers(keyword.trim()).stream()
-                .map(s -> SupplierResponse.builder()
-                        .mancc(s.getMancc())
-                        .tenncc(s.getTenncc())
-                        .build())
+                .map(warehouseMapper::toSupplierResponse)
                 .toList();
     }
 }

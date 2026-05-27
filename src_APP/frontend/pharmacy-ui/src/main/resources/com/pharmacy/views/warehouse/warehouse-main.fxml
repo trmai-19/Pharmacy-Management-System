@@ -40,6 +40,7 @@
                 <VBox fx:id="sideMenu" spacing="12">
                     <Button fx:id="btnInventory" maxWidth="Infinity" onAction="#showInventoryManager" styleClass="nav-btn, nav-btn-active" text="🏠  QUẢN LÝ KHO" />
                     <Button fx:id="btnReturn" maxWidth="Infinity" onAction="#showReturnManager" styleClass="nav-btn" text="↩  QUẢN LÝ ĐỔI TRẢ" />
+                    <Button fx:id="btnSupplier" maxWidth="Infinity" onAction="#showSupplierManager" styleClass="nav-btn" text="🏢  QUẢN LÝ NHÀ CUNG CẤP" />
                 </VBox>
 
                 <Region VBox.vgrow="ALWAYS" />
@@ -64,7 +65,7 @@
                     <Region maxHeight="100.0" minHeight="100.0" prefHeight="100.0" HBox.hgrow="ALWAYS" />
 
                     <HBox alignment="CENTER_RIGHT" spacing="25.0">
-                        </HBox>
+                    </HBox>
 
                     <Circle fill="WHITE" radius="28.0" />
                     <AnchorPane>
@@ -85,7 +86,6 @@
                 </HBox>
 
                 <AnchorPane fx:id="contentPane" prefHeight="800.0" prefWidth="1134.0" VBox.vgrow="ALWAYS" />
-                
             </children>
         </VBox>
     </center>

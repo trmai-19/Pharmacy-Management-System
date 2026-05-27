@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane stylesheets="@../../styles/admin.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.warehouse.SupplierManagerController">
+    
+    <VBox spacing="20.0" style="-fx-background-color: #f4f7f8; -fx-padding: 20;">
+        
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <TextField fx:id="txtSearch" prefWidth="350" promptText="Tìm kiếm tên, mã NCC..." style="-fx-padding: 9 15; -fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5; -fx-font-size: 14px;"/>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <Button onAction="#handleShowAddModal" style="-fx-background-color: #067889; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 20; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;" text="Thêm"/>
+            <Button onAction="#handleShowEditModal" style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 25; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;" text="Sửa"/>
+            <Button onAction="#handleDeleteSupplier" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 25; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;" text="Xóa"/>
+        </HBox>
+
+        <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
+            <Label style="-fx-font-weight: bold; -fx-text-fill: #0b5d77; -fx-font-size: 15px;" text="DANH SÁCH NHÀ CUNG CẤP">
+                <VBox.margin><Insets bottom="10"/></VBox.margin>
+            </Label>
+            <TableView fx:id="tblSuppliers" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
+                <columns>
+                    <TableColumn fx:id="colMaNCC" prefWidth="120" text="Mã NCC" />
+                    <TableColumn fx:id="colTenNCC" prefWidth="250" text="Tên Nhà Cung Cấp" />
+                    <TableColumn fx:id="colSDT" prefWidth="150" text="Số Điện Thoại" />
+                    <TableColumn fx:id="colEmail" prefWidth="200" text="Email" />
+                    <TableColumn fx:id="colDiaChi" prefWidth="300" text="Địa Chỉ" />
+                </columns>
+            </TableView>
+        </VBox>
+
+        <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
+            <Label fx:id="lblReceiptHistory" style="-fx-font-weight: bold; -fx-text-fill: #d97706; -fx-font-size: 15px;" text="LỊCH SỬ PHIẾU NHẬP CỦA NHÀ CUNG CẤP: ...">
+                <VBox.margin><Insets bottom="10"/></VBox.margin>
+            </Label>
+            <TableView fx:id="tblReceipts" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
+                <columns>
+                    <TableColumn fx:id="colMaPhieu" prefWidth="150" text="Mã Phiếu Nhập" />
+                    <TableColumn fx:id="colNgayNhap" prefWidth="150" text="Ngày Nhập" />
+                    <TableColumn fx:id="colTongTien" prefWidth="150" text="Tổng Tiền (VNĐ)" />
+                    <TableColumn fx:id="colTrangThai" prefWidth="150" text="Trạng Thái" />
+                    <TableColumn fx:id="colChiTiet" prefWidth="100" text="Chi tiết" style="-fx-alignment: CENTER;" />
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+
+    <StackPane fx:id="modalSupplier" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.5);">
+        <VBox maxWidth="450" maxHeight="450" spacing="15.0" style="-fx-background-color: white; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 30;">
+            <Label fx:id="lblModalTitle" style="-fx-font-weight: 900; -fx-text-fill: #0b5d77; -fx-font-size: 20px;" text="THÊM NHÀ CUNG CẤP MỚI" />
+            
+            <VBox spacing="8.0">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Tên nhà cung cấp (*)" />
+                <TextField fx:id="txtTenNccModal" promptText="Tên công ty/nhà cung cấp..." style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+            </VBox>
+            <VBox spacing="8.0">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Số điện thoại" />
+                <TextField fx:id="txtSdtModal" promptText="Số điện thoại..." style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+            </VBox>
+            <VBox spacing="8.0">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Email" />
+                <TextField fx:id="txtEmailModal" promptText="Email..." style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+            </VBox>
+            <VBox spacing="8.0">
+                <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="Địa chỉ" />
+                <TextField fx:id="txtDiaChiModal" promptText="Địa chỉ..." style="-fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+            
+            <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                <Button onAction="#handleHideModals" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-weight: bold; -fx-padding: 9 20; -fx-cursor: hand; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" text="HỦY BỎ" />
+                <Button onAction="#handleSaveSupplier" style="-fx-background-color: #0b5d77; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 25; -fx-cursor: hand; -fx-background-radius: 5;" text="LƯU DỮ LIỆU" />
+            </HBox>
+        </VBox>
+    </StackPane>
+
+    <StackPane fx:id="modalViewImport" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.5);">
+        <VBox maxWidth="750" maxHeight="550" spacing="15.0" style="-fx-background-color: white; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 25 30;">
+            <HBox alignment="CENTER_LEFT">
+                <Label fx:id="lblViewImpTitle" style="-fx-font-weight: 900; -fx-text-fill: #0f766e; -fx-font-size: 20px;" text="CHI TIẾT PHIẾU NHẬP: ..." />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button onAction="#handleHideModals" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-font-size: 20px; -fx-font-weight: bold; -fx-cursor: hand;" text="✕" />
+            </HBox>
+            
+            <TableView fx:id="tableViewImportItems" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
+                <columns>
+                    <TableColumn fx:id="colViewImpProductName" prefWidth="250" text="Tên Sản Phẩm" />
+                    <TableColumn fx:id="colViewImpMalo" prefWidth="100" text="Mã Lô" />
+                    <TableColumn fx:id="colViewImpQty" prefWidth="100" text="Số Lượng" />
+                    <TableColumn fx:id="colViewImpPrice" prefWidth="120" text="Giá Nhập" />
+                    <TableColumn fx:id="colViewImpTotal" prefWidth="120" text="Thành Tiền" />
+                </columns>
+            </TableView>
+            <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
+                 <Label fx:id="lblViewImpTotal" style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #b45309;" text="Tổng tiền: 0 VNĐ" />
+            </HBox>
+        </VBox>
+    </StackPane>
+</StackPane>

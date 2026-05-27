@@ -21,6 +21,7 @@ public class WarehouseController {
     @FXML private Label lblWarehouseName;
     @FXML private Button btnInventory;
     @FXML private Button btnReturn; 
+    @FXML private Button btnSupplier; // Nút Quản lý Nhà cung cấp
     @FXML private MenuButton avatarMenuButton; 
     
     private Button currentActiveButton;
@@ -59,6 +60,12 @@ public class WarehouseController {
     @FXML
     void showReturnManager(ActionEvent event) {
         handleMenuClick((Button) event.getSource(), "return-manager.fxml", "QUẢN LÝ ĐỔI TRẢ");
+    }
+
+    // ==== HÀM MỚI THÊM CHO QUẢN LÝ NHÀ CUNG CẤP ====
+    @FXML
+    void showSupplierManager(ActionEvent event) {
+        handleMenuClick((Button) event.getSource(), "supplier-manager.fxml", "QUẢN LÝ NHÀ CUNG CẤP");
     }
 
     private void handleMenuClick(Button clickedButton, String fxmlName, String title) {

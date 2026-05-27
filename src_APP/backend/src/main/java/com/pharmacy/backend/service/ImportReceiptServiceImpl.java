@@ -26,10 +26,18 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
     private final ImportReceiptDetailRepository importReceiptDetailRepository;
     private final BatchRepository batchRepository;
     private final SupplierRepository supplierRepository;
+    private final ProductRepository productRepository;
     private final WarehouseMapper warehouseMapper;
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private String getProductNameByMalo(String malo) {
+        return batchRepository.findById(malo)
+                .flatMap(batch -> productRepository.findById(batch.getMasp()))
+                .map(Product::getTensanpham)
+                .orElse("Chưa cập nhật");
+    }
 
     @Override
     public List<ImportReceiptResponse> getAllImportReceipts(String search) {
@@ -104,12 +112,12 @@ public class ImportReceiptServiceImpl implements ImportReceiptService {
 
     @Override
     public List<ImportReceiptDetailResponse> getDetailsByMapn(String mapn) {
-        // ImportReceiptDetail là Entity của ông
         List<ImportReceiptDetail> details = importReceiptDetailRepository.findByMapn(mapn);
         
-        // Đóng gói dữ liệu vào DTO
+        // Đóng gói dữ liệu vào DTO và gọi Helper móc tên sản phẩm
         return details.stream().map(d -> ImportReceiptDetailResponse.builder()
                 .malo(d.getMalo())
+                .tensanpham(getProductNameByMalo(d.getMalo())) // Gắn tên sản phẩm
                 .sl(d.getSl())
                 .gianhap(d.getGianhap())
                 .build()
