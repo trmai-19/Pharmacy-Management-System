@@ -17,6 +17,7 @@ import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
+import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.mapper.CustomerMapper;
 import com.pharmacy.backend.mapper.InvoiceMapper;
 import com.pharmacy.backend.model.Account;
@@ -37,6 +38,25 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmailService emailService;
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
+
+    @Override
+    @Transactional
+    public CustomerResponse quickCreate(QuickCreateCustomerRequest request) {
+        if (customerRepository.findBySdt(request.getSdt()).isPresent()) {
+            throw new RuntimeException("Số điện thoại này đã được đăng ký tích điểm!"); 
+        }
+
+        Customer customer = new Customer();
+        customer.setSdt(request.getSdt());
+        customer.setTenkh(request.getTenkh() != null && !request.getTenkh().isEmpty() 
+            ? request.getTenkh() : "Khách tích điểm SĐT");
+        customer.setTongdoanhthu(0.0);
+        customer.setGioitinh(request.getGioitinh());
+        customer.setHangtv("THANH VIEN");
+
+        Customer savedCustomer = customerRepository.save(customer);
+        return customerMapper.toResponse(savedCustomer);
+    }
 
     @Override
     @Transactional
