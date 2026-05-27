@@ -176,7 +176,6 @@ BEGIN
 END;
 /
 
---Số lượng bán không được lớn hơn số lượng trong kho (còn hsd)
 CREATE OR REPLACE TRIGGER TRG_CTHD_CHECK_KHO_BEFORE
 BEFORE INSERT OR UPDATE ON CTHD
 FOR EACH ROW
@@ -186,7 +185,6 @@ DECLARE
     v_masp VARCHAR2(20);
     v_trangthai_sp VARCHAR2(50);
 BEGIN
-    -- 1. Lấy thông tin lô hàng và mã sản phẩm
     BEGIN
         SELECT SLSP, HSD, MASP INTO v_ton_kho, v_hsd, v_masp
         FROM LOSANPHAM 
@@ -197,7 +195,6 @@ BEGIN
             RAISE_APPLICATION_ERROR(-20010, 'Lỗi: Mã lô ' || :NEW.MALO || ' không tồn tại!');
     END;
 
-    -- 2. Kiểm tra trạng thái sản phẩm (có xử lý Exception)
     BEGIN
         SELECT TRANGTHAI INTO v_trangthai_sp
         FROM SANPHAM
@@ -208,15 +205,13 @@ BEGIN
         END IF;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN 
-            NULL; -- Bỏ qua nếu không tìm thấy cấu hình sản phẩm
+            NULL; 
     END;
 
-    -- 3. Kiểm tra hạn sử dụng
     IF v_hsd < TRUNC(SYSDATE) THEN
         RAISE_APPLICATION_ERROR(-20013, 'Lỗi: Thuốc thuộc lô ' || :NEW.MALO || ' đã hết hạn!');
     END IF;
 
-    -- 4. Kiểm tra tồn kho
     IF INSERTING THEN
         IF :NEW.SL > v_ton_kho THEN
             RAISE_APPLICATION_ERROR(-20011, 'Lỗi: Không đủ hàng trong kho! (Tồn: ' || v_ton_kho || ')');
