@@ -8,17 +8,16 @@ import com.pharmacy.backend.dto.EmployeeUpdateRequest;
 import com.pharmacy.backend.dto.EmployeeResponse;
 import com.pharmacy.backend.service.EmployeeService;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/employees")
+@RequiredArgsConstructor
 public class EmployeeAdminController {
 
     private final EmployeeService employeeService;
-
-    public EmployeeAdminController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
-    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getAllEmployees() {
@@ -43,5 +42,11 @@ public class EmployeeAdminController {
         return ResponseEntity.ok(response);
     }
 
-    
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> searchEmployees(
+            @RequestParam(required = false) String keyword) {
+        List<EmployeeResponse> data = employeeService.searchEmployees(keyword);
+        ApiResponse<List<EmployeeResponse>> response = new ApiResponse<>(200, "Tìm kiếm nhân viên thành công", data);
+        return ResponseEntity.ok(response);
+    }
 }

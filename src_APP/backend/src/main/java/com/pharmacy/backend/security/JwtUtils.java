@@ -8,11 +8,23 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
+@RequiredArgsConstructor
 public class JwtUtils {
-    private final String SECRET_STRING = "SecretStringForPharmacyManagementSystem2026";
-    private final Key key = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
+
+    @Value("${jwt.secret}")
+    private String SECRET_STRING;
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
+    }
 
     private final long expiration_time = 86400000;
 

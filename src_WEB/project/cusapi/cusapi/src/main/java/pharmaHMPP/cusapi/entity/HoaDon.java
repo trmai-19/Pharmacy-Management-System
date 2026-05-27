@@ -14,13 +14,14 @@ import java.time.LocalDate;
 public class HoaDon {
 
     @Id
-    @Column(name = "MAHD", length = 10)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "MAHD", length = 20)
     private String maHD;
 
-    @Column(name = "MANV", length = 10)
+    @Column(name = "MANV", length = 20)
     private String maNV;
 
-    @Column(name = "MAKH", length = 10)
+    @Column(name = "MAKH", length = 20)
     private String maKH;
 
     @Column(name = "NGAYBAN")
@@ -34,4 +35,7 @@ public class HoaDon {
 
     @Column(name = "DIEMSUDUNG")
     private Integer diemSuDung;
+
+    @Column(name = "TRANGTHAI", length = 50)
+    private String trangThai;
 }

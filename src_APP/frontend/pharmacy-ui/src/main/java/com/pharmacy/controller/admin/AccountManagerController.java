@@ -1,6 +1,15 @@
 package com.pharmacy.controller.admin;
 
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Optional;
+
+import com.fasterxml.jackson.databind.JavaType;
+import com.pharmacy.dto.ApiResponse;
 import com.pharmacy.model.Account;
+import com.pharmacy.util.ApiService;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -9,11 +18,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-
-import java.util.Optional;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class AccountManagerController {
 
@@ -25,21 +34,23 @@ public class AccountManagerController {
     @FXML private TableColumn<Account, String> colEmpUser;
     @FXML private TableColumn<Account, String> colEmpName;
     @FXML private TableColumn<Account, String> colEmpRole;
+    @FXML private TableColumn<Account, String> colEmpEmail;
     @FXML private TableColumn<Account, String> colEmpStatus;
-    @FXML private TableColumn<Account, String> colEmpLastLogin;
 
     // --- TAB 2: KHÁCH HÀNG WEB ---
     @FXML private TextField txtSearchCust;
     @FXML private Button btnResetPwdCust;
-    @FXML private Button btnLockCust;
     @FXML private TableView<Account> tableCustomerAcc;
-    @FXML private TableColumn<Account, String> colCustUser;
-    @FXML private TableColumn<Account, String> colCustName;
-    @FXML private TableColumn<Account, String> colCustRole;
-    @FXML private TableColumn<Account, String> colCustStatus;
-    @FXML private TableColumn<Account, String> colCustLastLogin;
 
-    // Danh sách dữ liệu chung (hoặc riêng lẻ tùy bạn query từ DB)
+    @FXML private Label lblEmpAccounts;
+    @FXML private Label lblWebAccounts;
+    @FXML private Label lblLockedAccounts;
+    
+    @FXML private TableColumn<Account, String> colCustPhone;
+    @FXML private TableColumn<Account, String> colCustEmail;
+    @FXML private TableColumn<Account, String> colCustName;
+    @FXML private TableColumn<Account, String> colCustStatus;
+
     private ObservableList<Account> allAccounts;
 
     @FXML
@@ -47,74 +58,88 @@ public class AccountManagerController {
         System.out.println("🔐 AccountManagerController đang tải...");
 
         setupColumns();
-        loadMockData();
+        loadAccountDataFromServer();
         setupSearchFilters();
         
-        // Cài đặt sự kiện cho các nút bấm
         setupEmployeeActions();
         setupCustomerActions();
     }
 
     private void setupColumns() {
-        // Cột cho bảng Nhân Viên
-        colEmpUser.setCellValueFactory(cellData -> cellData.getValue().usernameProperty());
-        colEmpName.setCellValueFactory(cellData -> cellData.getValue().ownerNameProperty());
-        colEmpRole.setCellValueFactory(cellData -> cellData.getValue().roleProperty());
-        colEmpStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
-        colEmpLastLogin.setCellValueFactory(cellData -> cellData.getValue().lastLoginProperty());
+        colEmpUser.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colEmpName.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
+        colEmpRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+        colEmpEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colEmpStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Cột cho bảng Khách Hàng Web
-        colCustUser.setCellValueFactory(cellData -> cellData.getValue().usernameProperty());
-        colCustName.setCellValueFactory(cellData -> cellData.getValue().ownerNameProperty());
-        colCustRole.setCellValueFactory(cellData -> cellData.getValue().roleProperty());
-        colCustStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
-        colCustLastLogin.setCellValueFactory(cellData -> cellData.getValue().lastLoginProperty());
+        colCustPhone.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colCustEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colCustName.setCellValueFactory(new PropertyValueFactory<>("ownerName"));
+        colCustStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
     }
 
-    private void loadMockData() {
-        allAccounts = FXCollections.observableArrayList(
-            // --- DỮ LIỆU NHÂN VIÊN ---
-            new Account("admin_phat", "Nguyễn Văn Phát", "Admin Hệ Thống", "Đang hoạt động", "18/04/2026 08:30:00", "EMPLOYEE"),
-            new Account("sales_lan", "Trần Thị Lan", "Dược Sĩ Bán Hàng", "Đang hoạt động", "18/04/2026 07:15:22", "EMPLOYEE"),
-            new Account("stock_son", "Phạm Hoàng Sơn", "Quản Lý Kho", "Đang hoạt động", "17/04/2026 18:00:00", "EMPLOYEE"),
-            new Account("sales_tuan", "Lê Minh Tuấn", "Dược Sĩ", "Đã nghỉ việc / Khóa", "10/01/2026 12:00:00", "EMPLOYEE"),
-            new Account("sales_hoa", "Nguyễn Hoa", "Thu Ngân", "Tạm khóa (Sai Pass)", "15/04/2026 09:12:00", "EMPLOYEE"),
+    private void loadAccountDataFromServer() {
+        if (allAccounts == null) {
+            allAccounts = FXCollections.observableArrayList();
+        }
+        allAccounts.clear();
 
-            // --- DỮ LIỆU KHÁCH HÀNG (CHỈ TRÊN WEB) ---
-            new Account("0988123456", "Nguyễn Thu Hà", "Thành viên Web", "Đã xác thực OTP", "18/04/2026 10:20:00", "CUSTOMER"),
-            new Account("luan.tran@gmail.com", "Trần Văn Luân", "Thành viên Web", "Chưa xác thực Email", "02/04/2026 14:15:00", "CUSTOMER"),
-            new Account("0912333444", "Lê Thị Lan Anh", "VIP Web", "Đã xác thực OTP", "16/04/2026 20:45:11", "CUSTOMER"),
-            new Account("0977888111", "Hoàng Kim Liên", "Thành viên Web", "Bị khóa (Spam Order)", "12/04/2026 09:00:00", "CUSTOMER")
-        );
+        ApiService.get("/api/admin/accounts") 
+            .thenApply(HttpResponse::body) 
+            .thenAccept(jsonResponseBody -> {
+                try {
+                    JavaType listType = ApiService.mapper.getTypeFactory().constructCollectionType(List.class, Account.class);
+                    JavaType apiResponseType = ApiService.mapper.getTypeFactory().constructParametricType(ApiResponse.class, listType);
+                    
+                    ApiResponse<List<Account>> apiRes = ApiService.mapper.readValue(jsonResponseBody, apiResponseType);
+
+                    if (apiRes != null && apiRes.getStatus() == 200 && apiRes.getData() != null) {
+                        List<Account> serverAccounts = apiRes.getData();
+                        Platform.runLater(() -> {
+                            allAccounts.setAll(serverAccounts);
+                            updateAccountSummaryCounts();
+                            setupSearchFilters(); 
+                        });
+                    } else {
+                        String msg = (apiRes != null) ? apiRes.getMessage() : "Lỗi không xác định";
+                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi nghiệp vụ", msg));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi xử lý", "Không thể bóc tách cấu trúc JSON tài khoản!"));
+                }
+            })
+            .exceptionally(ex -> {
+                ex.printStackTrace();
+                Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể tải danh sách tài khoản!"));
+                return null;
+            });
     }
 
     private void setupSearchFilters() {
-        // 1. Tách danh sách thành 2 luồng: Nhân viên và Khách hàng
-        FilteredList<Account> empData = new FilteredList<>(allAccounts, acc -> acc.getAccountType().equals("EMPLOYEE"));
-        FilteredList<Account> custData = new FilteredList<>(allAccounts, acc -> acc.getAccountType().equals("CUSTOMER"));
+        FilteredList<Account> empData = new FilteredList<>(allAccounts, acc -> "EMPLOYEE".equalsIgnoreCase(acc.getAccountType()));
+        FilteredList<Account> custData = new FilteredList<>(allAccounts, acc -> "CUSTOMER".equalsIgnoreCase(acc.getAccountType()));
 
-        // 2. Logic tìm kiếm cho Tab Nhân viên
         FilteredList<Account> searchEmpData = new FilteredList<>(empData, b -> true);
         txtSearchEmp.textProperty().addListener((observable, oldValue, newValue) -> {
             searchEmpData.setPredicate(acc -> {
                 if (newValue == null || newValue.isEmpty()) return true;
-                String lowerCaseFilter = newValue.toLowerCase();
-                return acc.getUsername().toLowerCase().contains(lowerCaseFilter) ||
-                       acc.getOwnerName().toLowerCase().contains(lowerCaseFilter);
+                String lower = newValue.toLowerCase();
+                return (acc.getUsername() != null && acc.getUsername().toLowerCase().contains(lower)) ||
+                       (acc.getOwnerName() != null && acc.getOwnerName().toLowerCase().contains(lower));
             });
         });
         SortedList<Account> sortedEmpData = new SortedList<>(searchEmpData);
         sortedEmpData.comparatorProperty().bind(tableEmployeeAcc.comparatorProperty());
         tableEmployeeAcc.setItems(sortedEmpData);
 
-        // 3. Logic tìm kiếm cho Tab Khách hàng
         FilteredList<Account> searchCustData = new FilteredList<>(custData, b -> true);
         txtSearchCust.textProperty().addListener((observable, oldValue, newValue) -> {
             searchCustData.setPredicate(acc -> {
                 if (newValue == null || newValue.isEmpty()) return true;
-                String lowerCaseFilter = newValue.toLowerCase();
-                return acc.getUsername().toLowerCase().contains(lowerCaseFilter) ||
-                       acc.getOwnerName().toLowerCase().contains(lowerCaseFilter);
+                String lower = newValue.toLowerCase();
+                return (acc.getUsername() != null && acc.getUsername().toLowerCase().contains(lower)) ||
+                       (acc.getOwnerName() != null && acc.getOwnerName().toLowerCase().contains(lower));
             });
         });
         SortedList<Account> sortedCustData = new SortedList<>(searchCustData);
@@ -122,121 +147,177 @@ public class AccountManagerController {
         tableCustomerAcc.setItems(sortedCustData);
     }
 
-    // ==========================================
-    // CÁC HÀM XỬ LÝ SỰ KIỆN CHO NÚT BẤM (MỚI THÊM)
-    // ==========================================
-
     private void setupEmployeeActions() {
-        // Nút Cấp lại mật khẩu - NHÂN VIÊN
         btnResetPwdEmp.setOnAction(event -> {
             Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
-            
             if (selectedAcc == null) {
-                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để cấp lại mật khẩu!");
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn nhân viên!");
                 return;
             }
 
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận", 
-                    "Bạn đồng ý cấp lại mật khẩu cho nhân viên [" + selectedAcc.getOwnerName() + "] chứ?"
-            );
-            
-            if (isConfirm) {
-                System.out.println("Đã cấp lại mật khẩu cho NV: " + selectedAcc.getUsername());
-                // TODO: Gọi API hoặc cập nhật database tại đây
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công!");
+            String email = selectedAcc.getEmail();
+            if (email == null || email.trim().isEmpty() || "-".equals(email.trim())) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi Email", "Tài khoản chưa cập nhật Email!");
+                return;
+            }
+
+            if (showConfirmationDialog("Xác nhận", "Cấp lại mật khẩu cho " + selectedAcc.getOwnerName() + "?")) {
+                String endpoint = "/api/admin/accounts/" + selectedAcc.getUsername() + "/reset-password";
+                btnResetPwdEmp.setDisable(true);
+
+                ApiService.postText(endpoint, email)
+                    .thenAccept(res -> Platform.runLater(() -> {
+                        btnResetPwdEmp.setDisable(false);
+                        try {
+                            ApiResponse<?> apiRes = ApiService.mapper.readValue(res.body(), ApiResponse.class);
+                            if (res.statusCode() == 200 && apiRes.getStatus() == 200) {
+                                showAlert(Alert.AlertType.INFORMATION, "Thành công", apiRes.getMessage());
+                            } else {
+                                showAlert(Alert.AlertType.WARNING, "Thất bại", apiRes.getMessage());
+                            }
+                        } catch (Exception e) {
+                            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể gửi yêu cầu! Mã lỗi: " + res.statusCode());
+                        }
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            btnResetPwdEmp.setDisable(false);
+                            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể kết nối đến máy chủ!");
+                        });
+                        return null;
+                    });
             }
         });
 
-        // Nút Khóa tài khoản - NHÂN VIÊN
         btnLockEmp.setOnAction(event -> {
             Account selectedAcc = tableEmployeeAcc.getSelectionModel().getSelectedItem();
-            
             if (selectedAcc == null) {
-                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một nhân viên trong bảng để khóa tài khoản!");
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn nhân viên!");
                 return;
             }
 
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận khóa", 
-                    "Bạn có chắc chắn muốn khóa tài khoản nhân viên [" + selectedAcc.getOwnerName() + "] không?"
-            );
-            if (isConfirm) {
-                System.out.println("Đã khóa tài khoản NV: " + selectedAcc.getUsername());
-                // TODO: Gọi API khóa tài khoản, cập nhật trạng thái
-                    selectedAcc.statusProperty().set("Đã khóa");                
-                    tableEmployeeAcc.refresh(); // Cập nhật lại UI bảng
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã khóa tài khoản nhân viên thành công!");
+            String currentStatus = selectedAcc.getStatus();
+            boolean isLocking = currentStatus == null || 
+                !(currentStatus.toLowerCase().contains("khóa") || 
+                currentStatus.toLowerCase().contains("lock") || 
+                currentStatus.toLowerCase().contains("inactive"));
+            
+            String title = isLocking ? "Xác nhận khóa" : "Xác nhận mở khóa";
+            if (showConfirmationDialog(title, "Thao tác với tài khoản " + selectedAcc.getOwnerName() + "?")) {
+                String endpoint = "/api/admin/accounts/" + selectedAcc.getUsername() + "/status";
+                btnLockEmp.setDisable(true);
+
+                ApiService.put(endpoint, "")
+                    .thenAccept(res -> Platform.runLater(() -> {
+                        btnLockEmp.setDisable(false);
+                        try {
+                            ApiResponse<?> apiRes = ApiService.mapper.readValue(res.body(), ApiResponse.class);
+                            
+                            if (res.statusCode() == 200 && apiRes.getStatus() == 200) {
+                                selectedAcc.setStatus(isLocking ? "LOCKED" : "ACTIVE");
+                                tableEmployeeAcc.refresh(); 
+                                updateAccountSummaryCounts();
+                                showAlert(Alert.AlertType.INFORMATION, "Thành công", apiRes.getMessage());
+                            } else {
+                                String errorBody = res.body() != null ? res.body() : "";
+                                String errorMessage = "Backend từ chối thao tác (Mã lỗi " + res.statusCode() + ").\n\n";
+                                
+                                if (errorBody.contains("RESIGNED") || errorBody.contains("đã nghỉ")) {
+                                    errorMessage += "Lý do: Nhân sự này đang làm việc.\n=> Bạn phải qua trang Nhân Sự, chuyển trạng thái sang ĐÃ NGHỈ VIỆC trước khi khóa tài khoản.";
+                                } else if (errorBody.contains("WORKING") || errorBody.contains("đang làm")) {
+                                    errorMessage += "Lý do: Nhân sự này chưa chuyển sang ĐANG LÀM VIỆC.";
+                                } else if (errorBody.contains("Không tìm thấy")) {
+                                    errorMessage += "Lý do: Không tìm thấy tài khoản trong DB.";
+                                } else {
+                                    errorMessage += "Chi tiết lỗi từ Server: " + errorBody;
+                                }
+                                
+                                showAlert(Alert.AlertType.ERROR, "Không thể cập nhật", errorMessage);
+                            }
+                        } catch (Exception e) {
+                            showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", "Đã có lỗi xảy ra! Server trả về code: " + res.statusCode());
+                        }
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            btnLockEmp.setDisable(false);
+                            showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể cập nhật trạng thái!");
+                        });
+                        return null;
+                    });
             }
         });
     }
 
-    private void setupCustomerActions() {
-        // Nút Cấp lại mật khẩu - KHÁCH HÀNG
-        btnResetPwdCust.setOnAction(event -> {
-            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
-            
-            if (selectedAcc == null) {
-                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để cấp lại mật khẩu!");
-                return;
-            }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận", 
-                    "Bạn đồng ý cấp lại mật khẩu cho khách hàng [" + selectedAcc.getOwnerName() + "] chứ?"
-            );
-            
-            if (isConfirm) {
-                System.out.println("Đã cấp lại mật khẩu cho KH: " + selectedAcc.getUsername());
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã cấp lại mật khẩu thành công và gửi thông báo cho khách hàng!");
-            }
-        });
-
-        // Nút Khóa tài khoản - KHÁCH HÀNG
-        btnLockCust.setOnAction(event -> {
-            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
-            
-            if (selectedAcc == null) {
-                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn một khách hàng trong bảng để đình chỉ truy cập!");
-                return;
-            }
-
-            boolean isConfirm = showConfirmationDialog(
-                    "Xác nhận đình chỉ", 
-                    "Bạn có chắc chắn muốn đình chỉ truy cập web của khách hàng [" + selectedAcc.getOwnerName() + "]?"
-            );
-            if (isConfirm) {
-                System.out.println("Đã đình chỉ KH: " + selectedAcc.getUsername());
-                selectedAcc.statusProperty().set("Đình chỉ truy cập");              
-                tableCustomerAcc.refresh();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đình chỉ truy cập khách hàng thành công!");
-            }
-        });
-    }
-
-    // --- CÁC HÀM TIỆN ÍCH DÙNG CHUNG ---
-
-    /**
-     * Hiển thị hộp thoại Xác nhận (Yes/No)
-     */
     private boolean showConfirmationDialog(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
-
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    /**
-     * Hiển thị hộp thoại Thông báo (Lỗi, Cảnh báo, Thành công)
-     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    private void updateAccountSummaryCounts() {
+        if (lblEmpAccounts == null || lblWebAccounts == null || lblLockedAccounts == null) return;
+
+        long empCount = allAccounts.stream().filter(a -> "EMPLOYEE".equalsIgnoreCase(a.getAccountType())).count();
+        long custCount = allAccounts.stream().filter(a -> "CUSTOMER".equalsIgnoreCase(a.getAccountType())).count();
+
+        lblEmpAccounts.setText(String.valueOf(empCount));
+        lblWebAccounts.setText(String.valueOf(custCount));
+        
+        // Đã dọn dẹp sạch sẽ cái "Khóa: 1" đỏ choét đi rồi nhé =))
+        lblLockedAccounts.setText(""); 
+    }
+
+    private void setupCustomerActions() {
+        btnResetPwdCust.setOnAction(event -> {
+            Account selectedAcc = tableCustomerAcc.getSelectionModel().getSelectedItem();
+            if (selectedAcc == null) {
+                showAlert(Alert.AlertType.WARNING, "Chưa chọn tài khoản", "Vui lòng chọn khách hàng!");
+                return;
+            }
+
+            String email = selectedAcc.getEmail(); 
+            if (email == null || email.trim().isEmpty() || "-".equals(email.trim())) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi Email", "Khách hàng chưa có Email!");
+                return;
+            }
+
+            if (showConfirmationDialog("Xác nhận", "Cấp lại mật khẩu cho " + selectedAcc.getOwnerName() + "?")) {
+                String endpoint = "/api/admin/accounts/" + selectedAcc.getUsername() + "/reset-password";
+                btnResetPwdCust.setDisable(true);
+                ApiService.postText(endpoint, email)
+                    .thenAccept(res -> Platform.runLater(() -> {
+                        btnResetPwdCust.setDisable(false);
+                        try {
+                            ApiResponse<?> apiRes = ApiService.mapper.readValue(res.body(), ApiResponse.class);
+                            if (res.statusCode() == 200 && apiRes.getStatus() == 200) {
+                                showAlert(Alert.AlertType.INFORMATION, "Thành công", apiRes.getMessage());
+                            } else {
+                                showAlert(Alert.AlertType.WARNING, "Thất bại", apiRes.getMessage());
+                            }
+                        } catch (Exception e) {
+                            showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", "Lỗi gửi yêu cầu! Code: " + res.statusCode());
+                        }
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            btnResetPwdCust.setDisable(false);
+                            showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể gửi yêu cầu!");
+                        });
+                        return null;
+                    });
+            }
+        });
     }
 }

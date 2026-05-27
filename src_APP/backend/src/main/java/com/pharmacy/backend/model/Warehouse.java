@@ -14,11 +14,11 @@ public class Warehouse {
     @Column(name = "MAKHO")
     private String makho;
 
-    @Column(name = "MALO")
-    private String malo;
-
     @Column(name = "SLTON")
     private Integer slton;
+
+    @Column(name = "LOAIKHO")
+    private String loaikho;
 
     @Column(name = "DVSP")
     private String dvsp;

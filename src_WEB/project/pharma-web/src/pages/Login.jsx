@@ -23,7 +23,13 @@ export default function Login() {
       localStorage.setItem('tenKH', res.data.tenKH)
       localStorage.setItem('sdt', res.data.sdt)
       localStorage.setItem('vaiTro', res.data.vaiTro)
-      navigate('/')
+
+      // Nếu isFirstLogin = true → bắt buộc đổi mật khẩu
+      if (res.data.firstLogin) {
+        navigate('/doi-mat-khau')
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       setError(err.response?.data || 'Đăng nhập thất bại!')
     } finally {
@@ -48,9 +54,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Số điện thoại
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
             <input
               type="text"
               name="sdt"
@@ -63,9 +67,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mật khẩu
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
             <input
               type="password"
               name="password"
@@ -75,6 +77,12 @@ export default function Login() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
+          </div>
+
+          <div className="text-right">
+            <Link to="/quen-mat-khau" className="text-sm text-blue-600 hover:underline">
+              Quên mật khẩu?
+            </Link>
           </div>
 
           <button

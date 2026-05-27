@@ -1,102 +1,224 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="850.0" prefWidth="1200.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ProductManagerController">
+<AnchorPane prefHeight="850.0" prefWidth="1200.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.ProductManagerController">
    <children>
-      <VBox layoutX="45.0" layoutY="25.0" spacing="25.0" AnchorPane.bottomAnchor="24.59999999999991" AnchorPane.leftAnchor="45.0" AnchorPane.rightAnchor="25.40000000000009" AnchorPane.topAnchor="25.0">
+      <!-- Phần VBox chính (giữ nguyên như file đã có) -->
+      <VBox spacing="20.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="45.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="25.0">
          <children>
-            
-            <HBox spacing="25.0">
+            <HBox spacing="20.0">
                <children>
-                  <VBox prefWidth="320.0" style="-fx-background-color: #A8DADC; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                           <Label style="-fx-font-size: 18px;" />
-                           <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px; -fx-font-weight: 800;" text="TỔNG SẢN PHẨM KHẢ DỤNG" />
-                        </HBox>
-                        <Region prefHeight="12.0" />
-                        <Label fx:id="lblTotalProducts" style="-fx-font-size: 40px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="1,245" />
-                     </children>
+                  <VBox prefHeight="80.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);" HBox.hgrow="ALWAYS">
+                     <children><Label text="TỔNG SẢN PHẨM" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label><Label fx:id="lblTotalProducts" text="0" textFill="#0f766e"><font><Font name="System Bold" size="28.0" /></font></Label></children>
                   </VBox>
-
-                  <VBox prefWidth="320.0" style="-fx-background-color: #F8C9C9; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                           <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px; -fx-font-weight: 800;" text="SẮP HẾT HÀNG (DƯỚI 10)" />
-                        </HBox>
-                        <Region prefHeight="12.0" />
-                        <Label fx:id="lblLowStock" style="-fx-font-size: 40px; -fx-font-weight: 900; -fx-text-fill: #f59e0b;" text="18" />
-                     </children>
+                  <VBox fx:id="cardLowStock" onMouseClicked="#showLowStockBatches" prefHeight="80.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); -fx-cursor: hand;" HBox.hgrow="ALWAYS">
+                     <children><Label text="SẮP HẾT HÀNG (CẦN NHẬP)" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label><Label fx:id="lblLowStock" text="0" textFill="#f97316"><font><Font name="System Bold" size="28.0" /></font></Label></children>
                   </VBox>
-
-                  <VBox prefWidth="320.0" style="-fx-background-color: #FDE9B5; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                           <Label style="-fx-text-fill: #64748b; -fx-font-size: 14px; -fx-font-weight: 800;" text="CẬN DATE / HẾT HẠN" />
-                        </HBox>
-                        <Region prefHeight="12.0" />
-                        <Label fx:id="lblExpiring" style="-fx-font-size: 40px; -fx-font-weight: 900; -fx-text-fill: #ef4444;" text="5" />
-                     </children>
+                  <VBox fx:id="cardExpiring" onMouseClicked="#showExpiringBatches" prefHeight="80.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0); -fx-cursor: hand;" HBox.hgrow="ALWAYS">
+                     <children><Label text="CẬN DATE / HẾT HẠN" textFill="#64748b"><font><Font name="System Bold" size="12.0" /></font></Label><Label fx:id="lblExpiring" text="0" textFill="#dc3545"><font><Font name="System Bold" size="28.0" /></font></Label></children>
                   </VBox>
                </children>
             </HBox>
 
-            <VBox style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5);" VBox.vgrow="ALWAYS">
-               <padding>
-                  <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
-               </padding>
-               <children>
-                  
-                  <HBox alignment="CENTER_LEFT" prefHeight="55.0" spacing="15.0">
-                     <children>
-                        
-                        <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="350.0" style="-fx-background-color: #f1f5f9; -fx-background-radius: 10; -fx-padding: 0 15;">
-                           <children>
-                              <Label style="-fx-text-fill: #94a3b8; -fx-font-size: 15px;" text="🔍" />
-                              <TextField fx:id="txtSearch" prefHeight="45.0" promptText="Tìm tên thuốc, mã vạch, hoạt chất..." style="-fx-background-color: transparent; -fx-font-size: 14px; -fx-prompt-text-fill: #94a3b8;" HBox.hgrow="ALWAYS" />
-                           </children>
-                        </HBox>
+            <TabPane style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 5);" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab text="QUẢN LÝ SẢN PHẨM">
+                  <content>
+                    <VBox spacing="15.0" style="-fx-padding: 20;">
+                         <children>
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                               <children>
+                                  <TextField fx:id="txtSearchProduct" prefHeight="40.0" prefWidth="250.0" promptText="Tìm tên thuốc, hoạt chất..." style="-fx-background-radius: 8; -fx-background-color: #f1f5f9;" />
+                                  <ComboBox fx:id="cbCategoryFilter" prefHeight="40.0" prefWidth="180.0" promptText="Tất cả danh mục" style="-fx-background-radius: 8; -fx-background-color: #f1f5f9;"/>
+                                  <Region HBox.hgrow="ALWAYS" />
+                                  <Button onAction="#handleShowAddProduct" prefHeight="40.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Thêm" />
+                                  <Button onAction="#handleShowEditProduct" prefHeight="40.0" style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Sửa" />
+                                  <Button onAction="#handleDeleteProduct" prefHeight="40.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Xóa" />
+                               </children>
+                            </HBox>
+                            
+                           <SplitPane dividerPositions="0.6" orientation="VERTICAL" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                               <items>
+                                  <TableView fx:id="tableProduct" style="-fx-selection-bar: #93c5fd;">
+                                     <columns>
+                                      <TableColumn fx:id="colProdId" prefWidth="90" style="-fx-font-weight: bold;" text="Mã SP" />
+                                      <TableColumn fx:id="colProdName" prefWidth="150" text="Tên sản phẩm" />
+                                      <TableColumn fx:id="colProdUnit" prefWidth="70" style="-fx-alignment: CENTER;" text="ĐVT" />
+                                      <TableColumn fx:id="colProdActive" prefWidth="150" text="Thành phần" />
+                                      <TableColumn fx:id="colProdCat" prefWidth="130" text="Danh mục" />
+                                      <TableColumn fx:id="colProdUsage" prefWidth="150" text="Công dụng" />
+                                      <TableColumn fx:id="colProdPrice" prefWidth="100" style="-fx-alignment: CENTER_RIGHT; -fx-font-weight: bold;" text="Giá bán" />
+                                     </columns>
+                                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                  </TableView>
+                                   
+                                  <VBox spacing="10.0" style="-fx-padding: 10 0 0 0;">
+                                     <children>
+                                        <Label fx:id="lblBatchDetailTitle" style="-fx-font-weight: bold; -fx-text-fill: #0f766e;" text="CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ">
+                                           <font><Font name="System Bold" size="14.0" /></font>
+                                        </Label>
+                                        <TableView fx:id="tableBatch" VBox.vgrow="ALWAYS" style="-fx-selection-bar: #93c5fd;">
+                                          <columns>
+                                            <TableColumn fx:id="colBatchId" text="Mã lô nhập" />
+                                            <TableColumn fx:id="colBatchMfg" style="-fx-alignment: CENTER;" text="Ngày sản xuất" />
+                                            <TableColumn fx:id="colBatchExp" style="-fx-alignment: CENTER;" text="Hạn sử dụng" />
+                                            <TableColumn fx:id="colBatchImport" style="-fx-alignment: CENTER;" text="Ngày nhập" />
+                                            <TableColumn fx:id="colBatchImportPrice" style="-fx-alignment: CENTER_RIGHT;" text="Giá nhập (VNĐ)" />
+                                            <TableColumn fx:id="colBatchQty" style="-fx-alignment: CENTER;" text="Số lượng tồn" />
+                                            <TableColumn fx:id="colBatchStatus" style="-fx-alignment: CENTER;" text="Tình trạng" />
+                                           </columns>
+                                           <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                        </TableView>
+                                     </children>
+                                  </VBox>
+                               </items>
+                            </SplitPane>
+                         </children>
+                    </VBox>
+                  </content>
+                </Tab>
 
-                        <ComboBox fx:id="cbCategory" prefHeight="57.0" prefWidth="225.0" promptText="Tất cả danh mục" style="-fx-background-color: #f1f5f9; -fx-background-radius: 10; -fx-font-size: 14px; -fx-text-fill: #334155;" />
-
-                        <Region HBox.hgrow="ALWAYS" />
-
-                     </children>
-                     <VBox.margin>
-                        <Insets bottom="20.0" />
-                     </VBox.margin>
-                  </HBox>
-
-                  <TableView fx:id="tableProduct" style="-fx-font-size: 14px; -fx-selection-bar: #ccfbf1; -fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-radius: 8;" VBox.vgrow="ALWAYS">
-                    <columns>
-                      <TableColumn fx:id="colId" prefWidth="119.20000529289246" style="-fx-alignment: CENTER;" text="Mã sản phẩm" />
-                      <TableColumn fx:id="colName" prefWidth="171.20004272460938" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;" text="Tên thương mại" />
-                      <TableColumn fx:id="colActiveIngredient" prefWidth="220.0" text="Hoạt chất" />
-                      <TableColumn fx:id="colCategory" prefWidth="150.0" text="Danh mục" />
-                      <TableColumn fx:id="colUnit" prefWidth="70.0" style="-fx-alignment: CENTER;" text="ĐVT" />
-                      <TableColumn fx:id="colQuantity" prefWidth="100.0" style="-fx-alignment: CENTER-RIGHT; -fx-font-weight: bold;" text="Tồn kho" />
-                      <TableColumn fx:id="colExpiryDate" prefWidth="120.0" style="-fx-alignment: CENTER;" text="Hạn sử dụng" />
-                      <TableColumn fx:id="colStatus" prefWidth="130.0" style="-fx-alignment: CENTER; -fx-font-weight: bold;" text="Tình trạng" />
-                    </columns>
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
-                  </TableView>
-
-               </children>
-            </VBox>
-
+                <Tab text="QUẢN LÝ DANH MỤC">
+                  <content>
+                    <VBox spacing="15.0" style="-fx-padding: 20;">
+                         <children>
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                               <children>
+                                  <TextField fx:id="txtSearchCategory" prefHeight="40.0" prefWidth="300.0" promptText="Tìm tên danh mục..." style="-fx-background-radius: 8; -fx-background-color: #f1f5f9;" />
+                                  <Region HBox.hgrow="ALWAYS" />
+                                  <Button onAction="#handleShowAddCategory" prefHeight="40.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Thêm" />
+                                  <Button onAction="#handleShowEditCategory" prefHeight="40.0" style="-fx-background-color: #f59e0b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Sửa" />
+                                  <Button onAction="#handleDeleteCategory" prefHeight="40.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Xóa" />
+                               </children>
+                            </HBox>
+                            <TableView fx:id="tableCategory" VBox.vgrow="ALWAYS" style="-fx-selection-bar: #93c5fd;">
+                              <columns>
+                                <TableColumn fx:id="colCatId" prefWidth="150" style="-fx-font-weight: bold;" text="Mã danh mục" />
+                                <TableColumn fx:id="colCatName" prefWidth="300" text="Tên danh mục" />
+                                <TableColumn fx:id="colCatNote" prefWidth="400" text="Ghi chú" />
+                              </columns>
+                              <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                            </TableView>
+                         </children>
+                      </VBox>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
          </children>
       </VBox>
+
+      <!-- Modal sản phẩm (tiêu đề đã sửa style inline) -->
+      <StackPane fx:id="modalProduct" visible="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <HBox alignment="CENTER" spacing="15.0" pickOnBounds="false" maxWidth="-Infinity">
+              <VBox minWidth="600.0" prefWidth="600.0" maxWidth="600.0" prefHeight="520.0" maxHeight="520.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);">
+                  <HBox alignment="CENTER_LEFT">
+                      <Label fx:id="lblProductModalTitle" text="💊 Thêm Sản Phẩm Mới" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2563eb;" />
+                      <Region HBox.hgrow="ALWAYS"/>
+                      <Button text="✕" onAction="#handleCloseProductModal" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 20px; -fx-text-fill: #64748b;"/>
+                  </HBox>
+                  <Separator />
+                  <VBox spacing="5.0">
+                      <Label text="Tên sản phẩm *" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                      <HBox spacing="10.0">
+                          <TextField fx:id="txtProdName" promptText="VD: Panadol Extra" prefHeight="40.0" style="-fx-background-radius: 5;" HBox.hgrow="ALWAYS"/>
+                          <Button fx:id="btnAiSuggest" text="Gợi ý AI" onAction="#toggleAiPanel" prefHeight="40.0" style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                      </HBox>
+                  </VBox>
+                  <HBox spacing="15.0">
+                      <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                          <Label text="Danh mục thuốc *" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                          <ComboBox fx:id="cbProdCategory" prefHeight="40.0" maxWidth="Infinity" style="-fx-background-radius: 5;"/>
+                      </VBox>
+                      <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                          <Label text="Đơn vị tính *" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                          <TextField fx:id="txtProdUnit" promptText="VD: Viên, Vỉ, Hộp..." prefHeight="40.0" style="-fx-background-radius: 5;"/>
+                      </VBox>
+                  </HBox>
+                  <VBox spacing="5.0">
+                      <Label text="Thành phần hóa học" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                      <TextField fx:id="txtProdActive" promptText="VD: Paracetamol 500mg" prefHeight="40.0" style="-fx-background-radius: 5;"/>
+                  </VBox>
+                  <VBox spacing="5.0">
+                      <Label text="Công dụng chỉ định" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                      <TextField fx:id="txtProdUsage" promptText="VD: Giảm đau, hạ sốt" prefHeight="40.0" style="-fx-background-radius: 5;"/>
+                  </VBox>
+                  <VBox spacing="5.0">
+                      <Label text="Giá bán dự kiến (VNĐ) *" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                      <TextField fx:id="txtProdPrice" promptText="VD: 50000" prefHeight="40.0" style="-fx-background-radius: 5;"/>
+                  </VBox>
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 15 0 0 0;">
+                      <Button text="Hủy bỏ" onAction="#handleCloseProductModal" prefHeight="40.0" prefWidth="100.0" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                      <Button text="Lưu Sản Phẩm" onAction="#handleSaveProduct" prefHeight="40.0" prefWidth="140.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"/>
+                  </HBox>
+              </VBox>
+              <VBox fx:id="aiPanel" maxWidth="0.0" minWidth="0.0" prefWidth="0.0" opacity="0.0" maxHeight="520.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+                  <VBox fx:id="aiPanelContent" spacing="15.0" style="-fx-padding: 20;" visible="false">
+                      <Label text="✨ Gợi Ý Từ AI" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #8b5cf6;"/>
+                      <Separator />
+                      <Label text="Lưu ý: Gợi ý từ AI có thể có sai sót. Vui lòng kiểm tra kỹ thông tin trước khi xác nhận thêm thuốc!" style="-fx-text-fill: #2112ec; -fx-font-size: 12px; -fx-font-style: italic;" wrapText="true"/>
+                      <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent;">
+                          <VBox fx:id="vboxAiResults" spacing="12.0" style="-fx-background-color: transparent;" />
+                      </ScrollPane>
+                  </VBox>
+              </VBox>
+          </HBox>
+      </StackPane>
+
+      <!-- Modal danh mục (tiêu đề đã sửa style inline) -->
+      <StackPane fx:id="modalCategory" visible="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.6);" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <VBox maxWidth="500.0" maxHeight="350.0" prefHeight="350.0" prefWidth="500.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);">
+              <HBox alignment="CENTER_LEFT">
+                  <Label fx:id="lblCategoryModalTitle" text="📂 Thêm Danh Mục Mới" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0f766e;" />
+                  <Region HBox.hgrow="ALWAYS"/>
+                  <Button text="✕" onAction="#handleCloseCategoryModal" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 20px; -fx-text-fill: #64748b;"/>
+              </HBox>
+              <Separator />
+              <VBox spacing="5.0">
+                  <Label text="Tên danh mục *" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                  <TextField fx:id="txtCatName" promptText="VD: Thuốc kháng sinh" prefHeight="40.0" style="-fx-background-radius: 5;"/>
+              </VBox>
+              <VBox spacing="5.0">
+                  <Label text="Ghi chú" style="-fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                  <TextField fx:id="txtCatNote" promptText="Nhập ghi chú..." prefHeight="40.0" style="-fx-background-radius: 5;"/>
+              </VBox>
+              <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 15 0 0 0;">
+                  <Button text="Hủy bỏ" onAction="#handleCloseCategoryModal" prefHeight="40.0" prefWidth="100.0" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Button text="Lưu Danh Mục" onAction="#handleSaveCategory" prefHeight="40.0" prefWidth="140.0" style="-fx-background-color: #0f766e; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"/>
+              </HBox>
+          </VBox>
+      </StackPane>
+
+      <!-- Modal cảnh báo lô hàng (tiêu đề đã sửa style inline) -->
+      <StackPane fx:id="modalAlertBatches" style="-fx-background-color: rgba(0,0,0,0.6);" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <VBox maxWidth="1000.0" maxHeight="550.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0);">
+            <HBox alignment="CENTER_LEFT">
+               <Label fx:id="lblAlertTitle" text="⚠️ Cảnh báo lô hàng" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #dc2626;" />
+               <Pane HBox.hgrow="ALWAYS" />
+               <Button onAction="#closeAlertModal" style="-fx-background-color: transparent; -fx-cursor: hand;" text="✕"><font><Font size="18.0" /></font></Button>
+            </HBox>
+            <Separator />
+            <TableView fx:id="tableAlertBatches" style="-fx-selection-bar: #93c5fd;" VBox.vgrow="ALWAYS">
+               <columns>
+                  <TableColumn fx:id="colAlertBatchId" prefWidth="100.0" text="Mã lô nhập" />
+                  <TableColumn fx:id="colAlertProductId" prefWidth="180.0" text="Tên sản phẩm" />
+                  <TableColumn fx:id="colAlertMfgDate" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Ngày sản xuất" />
+                  <TableColumn fx:id="colAlertExpDate" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Hạn sử dụng" />
+                  <TableColumn fx:id="colAlertImportDate" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Ngày nhập" />
+                  <TableColumn fx:id="colAlertImportPrice" prefWidth="120.0" style="-fx-alignment: CENTER_RIGHT;" text="Giá nhập (VNĐ)" />
+                  <TableColumn fx:id="colAlertQuantity" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Số lượng tồn" />
+                  <TableColumn fx:id="colAlertStatus" prefWidth="90.0" style="-fx-alignment: CENTER;" text="Tình trạng" />
+               </columns>
+               <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+            </TableView>
+            <HBox alignment="CENTER_RIGHT">
+               <Button onAction="#closeAlertModal" prefHeight="40.0" style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold;" text="Đóng" />
+            </HBox>
+         </VBox>
+      </StackPane>
    </children>
 </AnchorPane>

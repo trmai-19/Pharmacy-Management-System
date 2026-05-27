@@ -4,10 +4,13 @@ import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.model.Account;
 import com.pharmacy.backend.model.Employee;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AccountMapper {
-    public static LoginResponse toLoginResponse(Account account, Employee employee, String token) {
+    public LoginResponse toLoginResponse(Account account, Employee employee, String token) {
         return LoginResponse.builder()
+                .manv(employee.getManv())
                 .token(token)
                 .vaitro(employee.getChucvu())
                 .firstLogin(account.isFirstLogin())
@@ -15,7 +18,7 @@ public class AccountMapper {
                 .build();
     }
 
-    public static void updateNewAccountFromRequest(Account account, CreateUserRequest request) {
+    public void updateNewAccountFromRequest(Account account, CreateUserRequest request) {
         account.setSdt(request.getSdt());
         account.setEmail(request.getEmail());
         account.setVaitro("STAFF");
@@ -23,7 +26,7 @@ public class AccountMapper {
         account.setTrangthai("ACTIVE");
     }
 
-    public static void updateNewEmployeeFromRequest(Employee employee, CreateUserRequest request, String matk) {
+    public void updateNewEmployeeFromRequest(Employee employee, CreateUserRequest request, String matk) {
         employee.setMatk(matk);
         employee.setSdt(request.getSdt());
         employee.setChucvu(request.getVaitro());

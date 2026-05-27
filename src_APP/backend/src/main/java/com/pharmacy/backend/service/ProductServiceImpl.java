@@ -5,26 +5,39 @@ import com.pharmacy.backend.dto.ProductResponse;
 import com.pharmacy.backend.mapper.ProductMapper;
 import com.pharmacy.backend.model.Product;
 import com.pharmacy.backend.repository.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    private final ProductMapper productMapper;
 
     @Override
     public ProductResponse createProduct(ProductRequest request) {
+        
+        String tenThuocMoi = request.getTensanpham() != null ? request.getTensanpham().trim() : "";
+    
+        if (productRepository.existsByTensanphamIgnoreCase(tenThuocMoi)) {
+            // Ném Exception. Backend sẽ ngắt luồng tại đây và trả lỗi về cho Frontend
+            // (Thay IllegalArgumentException bằng CustomException của dự án bạn nếu có)
+            throw new RuntimeException("Sản phẩm với tên '" + tenThuocMoi + "' đã tồn tại trong hệ thống!");
+        }
+            
         Product product = new Product();
         
-        // Đổ dữ liệu từ Request sang Model
-        ProductMapper.updateProductFromRequest(product, request);
+        productMapper.updateProductFromRequest(product, request);
         
+        if (product.getTrangthai() == null || product.getTrangthai().isEmpty()) {
+            product.setTrangthai("DANG_BAN"); 
+        }
+
         Product savedProduct = productRepository.save(product);
-        return ProductMapper.toResponse(savedProduct);
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
@@ -32,10 +45,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + id));
             
-        ProductMapper.updateProductFromRequest(product, request);
+        productMapper.updateProductFromRequest(product, request);
         
         Product updatedProduct = productRepository.save(product);
-        return ProductMapper.toResponse(updatedProduct);
+        return productMapper.toResponse(updatedProduct);
     }
 
     @Override
@@ -43,6 +56,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với mã: " + id));
             
-        productRepository.delete(product);
+        product.setTrangthai("NGUNG_BAN"); 
+        productRepository.save(product);
     }
 }

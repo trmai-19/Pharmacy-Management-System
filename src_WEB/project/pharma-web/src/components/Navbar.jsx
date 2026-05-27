@@ -1,30 +1,88 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const tenKH = localStorage.getItem('tenKH')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = () => {
     localStorage.clear()
     navigate('/login')
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/tim-kiem?q=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+    }
+  }
+
   return (
-    <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
-      <div className="flex items-center gap-2">
-        <span className="text-xl font-bold">💊 Pharma</span>
-      </div>
-      <div className="flex items-center gap-6">
-        <Link to="/" className="hover:text-blue-200 transition">Trang chủ</Link>
-        <Link to="/diem" className="hover:text-blue-200 transition">Điểm tích lũy</Link>
-        <span className="text-blue-200">Xin chào, {tenKH}</span>
+    <nav className="bg-blue-600 text-white shadow-md">
+      <div className="flex items-center justify-between px-6 py-3 gap-4">
+        {/* Logo */}
+        <Link to="/" className="text-xl font-bold whitespace-nowrap flex items-center gap-1">
+          💊 Pharma
+        </Link>
+
+        {/* Search bar */}
+        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+          <div className="flex items-center bg-white rounded-xl overflow-hidden">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Tìm thuốc, công dụng..."
+              className="flex-1 px-4 py-2 text-gray-700 text-sm focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-400 px-3 py-2 transition text-white"
+            >
+              🔍
+            </button>
+          </div>
+        </form>
+
+        {/* Desktop nav links */}
+        <div className="hidden sm:flex items-center gap-5 text-sm">
+          <Link to="/" className="hover:text-blue-200 transition">Trang chủ</Link>
+          <Link to="/san-pham" className="hover:text-blue-200 transition">Sản phẩm</Link>
+          <Link to="/diem" className="hover:text-blue-200 transition">Điểm tích lũy</Link>
+          <Link to="/chinh-sach-doi-tra" className="hover:text-blue-200 transition whitespace-nowrap">
+            Chính sách đổi trả
+          </Link>
+          <span className="text-blue-200 whitespace-nowrap">👤 {tenKH}</span>
+          <button
+            onClick={handleLogout}
+            className="bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-50 transition"
+          >
+            Đăng xuất
+          </button>
+        </div>
+
+        {/* Mobile menu toggle */}
         <button
-          onClick={handleLogout}
-          className="bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-50 transition"
+          className="sm:hidden text-white text-xl"
+          onClick={() => setMenuOpen(!menuOpen)}
         >
-          Đăng xuất
+          ☰
         </button>
       </div>
+
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <div className="sm:hidden bg-blue-700 px-6 py-3 space-y-2 text-sm border-t border-blue-500">
+          <Link to="/" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Trang chủ</Link>
+          <Link to="/san-pham" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Sản phẩm</Link>
+          <Link to="/diem" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Điểm tích lũy</Link>
+          <Link to="/chinh-sach-doi-tra" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Chính sách đổi trả</Link>
+          <button onClick={handleLogout} className="block text-left text-red-300 hover:text-red-200">Đăng xuất</button>
+        </div>
+      )}
     </nav>
   )
 }

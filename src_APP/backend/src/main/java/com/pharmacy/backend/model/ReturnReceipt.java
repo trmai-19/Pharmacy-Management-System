@@ -1,15 +1,18 @@
 package com.pharmacy.backend.model;
 
-import java.util.Date;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "PHIEUTRA_KH")
-public class CustomerReturn {
+public class ReturnReceipt {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MAPT_KH")
@@ -21,12 +24,12 @@ public class CustomerReturn {
     @Column(name = "MANV")
     private String manv;
 
-    @Column(name = "NGAYTRA")
-    private Date ngaytra;
+    @Column(name = "NGAYTRA") 
+    private LocalDateTime ngaytra;
 
     @Column(name = "LYDOTRA")
     private String lydotra;
 
     @Column(name = "TONGTIENHOAN")
-    private Double tongtienhoan;
+    private Double tongtienhoan = 0.0;
 }

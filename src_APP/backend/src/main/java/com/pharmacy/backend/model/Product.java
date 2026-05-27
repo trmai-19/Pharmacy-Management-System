@@ -32,6 +32,6 @@ public class Product {
     @Column(name = "GIABAN")
     private Double giaban;
 
-    @Column(name = "IS_MANUAL_PRICE")
-    private boolean isManualPrice = false;
+    @Column(name = "TRANGTHAI")
+    private String trangthai;
 }

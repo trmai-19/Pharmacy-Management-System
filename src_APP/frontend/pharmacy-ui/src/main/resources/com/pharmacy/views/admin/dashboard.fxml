@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.DashboardController">
@@ -20,78 +19,137 @@
             </padding>
             <children>
                 
+                <!-- Lời chào -->
                 <VBox spacing="5.0">
                     <Label fx:id="lblGreeting" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0b5d77;" text="Chào mừng quay trở lại, Admin! 👋" />
-                    <Label style="-fx-font-size: 15px; -fx-text-fill: #64748b;" text="Dưới đây là tình hình tổng quan kinh doanh của nhà thuốc hôm nay." />
+                    <Label style="-fx-font-size: 15px; -fx-text-fill: #64748b;" text="Dưới đây là các tiện ích quản lý kinh doanh nhà thuốc." />
                 </VBox>
 
-                <HBox spacing="25.0">
+                <HBox spacing="25.0" VBox.vgrow="ALWAYS">
                     <children>
-                        <VBox prefWidth="350.0" style="-fx-background-color: linear-gradient(to bottom right, #0f766e, #14b8a6); -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(20,184,166,0.3), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                        
+                        <!-- Cột trái: 4 thẻ Quick Access -->
+                        <VBox prefWidth="700.0" spacing="25.0" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 15px; -fx-font-weight: bold;" text="💰 TỔNG DOANH THU THÁNG NÀY" />
-                                <Region prefHeight="15.0" />
-                                <HBox alignment="BOTTOM_LEFT" spacing="15.0">
-                                    <Label fx:id="lblMonthlyRevenue" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: white;" text="145.500.000đ" />
+                                <GridPane hgap="20.0" vgap="20.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        
+                                        <!-- Thẻ 1: Quản lý sản phẩm -->
+                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #14b8a6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #14b8a6;" text="📦" />
+                                                    <VBox>
+                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ SẢN PHẨM" />
+                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý thông tin thuốc" />
+                                                    </VBox>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+
+                                        <!-- Thẻ 2: Quản lý khách hàng -->
+                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #3b82f6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #3b82f6;" text="👥" />
+                                                    <VBox>
+                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ KHÁCH HÀNG" />
+                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Duyệt và quản lý khách hàng" />
+                                                    </VBox>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+
+                                        <!-- Thẻ 3: Đơn hàng -->
+                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #f59e0b; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #f59e0b;" text="🛒" />
+                                                    <VBox>
+                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="ĐƠN HÀNG" />
+                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý và xử lý đơn hàng" />
+                                                    </VBox>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+
+                                        <!-- Thẻ 4: Quản lý nhân sự -->
+                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #8b5cf6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #8b5cf6;" text="👔" />
+                                                    <VBox>
+                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ NHÂN SỰ" />
+                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý thông tin nhân sự" />
+                                                    </VBox>
+                                                </HBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                    <rowConstraints>
+                                        <RowConstraints />
+                                        <RowConstraints />
+                                    </rowConstraints>
+                                </GridPane>
+
+                                <!-- Thông báo & Ghi chú -->
+                                <HBox spacing="20.0">
+                                    <children>
+                                        <VBox prefWidth="340.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 22; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <Label style="-fx-font-size: 22px; -fx-text-fill: #14b8a6;" text="📢" />
+                                                    <Label style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="THÔNG BÁO HỆ THỐNG" />
+                                                </HBox>
+                                                <Region prefHeight="15.0" />
+                                                <VBox spacing="12.0">
+                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Cập nhật phần mềm quản lý mới hôm nay" />
+                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Kiểm tra định kỳ hệ thống tuần này" />
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+
+                                        <VBox prefWidth="340.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 22; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                    <Label style="-fx-font-size: 22px; -fx-text-fill: #8b5cf6;" text="📝" />
+                                                    <Label style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="GHI CHÚ CỦA BẠN" />
+                                                </HBox>
+                                                <Region prefHeight="15.0" />
+                                                <VBox spacing="12.0">
+                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Kiểm tra tồn kho cuối tuần" />
+                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Theo dõi tuyển dụng" />
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </children>
                                 </HBox>
-                                <Region prefHeight="8.0" />
-                                <Label style="-fx-text-fill: #a7f3d0; -fx-font-size: 14px; -fx-font-weight: bold;" text="↑ Tăng 12% so với tháng trước" />
                             </children>
                         </VBox>
 
-                        <VBox prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
+                        <!-- Cột phải: Hỗ trợ nhanh -->
+                        <VBox prefWidth="300.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);">
                             <children>
-                                <Label style="-fx-text-fill: #64748b; -fx-font-size: 15px; -fx-font-weight: bold;" text="🌐 TÀI KHOẢN KHÁCH HÀNG (ACTIVE)" />
-                                <Region prefHeight="15.0" />
-                                <Label fx:id="lblActiveAccounts" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #0ea5e9;" text="2,184" />
-                                <Region prefHeight="8.0" />
-                                <Label style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" text="Đăng ký mới trong tuần: +45" />
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <Label style="-fx-font-size: 26px;" text="🎧" />
+                                    <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="Hỗ Trợ Nhanh" />
+                                </HBox>
+                                <Region prefHeight="30.0" />
+                                <VBox alignment="CENTER" spacing="15.0">
+                                    <Button maxWidth="1.7976931348623157E308" prefHeight="48.0" 
+                                            style="-fx-background-color: #14b8a6; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;" 
+                                            text="📞 Gọi hỗ trợ ngay" />
+                                    <Button maxWidth="1.7976931348623157E308" prefHeight="48.0" 
+                                            style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;" 
+                                            text="💬 Chat trực tuyến" />
+                                </VBox>
                             </children>
                         </VBox>
 
-                        <VBox prefWidth="350.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                            <children>
-                                <Label style="-fx-text-fill: #64748b; -fx-font-size: 15px; -fx-font-weight: bold;" text="🛒 SỐ ĐƠN HÀNG TRONG THÁNG" />
-                                <Region prefHeight="15.0" />
-                                <Label fx:id="lblMonthlyOrders" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #f59e0b;" text="842" />
-                                <Region prefHeight="8.0" />
-                                <Label style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;" text="Tỉ lệ hoàn thành: 98.5%" />
-                            </children>
-                        </VBox>
-                    </children>
-                </HBox>
-
-                <HBox spacing="25.0">
-                    <children>
-                        <VBox prefWidth="600.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                            <children>
-                                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="📉 Xu Hướng Doanh Thu (7 Ngày Qua)" />
-                                <Region prefHeight="10.0" />
-                                <LineChart fx:id="revenueChart" prefHeight="350.0" style="-fx-font-size: 13px;">
-                                  <xAxis>
-                                    <CategoryAxis side="BOTTOM" />
-                                  </xAxis>
-                                  <yAxis>
-                                    <NumberAxis side="LEFT" />
-                                  </yAxis>
-                                </LineChart>
-                            </children>
-                        </VBox>
-
-                        <VBox prefWidth="450.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 15, 0, 0, 8); -fx-padding: 25;" HBox.hgrow="ALWAYS">
-                            <children>
-                                <Label style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="📊 Top 5 Thuốc Bán Chạy Tháng Này" />
-                                <Region prefHeight="10.0" />
-                                <BarChart fx:id="topProductsChart" prefHeight="350.0" legendVisible="false" style="-fx-font-size: 13px;">
-                                  <xAxis>
-                                    <CategoryAxis side="BOTTOM" />
-                                  </xAxis>
-                                  <yAxis>
-                                    <NumberAxis side="LEFT" />
-                                  </yAxis>
-                                </BarChart>
-                            </children>
-                        </VBox>
                     </children>
                 </HBox>
 

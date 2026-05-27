@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,19 +26,22 @@ public class KhachHangService {
     public DiemResponse getDiem(String maTK) {
         KhachHang kh = getThongTin(maTK);
 
-        // Lay diem tu DIEMTL qua maDTL cua KHACHHANG
-        Integer tongDiem = 0;
-        List<DiemResponse.DiemChiTiet> lichSuDiem = Collections.emptyList();
+        // Lấy tổng điểm trực tiếp từ KHACHHANG.DIEMTICHLUY
+        Integer tongDiem = kh.getDiemTichLuy() != null ? kh.getDiemTichLuy() : 0;
 
-        if (kh.getMaDTL() != null) {
-            DiemTL diemTL = diemTLRepo.findById(kh.getMaDTL()).orElse(null);
-            if (diemTL != null) {
-                tongDiem = diemTL.getSl() != null ? diemTL.getSl() : 0;
-                // Tra ve 1 ban ghi diem hien tai
-                lichSuDiem = Collections.singletonList(
-                        new DiemResponse.DiemChiTiet(diemTL.getMaDTL(), diemTL.getLoaiGD(), diemTL.getSl())
-                );
-            }
+        // Lấy lịch sử điểm từ bảng DIEMTL theo maKH
+        List<DiemResponse.DiemChiTiet> lichSuDiem;
+        try {
+            List<DiemTL> danhSachDiem = diemTLRepo.findByMaKH(kh.getMaKH());
+            lichSuDiem = danhSachDiem.stream()
+                    .map(d -> new DiemResponse.DiemChiTiet(
+                            d.getMaDTL(),
+                            d.getLoaiGD(),
+                            d.getDiemThayDoi() != null ? d.getDiemThayDoi() : 0
+                    ))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            lichSuDiem = Collections.emptyList();
         }
 
         return new DiemResponse(kh.getMaKH(), kh.getTenKH(), tongDiem, lichSuDiem);

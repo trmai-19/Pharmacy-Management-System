@@ -1,6 +1,8 @@
 package com.pharmacy.backend.service;
 
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,14 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
-
-    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine){
-        this.mailSender = mailSender;
-        this.templateEngine = templateEngine;
-    }
 
     @Override
     public void sendEmail(String to, String subject, String templateName, Map<String, Object> variables) {

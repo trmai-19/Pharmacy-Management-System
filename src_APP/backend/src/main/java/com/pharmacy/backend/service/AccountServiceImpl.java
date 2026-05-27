@@ -2,9 +2,12 @@ package com.pharmacy.backend.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pharmacy.backend.dto.AccountResponse;
 import com.pharmacy.backend.dto.CreateUserRequest;
 import com.pharmacy.backend.dto.LoginResponse;
 import com.pharmacy.backend.mapper.AccountMapper;
@@ -13,23 +16,21 @@ import com.pharmacy.backend.model.Employee;
 import com.pharmacy.backend.repository.AccountRepository;
 import com.pharmacy.backend.repository.EmployeeRepository;
 import com.pharmacy.backend.security.JwtUtils;
+import java.util.List; 
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
+
+    private final JdbcTemplate jdbcTemplate;
 
     private final AccountRepository accountRepo;
     private final EmployeeRepository employeeRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final EmailService emailService;
-
-    public AccountServiceImpl(AccountRepository accountRepo, EmployeeRepository employeeRepo, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, EmailService emailService) {
-        this.accountRepo = accountRepo;
-        this.employeeRepo = employeeRepo;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtils = jwtUtils;
-        this.emailService = emailService;
-    }
+    private final AccountMapper accountMapper;
     
     private String generateRandomPassword() {
         return UUID.randomUUID().toString().substring(0, 8);
@@ -40,10 +41,6 @@ public class AccountServiceImpl implements AccountService {
         Account acc = accountRepo.findBySdt(sdt)
             .orElseThrow(() -> new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!"));
 
-        if (!passwordEncoder.matches(password, acc.getPassword())) {
-            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
-        }
-
         if ("LOCKED".equals(acc.getTrangthai())) {
             throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
         }
@@ -51,13 +48,17 @@ public class AccountServiceImpl implements AccountService {
         if (!"STAFF".equals(acc.getVaitro())) {
             throw new RuntimeException("Tài khoản không có quyền truy cập vào hệ thống này!");
         }
+        
+        if (!passwordEncoder.matches(password, acc.getPassword())) {
+            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
+        }
 
         Employee emp = employeeRepo.findByMatk(acc.getMatk())
             .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
         String generatedToken = jwtUtils.generateToken(emp.getSdt(), emp.getChucvu());
 
-        return AccountMapper.toLoginResponse(acc, emp, generatedToken);
+        return accountMapper.toLoginResponse(acc, emp, generatedToken);
     }
 
     @Override
@@ -68,7 +69,7 @@ public class AccountServiceImpl implements AccountService {
         }
         
         Account newAccount = new Account();
-        AccountMapper.updateNewAccountFromRequest(newAccount, request);
+        accountMapper.updateNewAccountFromRequest(newAccount, request);
         
         String rawPassword = generateRandomPassword();
         newAccount.setPassword(passwordEncoder.encode(rawPassword));
@@ -77,17 +78,17 @@ public class AccountServiceImpl implements AccountService {
         accountRepo.save(newAccount);
 
         Employee newEmployee = new Employee();
-        AccountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
+        accountMapper.updateNewEmployeeFromRequest(newEmployee, request, newAccount.getMatk());
             
         employeeRepo.save(newEmployee);
 
         emailService.sendAccountCreationEmail(request.getEmail(), request.getSdt(), rawPassword);
     }
 
-    @Override
+   @Override
     public void toggleAccountStatus(String id) {
-        Account acc = accountRepo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với mã: " + id));
+        Account acc = accountRepo.findBySdt(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với SĐT: " + id));
 
         if ("ACTIVE".equalsIgnoreCase(acc.getTrangthai())) {
             
@@ -95,8 +96,9 @@ public class AccountServiceImpl implements AccountService {
                 Employee emp = employeeRepo.findByMatk(acc.getMatk())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
+                // Logic của bạn: Bắt buộc nhân viên phải nghỉ việc mới được khóa tài khoản
                 if (!"RESIGNED".equalsIgnoreCase(emp.getTrangthai())) {
-                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đã nghỉ trước.");
+                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân sự sang ĐÃ NGHỈ VIỆC (RESIGNED) trước.");
                 }
             }
             acc.setTrangthai("LOCKED");
@@ -108,7 +110,7 @@ public class AccountServiceImpl implements AccountService {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin nhân viên liên kết!"));
 
                 if (!"WORKING".equalsIgnoreCase(emp.getTrangthai())) {
-                    throw new RuntimeException("Không thể khóa tài khoản! Vui lòng chuyển trạng thái nhân viên sang đang làm trước.");
+                    throw new RuntimeException("Không thể mở khóa! Vui lòng chuyển trạng thái nhân sự sang ĐANG LÀM VIỆC (WORKING) trước.");
                 }
             }
             acc.setTrangthai("ACTIVE");
@@ -164,4 +166,25 @@ public class AccountServiceImpl implements AccountService {
         acc.setPassword(passwordEncoder.encode(newPassword));
         accountRepo.save(acc);
     }
+   
+
+   
+    @Override
+    public List<AccountResponse> getAllAccountsInSystem() {
+        String sql = "SELECT * FROM V_DANH_SACH_TAI_KHOAN";
+        
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> new AccountResponse(
+                    rs.getString("username"),
+                    rs.getString("ownerName"),
+                    rs.getString("role"),
+                    rs.getString("status"),
+                    rs.getString("email"),
+                    rs.getString("accountType")
+            ));
+            } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Lỗi khi đọc hoặc thực thi file SQL script: " + e.getMessage());
+    }
+        }
 }

@@ -1,8 +1,8 @@
 package com.pharmacy.backend.model;
 
-import java.util.Date;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +22,7 @@ public class Invoice {
     private String makh;
 
     @Column(name = "NGAYBAN")
-    private Date ngayban;
+    private LocalDateTime ngayban;
 
     @Column(name = "TONGTIEN")
     private Double tongtien;

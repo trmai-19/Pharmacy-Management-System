@@ -1,14 +1,18 @@
 package com.pharmacy.backend.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "CTPT_KH")
-public class CustomerReturnDetail {
+@IdClass(ReturnReceiptDetailId.class) // Gọi file khóa chính kép ở trên vào
+public class ReturnReceiptDetail {
+
     @Id
     @Column(name = "MAPT_KH")
     private String maptKh;

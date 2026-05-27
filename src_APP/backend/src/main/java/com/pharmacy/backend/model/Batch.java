@@ -18,9 +18,9 @@ public class Batch {
     @Column(name = "MASP")
     private String masp;
 
-    @Column(name = "MADM")
-    private String madm;
-
+    @Column(name = "MAKHO")
+    private String makho;
+    
     @Column(name = "NGAYSX")
     private Date ngaysx;
 

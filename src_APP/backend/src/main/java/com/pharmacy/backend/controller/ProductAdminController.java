@@ -8,15 +8,15 @@ import com.pharmacy.backend.dto.ProductRequest;
 import com.pharmacy.backend.dto.ProductResponse;
 import com.pharmacy.backend.service.ProductService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping("/api/admin/products")
+@RequestMapping("/api/warehouse/products")
+@RequiredArgsConstructor
 public class ProductAdminController {
 
     private final ProductService productService;
 
-    public ProductAdminController(ProductService productService) {
-        this.productService = productService;
-    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@RequestBody ProductRequest request) {

@@ -12,22 +12,22 @@ import java.io.IOException;
 public class App extends Application {
 
     @Override
-public void start(Stage stage) throws IOException {
-    SceneManager.setPrimaryStage(stage);
+    public void start(Stage stage) throws IOException {
+        SceneManager.setPrimaryStage(stage);
 
-    FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/pharmacy/views/login.fxml"));
-    
-    if (loader.getLocation() == null) {
-        System.err.println("Không tìm thấy login.fxml!");
-        return;
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("/com/pharmacy/views/login.fxml"));
+        
+        if (loader.getLocation() == null) {
+            System.err.println("Không tìm thấy login.fxml!");
+            return;
+        }
+
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.setTitle("Pharmacy Management System");
+        stage.show();
     }
-
-    Parent root = loader.load();
-    Scene scene = new Scene(root);
-    stage.setScene(scene);
-    stage.setTitle("Pharmacy Management System");
-    stage.show();
-}
 
     public static void main(String[] args) {
         launch(args);

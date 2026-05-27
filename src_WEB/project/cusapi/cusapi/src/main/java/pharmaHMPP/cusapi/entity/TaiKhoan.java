@@ -13,13 +13,14 @@ import java.time.LocalDate;
 public class TaiKhoan {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MATK", length = 20)
     private String maTK;
 
     @Column(name = "VAITRO", length = 50)
     private String vaiTro;
 
-    @Column(name = "PASSWORD", length = 255, nullable = false)
+    @Column(name = "PASSWORD", length = 255)
     private String password;
 
     @Column(name = "SDT", length = 10)
@@ -34,4 +35,7 @@ public class TaiKhoan {
 
     @Column(name = "EMAIL", length = 100)
     private String email;
+
+    @Column(name = "TRANGTHAI", length = 50)
+    private String trangThai;
 }

@@ -20,12 +20,26 @@ api.interceptors.request.use((config) => {
 export const authService = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  changePassword: (data) => api.post('/auth/change-password', data),
 }
 
 export const khachHangService = {
   getThongTin: () => api.get('/khachhang/me'),
   getDiem: () => api.get('/khachhang/diem'),
   getLichSu: () => api.get('/khachhang/lichsu'),
+}
+
+export const sanPhamService = {
+  search: (keyword) => api.get(`/sanpham/search?q=${encodeURIComponent(keyword)}`),
+  getDetail: (maSP) => api.get(`/sanpham/${maSP}`),
+  browse: (keyword, maDM) => {
+    const params = new URLSearchParams()
+    if (keyword) params.append('q', keyword)
+    if (maDM) params.append('maDM', maDM)
+    return api.get(`/sanpham/browse?${params.toString()}`)
+  },
+  getDanhMuc: () => api.get('/sanpham/danhmuc'),
 }
 
 export default api

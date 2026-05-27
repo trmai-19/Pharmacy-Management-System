@@ -1,6 +1,13 @@
 package com.pharmacy.controller.admin;
 
-import com.pharmacy.model.Product;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.pharmacy.util.ApiService;
+import com.pharmacy.model.Category;
+import com.pharmacy.model.Medicine;
+import com.pharmacy.model.Batch;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -8,164 +15,658 @@ import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.control.TableRow;
+import javafx.util.StringConverter;
+
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProductManagerController {
 
-    // Thống kê
-    @FXML private Label lblTotalProducts;
-    @FXML private Label lblLowStock;
-    @FXML private Label lblExpiring;
+    @FXML private Label lblTotalProducts, lblLowStock, lblExpiring;
+    @FXML private VBox cardLowStock, cardExpiring;
+    
+    // TAB SẢN PHẨM
+    @FXML private TextField txtSearchProduct;
+    @FXML private ComboBox<String> cbCategoryFilter; 
+    @FXML private TableView<Medicine> tableProduct;
+    @FXML private TableColumn<Medicine, String> colProdId, colProdName, colProdActive, colProdCat, colProdUnit, colProdUsage;
+    @FXML private TableColumn<Medicine, Number> colProdPrice;
+    
+    // BẢNG LÔ HÀNG
+    @FXML private TableView<Batch> tableBatch;
+    @FXML private TableColumn<Batch, String> colBatchId, colBatchMfg, colBatchExp, colBatchImport, colBatchStatus, colBatchQty, colBatchImportPrice;
+    @FXML private Label lblBatchDetailTitle;
+    
+    // TAB DANH MỤC
+    @FXML private TextField txtSearchCategory;
+    @FXML private TableView<Category> tableCategory;
+    @FXML private TableColumn<Category, String> colCatId, colCatName, colCatNote;
 
-    // Thanh công cụ
-    @FXML private TextField txtSearch;
-    @FXML private ComboBox<String> cbCategory;
+    // MODAL SẢN PHẨM 
+    @FXML private StackPane modalProduct;
+    @FXML private Label lblProductModalTitle;
+    @FXML private TextField txtProdName, txtProdUnit, txtProdActive, txtProdUsage, txtProdPrice;
+    @FXML private ComboBox<Category> cbProdCategory; 
+    private Medicine currentEditingProduct = null;
 
-    // Bảng và Cột
-    @FXML private TableView<Product> tableProduct;
-    @FXML private TableColumn<Product, String> colId;
-    @FXML private TableColumn<Product, String> colName;
-    @FXML private TableColumn<Product, String> colActiveIngredient;
-    @FXML private TableColumn<Product, String> colCategory;
-    @FXML private TableColumn<Product, String> colUnit;
-    @FXML private TableColumn<Product, String> colQuantity;
-    @FXML private TableColumn<Product, String> colExpiryDate;
-    @FXML private TableColumn<Product, String> colStatus;
+    // MODAL DANH MỤC
+    @FXML private StackPane modalCategory;
+    @FXML private Label lblCategoryModalTitle;
+    @FXML private TextField txtCatName, txtCatNote;
+    private Category currentEditingCategory = null;
 
-    private ObservableList<Product> productList;
-    private FilteredList<Product> filteredData;
+    // MODAL CẢNH BÁO LÔ
+    @FXML private StackPane modalAlertBatches;
+    @FXML private Label lblAlertTitle;
+    @FXML private TableView<Batch> tableAlertBatches;
+    @FXML private TableColumn<Batch, String> colAlertBatchId, colAlertProductId, colAlertMfgDate, colAlertExpDate, colAlertImportDate, colAlertQuantity, colAlertStatus, colAlertImportPrice;
+
+    // AI PANEL
+    @FXML private Button btnAiSuggest;
+    @FXML private VBox aiPanel;
+    @FXML private VBox aiPanelContent;
+    @FXML private VBox vboxAiResults;
+    private boolean isAiPanelOpen = false;
+
+    // DATA LISTS
+    private Map<String, String> categoryDictionary = new HashMap<>();
+    private ObservableList<Category> categoryList = FXCollections.observableArrayList();
+    private ObservableList<Medicine> productList = FXCollections.observableArrayList();
+    private ObservableList<Batch> batchList = FXCollections.observableArrayList();
+    
+    private FilteredList<Medicine> filteredProducts;
+    private FilteredList<Category> filteredCategories;
 
     @FXML
     public void initialize() {
-        System.out.println("📦 ProductManagerController đang tải...");
+        setupTables();
+        loadCategories(); 
+        loadLowStockAlert();
+        loadExpiringAlert();
+        setupSearchFilters();
 
-        // 1. Ánh xạ các cột với Model Product
-        colId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
-        colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        colActiveIngredient.setCellValueFactory(cellData -> cellData.getValue().activeIngredientProperty());
-        colCategory.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
-        colUnit.setCellValueFactory(cellData -> cellData.getValue().unitProperty());
-        colQuantity.setCellValueFactory(cellData -> cellData.getValue().quantityProperty());
-        colExpiryDate.setCellValueFactory(cellData -> cellData.getValue().expiryDateProperty());
-        colStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
+        tableProduct.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+            if (newVal != null) {
+                lblBatchDetailTitle.setText("LÔ SẢN PHẨM : " + newVal.getName().toUpperCase());
+                loadBatchesForProduct(newVal.getId());
+            } else {
+                lblBatchDetailTitle.setText("CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ");
+                batchList.clear();
+            }
+        });
 
-        // 2. Khởi tạo dữ liệu Dropdown Danh mục
-        cbCategory.setItems(FXCollections.observableArrayList(
-                "Tất cả danh mục", "Kháng sinh", "Giảm đau - Hạ sốt", "Vitamin - Khoáng chất", "Thực phẩm chức năng", "Vật tư y tế"
-        ));
-        cbCategory.getSelectionModel().selectFirst();
-
-        // 3. Tải dữ liệu giả lập (Mock Data chuẩn ngành Dược)
-        loadMockData();
-
-        // 4. Thiết lập tính năng Tìm kiếm & Lọc thời gian thực
-        setupSearchAndFilter();
+        cbProdCategory.setItems(categoryList);
+        cbProdCategory.setConverter(new StringConverter<>() {
+            @Override public String toString(Category c) { return c == null ? "" : c.getCategoryName(); }
+            @Override public Category fromString(String s) { return null; }
+        });
     }
 
-    private void loadMockData() {
-        productList = FXCollections.observableArrayList(
-                new Product("SP001", "Avastin 400mg Injection", "Bevacizumab (400mg)", "Cancer of colon and rectum Non-small cell lung cancer Kidney cancer Brain tumor Ovarian cancer Cervical cancer", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP002", "Augmentin 625 Duo Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP003", "Azithral 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP004", "Ascoril LS Syrup", "Ambroxol (30mg/5ml) + Levosalbutamol (1mg/5ml) + Guaifenesin (50mg/5ml)", "Cough with mucus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP005", "Aciloc 150 Tablet", "Ranitidine (150mg)", "Peptic ulcer disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP006", "Allegra 120mg Tablet", "Fexofenadine (120mg)", "Allergic conditions", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP007", "Avil 25 Tablet", "Pheniramine (25mg)", "Skin conditions with inflammation & itchingTreatment and prevention of Meniere's disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP008", "Aricep 5 Tablet", "Donepezil (5mg)", "Alzheimer's disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP009", "Amoxyclav 625 Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP010", "Atarax 25mg Tablet", "Hydroxyzine (25mg)", "Skin conditions with inflammation & itching", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP011", "Azee 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP012", "Anovate Cream", "Phenylephrine (0.10% w/w) + Beclometasone (0.025% w/w) + Lidocaine (2.50% w/w)", "Piles", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP013", "Allegra-M Tablet", "Montelukast (10mg) + Fexofenadine (120mg)", "Sneezing and runny nose due to allergies", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP014", "Ascoril D Plus Syrup Sugar Free", "Phenylephrine (5mg) + Chlorpheniramine Maleate (2mg) + Dextromethorphan Hydrobromide (10mg)", "Dry cough", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP015", "Alex Syrup", "Phenylephrine (5mg/5ml) + Chlorpheniramine Maleate (2mg/5ml) + Dextromethorphan Hydrobromide (10mg/5ml)", "Dry cough", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP016", "Armotraz Tablet", "Anastrozole (1mg)", "Breast cancer", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP017", "Augmentin Duo Oral Suspension", "Amoxycillin  (200mg) +  Clavulanic Acid (28.5mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP018", "Albendazole 400mg Tablet", "Albendazole (400mg)", "Parasitic infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP019", "Arkamin Tablet", "Clonidine (100mcg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP020", "Allegra 180mg Tablet", "Fexofenadine (180mg)", "Allergic conditions", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP021", "Asthalin 100mcg Inhaler", "Salbutamol (100mcg)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP022", "Azee 250 Tablet", "Azithromycin (250mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP023", "Amlokind-AT Tablet", "Amlodipine (5mg) + Atenolol (50mg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP024", "Atarax 10mg Tablet", "Hydroxyzine (10mg)", "Anxiety Skin conditions with inflammation & itching", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP025", "Amoxyclav 625 Tablet", "Amoxycillin  (500mg) +  Clavulanic Acid (125mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP026", "Amlong Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP027", "Azee 500 Tablet", "Azithromycin (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP028", "Aciloc 300 Tablet", "Ranitidine (300mg)", "Gastroesophageal reflux disease (Acid reflux)Treatment of Peptic ulcer disease", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP029", "Amaryl 1mg Tablet", "Glimepiride (1mg)", "Type 2 diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP030", "Alkasol Oral Solution", "Disodium Hydrogen Citrate (1.37gm/5ml)", "GoutTreatment of Kidney stone", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP031", "Ativan 1mg Tablet", "Lorazepam (1mg)", "Short term anxiety", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP032", "Amaryl 2mg Tablet", "Glimepiride (2mg)", "Type 2 diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP033", "Amlokind 5 Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP034", "Anafortan Tablet", "Camylofin (25mg) + Paracetamol (300mg)", "Abdominal pain", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP035", "Azithral 200 Liquid", "Azithromycin (200mg/5ml)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP036", "Ativan 2mg Tablet", "Lorazepam (2mg)", "Short term anxiety", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP037", "Aquasol A Capsule", "Vitamin A (50000IU)", "Vitamin A deficiency", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP038", "Ascoril LS Drops", "Ambroxol (7.5mg/ml) + Levosalbutamol (0.25mg/ml) + Guaifenesin (12.5mg/ml)", "Cough with mucus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP039", "Azopt Eye Drop", "Brinzolamide (1% w/v)", "Glaucoma", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP040", "Aldactone Tablet", "Spironolactone (25mg)", "Hypertension (high blood pressure)Treatment of EdemaTreatment of Low potassium Heart failure", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP041", "Actrapid HM Penfill", "Human Insulin/Soluble Insulin (100IU/ml)", "Diabetes mellitus", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP042", "Asthalin 4 Tablet", "Salbutamol (4mg)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP043", "Axtar 1.5gm Injection", "Ceftriaxone (1000mg) + Sulbactam (500mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP044", "Abzorb Dusting Powder", "Clotrimazole (1% w/w)", "Fungal skin infections", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP045", "App UP Tablet", "Cyproheptadine (4mg)", "Loss of appetite", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP046", "Aldigesic-SP Tablet", "Aceclofenac (100mg) + Paracetamol (325mg) + Serratiopeptidase (15mg)", "Pain relief", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP047", "Amodep AT Tablet", "Amlodipine (5mg) + Atenolol (50mg)", "Hypertension (high blood pressure)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP048", "Asthalin Respirator Solution", "Salbutamol (5mg/ml)", "Asthma Chronic obstructive pulmonary disease (COPD)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP049", "Angispan - TR 2.5mg Capsule", "Nitroglycerin (2.5mg)", "Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-new Product("SP050", "AF - 150 Tablet", "Fluconazole (150mg)", "Fungal infections", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP051", "Amlokind 10 Tablet", "Amlodipine (10mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP052", "Azee 250 Tablet", "Azithromycin (250mg)", "Bacterial infections", "Hộp", "100", "31/12/2025", "Tốt"),
-                new Product("SP053", "Amlokind 5 Tablet", "Amlodipine (5mg)", "Hypertension (high blood pressure)Prevention of Angina (heart-related chest pain)", "Hộp", "100", "31/12/2025", "Tốt")
-                
-        );
-        tableProduct.setItems(productList);
-    }
+    // Helper để áp dụng style cho một row
+    private void applyBatchRowStyle(TableRow<Batch> row, Batch item, boolean selected) {
+        if (item == null) {
+            row.setStyle("");
+            return;
+        }
+        try {
+            int qty = Integer.parseInt(item.currentQtyProperty().get());
+            LocalDate expDate = LocalDate.parse(item.expDateProperty().get());
+            LocalDate now = LocalDate.now();
 
-    private void setupSearchAndFilter() {
-        filteredData = new FilteredList<>(productList, b -> true);
-
-        // Lắng nghe sự thay đổi của Text Search
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> updateFilter());
-
-        // Lắng nghe sự thay đổi của ComboBox Danh mục
-        cbCategory.valueProperty().addListener((observable, oldValue, newValue) -> updateFilter());
-
-        SortedList<Product> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(tableProduct.comparatorProperty());
-        tableProduct.setItems(sortedData);
-    }
-
-    // Hàm xử lý lọc kép: Phải thỏa mãn cả từ khóa tìm kiếm VÀ danh mục đã chọn
-    private void updateFilter() {
-        String searchText = txtSearch.getText().toLowerCase();
-        String selectedCategory = cbCategory.getValue();
-
-        filteredData.setPredicate(product -> {
-            // 1. Kiểm tra lọc theo Danh mục trước
-            boolean matchesCategory = true;
-            if (selectedCategory != null && !selectedCategory.equals("Tất cả danh mục")) {
-                matchesCategory = product.getCategory().equals(selectedCategory);
+            String bgColor = "";
+            if (qty == 0 || expDate.isBefore(now)) {
+                bgColor = "#fee2e2";
+            } else if (qty <= 10 || expDate.isBefore(now.plusMonths(3))) {
+                bgColor = "#ffedd5";
             }
 
-            // 2. Kiểm tra lọc theo Text
-            boolean matchesSearch = true;
-            if (searchText != null && !searchText.isEmpty()) {
-                matchesSearch = product.getName().toLowerCase().contains(searchText) ||
-                                product.getId().toLowerCase().contains(searchText) ||
-                                product.getActiveIngredient().toLowerCase().contains(searchText);
+            if (selected) {
+                row.setStyle("-fx-background-color: #bae6fd; -fx-text-fill: #0f172a;");
+            } else if (!bgColor.isEmpty()) {
+                row.setStyle("-fx-background-color: " + bgColor + "; -fx-text-fill: #0f172a;");
+            } else {
+                row.setStyle("");
             }
+        } catch (Exception e) {
+            row.setStyle("");
+        }
+    }
 
-            // Phải thỏa mãn cả 2 điều kiện
-            return matchesCategory && matchesSearch;
+    private void setupTables() {
+        colProdId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colProdName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colProdActive.setCellValueFactory(new PropertyValueFactory<>("ingredient"));
+        colProdCat.setCellValueFactory(new PropertyValueFactory<>("category"));
+        colProdUnit.setCellValueFactory(new PropertyValueFactory<>("unit"));
+        colProdUsage.setCellValueFactory(new PropertyValueFactory<>("usage"));
+        
+        colProdPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
+        colProdPrice.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(Number item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : new DecimalFormat("#,### đ").format(item.doubleValue()));
+            }
+        });
+
+        colBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
+        colBatchMfg.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
+        colBatchExp.setCellValueFactory(new PropertyValueFactory<>("expDate"));
+        colBatchImport.setCellValueFactory(new PropertyValueFactory<>("importDate"));
+        colBatchImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice")); 
+        colBatchQty.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
+        colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        tableBatch.setItems(batchList);
+
+        // Row factory cho bảng lô chính
+        tableBatch.setRowFactory(tv -> {
+            TableRow<Batch> row = new TableRow<>() {
+                @Override
+                protected void updateItem(Batch item, boolean empty) {
+                    super.updateItem(item, empty);
+                    applyBatchRowStyle(this, item, isSelected());
+                }
+            };
+            // Lắng nghe thay đổi selected để cập nhật style
+            row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                Batch item = row.getItem();
+                if (item != null) {
+                    applyBatchRowStyle(row, item, isNowSelected);
+                }
+            });
+            return row;
+        });
+
+        colCatId.setCellValueFactory(new PropertyValueFactory<>("categoryId"));
+        colCatName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
+        colCatNote.setCellValueFactory(new PropertyValueFactory<>("note"));
+        tableCategory.setItems(categoryList);
+
+        // Setup modal alert table columns
+        colAlertBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
+        colAlertProductId.setCellValueFactory(new PropertyValueFactory<>("productName"));
+        colAlertMfgDate.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
+        colAlertExpDate.setCellValueFactory(new PropertyValueFactory<>("expDate"));
+        colAlertImportDate.setCellValueFactory(new PropertyValueFactory<>("importDate"));
+        colAlertImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice"));
+        colAlertQuantity.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
+        colAlertStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        // Row factory cho modal cảnh báo
+        tableAlertBatches.setRowFactory(tv -> {
+            TableRow<Batch> row = new TableRow<>() {
+                @Override
+                protected void updateItem(Batch item, boolean empty) {
+                    super.updateItem(item, empty);
+                    applyBatchRowStyle(this, item, isSelected());
+                }
+            };
+            row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                Batch item = row.getItem();
+                if (item != null) {
+                    applyBatchRowStyle(row, item, isNowSelected);
+                }
+            });
+            return row;
+        });
+    }
+
+    private void setupSearchFilters() {
+        ObservableList<String> searchCategories = FXCollections.observableArrayList("Tất cả danh mục");
+        cbCategoryFilter.setItems(searchCategories);
+        cbCategoryFilter.getSelectionModel().selectFirst();
+
+        filteredProducts = new FilteredList<>(productList, p -> true);
+        txtSearchProduct.textProperty().addListener((obs, old, newVal) -> updateProductFilter());
+        cbCategoryFilter.valueProperty().addListener((obs, old, newVal) -> updateProductFilter());
+        
+        SortedList<Medicine> sortedProducts = new SortedList<>(filteredProducts);
+        sortedProducts.comparatorProperty().bind(tableProduct.comparatorProperty());
+        tableProduct.setItems(sortedProducts);
+
+        filteredCategories = new FilteredList<>(categoryList, c -> true);
+        txtSearchCategory.textProperty().addListener((obs, oldV, newV) -> {
+            filteredCategories.setPredicate(c -> {
+                if (newV == null || newV.trim().isEmpty()) return true;
+                String lower = newV.toLowerCase();
+                return c.getCategoryName().toLowerCase().contains(lower) || c.getCategoryId().toLowerCase().contains(lower);
+            });
+        });
+        SortedList<Category> sortedCats = new SortedList<>(filteredCategories);
+        sortedCats.comparatorProperty().bind(tableCategory.comparatorProperty());
+        tableCategory.setItems(sortedCats);
+    }
+
+    private void updateProductFilter() {
+        String searchText = txtSearchProduct.getText() != null ? txtSearchProduct.getText().toLowerCase() : "";
+        String selectedCat = cbCategoryFilter.getValue();
+        
+        filteredProducts.setPredicate(product -> {
+            boolean matchesSearch = searchText.isEmpty() || product.getName().toLowerCase().contains(searchText) || product.getId().toLowerCase().contains(searchText);
+            boolean matchesCat = selectedCat == null || selectedCat.equals("Tất cả danh mục") || product.getCategory().contains(selectedCat);
+            return matchesSearch && matchesCat;
+        });
+        batchList.clear();
+        lblBatchDetailTitle.setText("CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ");
+    }
+
+    private void loadCategories() {
+        ApiService.get("/api/warehouse/categories").thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        categoryList.clear();
+                        categoryDictionary.clear();
+                        ObservableList<String> searchCategories = FXCollections.observableArrayList("Tất cả danh mục");
+                        
+                        JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
+                        for (JsonNode node : dataNode) {
+                            String id = node.has("madm") ? node.get("madm").asText() : "";
+                            String name = node.has("tendm") ? node.get("tendm").asText() : id;
+                            String note = node.has("mota") ? node.get("mota").asText() : "";
+                            
+                            if (!id.isEmpty()) {
+                                categoryDictionary.put(id, name);
+                                searchCategories.add(name);       
+                                categoryList.add(new Category(id, name, note));
+                            }
+                        }
+                        cbCategoryFilter.setItems(searchCategories);
+                        cbCategoryFilter.getSelectionModel().selectFirst();
+                        
+                        loadProducts(); 
+                    } catch (Exception e) { e.printStackTrace(); }
+                }
+            });
+        });
+    }
+
+    private void loadProducts() {
+        ApiService.get("/api/products/all").thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
+                        productList.clear();
+                        for (JsonNode node : dataNode) {
+                            String id = node.has("masp") ? node.get("masp").asText() : "";
+                            String name = node.has("tensanpham") ? node.get("tensanpham").asText() : "";
+                            String unit = node.has("dvt") ? node.get("dvt").asText() : "";
+                            String ingredient = node.has("thanhphan") ? node.get("thanhphan").asText() : "";
+                            String usage = node.has("congdung") ? node.get("congdung").asText() : "";
+                            double price = node.has("giaban") ? node.get("giaban").asDouble() : 0.0;
+                            
+                            String categoryName = "Không xác định";
+                            if (node.has("danhMuc") && !node.get("danhMuc").isNull()) {
+                                JsonNode dmNode = node.get("danhMuc");
+                                categoryName = dmNode.has("tendm") ? dmNode.get("tendm").asText() : "Không xác định";
+                            } else if (node.has("tendm")) {
+                                categoryName = node.get("tendm").asText();
+                            } else if (node.has("madm")) {
+                                String madm = node.get("madm").asText();
+                                categoryName = categoryDictionary.getOrDefault(madm, madm.isEmpty() ? "Không xác định" : madm);
+                            }
+
+                            productList.add(new Medicine(id, name, unit, ingredient, usage, categoryName, price));
+                        }
+                        lblTotalProducts.setText(String.valueOf(productList.size()));
+                    } catch (Exception e) { e.printStackTrace(); }
+                }
+            });
+        });
+    }
+
+    private void loadBatchesForProduct(String masp) {
+        if (masp == null || masp.isEmpty()) return;
+        ApiService.get("/api/warehouse/batches/" + masp).thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
+                        batchList.clear();
+                        String currentProductName = "";
+                        for (Medicine m : productList) {
+                            if (m.getId().equals(masp)) {
+                                currentProductName = m.getName();
+                                break;
+                            }
+                        }
+                        for (JsonNode node : dataNode) {
+                            String malo = node.path("malo").asText("");
+                            String nsx = node.path("ngaysx").asText("");
+                            if (nsx.contains("T")) nsx = nsx.split("T")[0];
+                            String hsd = node.path("hsd").asText("");
+                            if (hsd.contains("T")) hsd = hsd.split("T")[0];
+                            String nhap = node.path("ngaynhap").asText("");
+                            if (nhap.contains("T")) nhap = nhap.split("T")[0];
+                            String qty = node.has("slsp") ? node.path("slsp").asText() : node.path("sl").asText("0");
+                            String status = node.path("trangthai").asText("");
+                            String importPrice = node.has("gianhap") ? String.format("%,.0f", node.get("gianhap").asDouble()) : "0";
+                            
+                            batchList.add(new Batch(malo, currentProductName, nsx, hsd, nhap, qty, status, importPrice));
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                }
+            });
+        });
+    }
+
+    private void loadLowStockAlert() {
+        ApiService.get("/api/warehouse/alerts/low-stock").thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) lblLowStock.setText(String.valueOf(ApiService.mapper.readTree(res.body()).get("data").size()));
+                } catch (Exception e) {}
+            });
+        });
+    }
+
+    private void loadExpiringAlert() {
+        ApiService.get("/api/warehouse/alerts/expiring-soon").thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) lblExpiring.setText(String.valueOf(ApiService.mapper.readTree(res.body()).get("data").size()));
+                } catch (Exception e) {}
+            });
+        });
+    }
+
+    // ==================== CLICK THẺ THỐNG KÊ ====================
+    @FXML
+    void showLowStockBatches(MouseEvent event) {
+        showAlertModal("📦 DANH SÁCH SẮP HẾT HÀNG (CẦN NHẬP)", "/api/warehouse/alerts/low-stock");
+    }
+
+    @FXML
+    void showExpiringBatches(MouseEvent event) {
+        showAlertModal("⚠️ DANH SÁCH CẬN DATE / HẾT HẠN (CẦN XỬ LÝ)", "/api/warehouse/alerts/expiring-soon");
+    }
+
+    private void showAlertModal(String title, String apiUrl) {
+        ApiService.get(apiUrl).thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
+                        ObservableList<Batch> alertBatchList = FXCollections.observableArrayList();
+                        for (JsonNode node : dataNode) {
+                            String malo = node.path("malo").asText("");
+                            String masp = node.path("masp").asText("");
+                            String mfg = node.path("ngaysx").asText("");
+                            if (mfg.contains("T")) mfg = mfg.split("T")[0];
+                            String exp = node.path("hsd").asText("");
+                            if (exp.contains("T")) exp = exp.split("T")[0];
+                            String importDate = node.path("ngaynhap").asText("");
+                            if (importDate.contains("T")) importDate = importDate.split("T")[0];
+                            String qty = node.has("slsp") ? node.get("slsp").asText() : "0";
+                            String status = node.path("trangthai").asText("");
+                            String importPrice = node.has("gianhap") ? String.format("%,.0f", node.get("gianhap").asDouble()) : "0";
+                            String tensp = getProductNameById(masp);
+                            alertBatchList.add(new Batch(malo, tensp, mfg, exp, importDate, qty, status, importPrice));
+                        }
+                        tableAlertBatches.setItems(alertBatchList);
+                        lblAlertTitle.setText(title);
+                        modalAlertBatches.setVisible(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showAlert(AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu cảnh báo.");
+                    }
+                } else {
+                    showAlert(AlertType.ERROR, "Lỗi", "Không thể kết nối đến máy chủ.");
+                }
+            });
         });
     }
 
     @FXML
-    void handleAddProduct(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Thêm thuốc mới");
-        alert.setHeaderText("Mở Form Nhập Kho");
-        alert.setContentText("Tại đây sẽ bật lên một Dialog để nhập thông tin thuốc mới, mã vạch, số lô, v.v.");
-        alert.showAndWait();
+    void closeAlertModal() {
+        modalAlertBatches.setVisible(false);
+    }
+
+    private String getProductNameById(String masp) {
+        for (Medicine m : productList) {
+            if (m.getId() != null && m.getId().equals(masp)) return m.getName();
+        }
+        return masp;
+    }
+
+    // ==================== AI PANEL ====================
+    @FXML
+    void toggleAiPanel(ActionEvent event) {
+        isAiPanelOpen = !isAiPanelOpen;
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+        
+        if (isAiPanelOpen) {
+            aiPanelContent.setVisible(true);
+            btnAiSuggest.setText("Đóng Gợi ý");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.play();
+            
+            String keyword = txtProdName.getText().trim();
+            if (!keyword.isEmpty()) {
+                fetchAiSuggestions(keyword);
+            } else {
+                vboxAiResults.getChildren().clear();
+                vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+            }
+        } else {
+            btnAiSuggest.setText("Gợi ý AI");
+            javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
+            timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
+            timeline.setOnFinished(e -> aiPanelContent.setVisible(false));
+            timeline.play();
+        }
+    }
+
+    private void fetchAiSuggestions(String keyword) {
+        vboxAiResults.getChildren().clear();
+        Label lblLoading = new Label("⏳ AI đang xử lý dữ liệu...");
+        lblLoading.setStyle("-fx-font-style: italic; -fx-text-fill: #64748b;");
+        vboxAiResults.getChildren().add(lblLoading);
+        btnAiSuggest.setDisable(true);
+
+        try {
+            String encodedKeyword = java.net.URLEncoder.encode(keyword, java.nio.charset.StandardCharsets.UTF_8);
+            ApiService.get("/api/medicines/ai-suggest?keyword=" + encodedKeyword).thenAccept(response -> {
+                Platform.runLater(() -> {
+                    btnAiSuggest.setDisable(false);
+                    vboxAiResults.getChildren().clear();
+                    
+                    if (response.statusCode() == 200) {
+                        try {
+                            JsonNode data = ApiService.mapper.readTree(response.body());
+                            if (data.isEmpty() || !data.isArray()) {
+                                vboxAiResults.getChildren().add(new Label("❌ Không tìm thấy thông tin phù hợp."));
+                                return;
+                            }
+                            for (JsonNode item : data) {
+                                vboxAiResults.getChildren().add(createAiResultCard(item));
+                            }
+                        } catch (Exception e) {
+                            vboxAiResults.getChildren().add(new Label("❌ Lỗi giải mã dữ liệu JSON."));
+                        }
+                    } else {
+                        vboxAiResults.getChildren().add(new Label("❌ Kết nối AI thất bại (Lỗi " + response.statusCode() + ")"));
+                    }
+                });
+            });
+        } catch (Exception e) {
+            btnAiSuggest.setDisable(false);
+        }
+    }
+
+    private VBox createAiResultCard(JsonNode item) {
+        VBox card = new VBox(8);
+        card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;");
+        
+        String tenChuan = item.path("tenChuan").asText("");
+        String donViTinh = item.path("donViTinh").asText("");
+        String thanhPhan = item.path("thanhPhan").asText("");
+        String congDung = item.path("congDung").asText("");
+        
+        Label lblName = new Label(tenChuan);
+        lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-font-size: 14px;");
+        lblName.setWrapText(true);
+        
+        Label lblUnit = new Label("• ĐVT: " + donViTinh);
+        lblUnit.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblActive = new Label("• TP: " + thanhPhan);
+        lblActive.setWrapText(true);
+        lblActive.setStyle("-fx-text-fill: #475569;");
+        
+        Label lblUsage = new Label("• Chỉ định: " + congDung);
+        lblUsage.setWrapText(true);
+        lblUsage.setStyle("-fx-text-fill: #475569;");
+        
+        Button btnSelect = new Button("Thêm dữ liệu này");
+        btnSelect.setMaxWidth(Double.MAX_VALUE);
+        btnSelect.setStyle("-fx-background-color: #e0f2fe; -fx-text-fill: #0369a1; -fx-font-weight: bold; -fx-background-radius: 5;");
+        
+        btnSelect.setOnAction(e -> {
+            txtProdName.setText(tenChuan);
+            txtProdUnit.setText(donViTinh);
+            txtProdActive.setText(thanhPhan);
+            txtProdUsage.setText(congDung);
+            toggleAiPanel(null);
+        });
+        
+        card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #94a3b8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-cursor: hand;"));
+        
+        return card;
+    }
+
+    // ==================== CRUD SẢN PHẨM ====================
+    @FXML void handleShowAddProduct(ActionEvent event) {
+        currentEditingProduct = null;
+        lblProductModalTitle.setText("💊 Thêm Sản Phẩm Thuốc Mới");
+        txtProdName.clear(); txtProdUnit.clear(); txtProdActive.clear(); txtProdUsage.clear(); txtProdPrice.clear();
+        if(!categoryList.isEmpty()) cbProdCategory.getSelectionModel().selectFirst();
+        modalProduct.setVisible(true);
+    }
+
+    @FXML void handleShowEditProduct(ActionEvent event) {
+        currentEditingProduct = tableProduct.getSelectionModel().getSelectedItem();
+        if (currentEditingProduct == null) {
+            showAlert(AlertType.WARNING, "Cảnh báo", "Vui lòng chọn 1 sản phẩm để sửa!");
+            return;
+        }
+        lblProductModalTitle.setText("✏ Sửa Thông Tin Sản Phẩm");
+        
+        txtProdName.setText(currentEditingProduct.getName());
+        txtProdUnit.setText(currentEditingProduct.getUnit());
+        txtProdActive.setText(currentEditingProduct.getIngredient());
+        txtProdUsage.setText(currentEditingProduct.getUsage());
+        txtProdPrice.setText(String.format("%.0f", currentEditingProduct.getPrice())); 
+        
+        cbProdCategory.getItems().stream()
+            .filter(c -> c.getCategoryName().equals(currentEditingProduct.getCategory()))
+            .findFirst()
+            .ifPresent(cbProdCategory.getSelectionModel()::select);
+
+        modalProduct.setVisible(true);
+    }
+
+    @FXML void handleSaveProduct(ActionEvent event) {
+        if (txtProdName.getText().trim().isEmpty() || txtProdUnit.getText().trim().isEmpty() || txtProdPrice.getText().trim().isEmpty()) {
+            showAlert(AlertType.WARNING, "Thiếu thông tin", "Vui lòng điền các trường bắt buộc (*)"); return;
+        }
+
+        try {
+            ObjectNode json = ApiService.mapper.createObjectNode();
+            json.put("tensanpham", txtProdName.getText().trim());
+            json.put("madm", cbProdCategory.getValue().getCategoryId());
+            json.put("thanhphan", txtProdActive.getText().trim());
+            json.put("congdung", txtProdUsage.getText().trim());
+            json.put("dvt", txtProdUnit.getText().trim());
+            json.put("giaban", Double.parseDouble(txtProdPrice.getText().trim()));
+            json.put("trangthai", "DANG_BAN");
+            
+            if (currentEditingProduct == null) {
+                ApiService.post("/api/warehouse/products", json.toString()).thenAccept(res -> Platform.runLater(() -> {
+                    if (res.statusCode() == 200) { showAlert(AlertType.INFORMATION, "Thành công", "Đã thêm sản phẩm mới!"); handleCloseProductModal(null); loadProducts(); }
+                }));
+            } else {
+                ApiService.put("/api/warehouse/products/" + currentEditingProduct.getId(), json.toString()).thenAccept(res -> Platform.runLater(() -> {
+                    if (res.statusCode() == 200) { showAlert(AlertType.INFORMATION, "Thành công", "Đã cập nhật sản phẩm!"); handleCloseProductModal(null); loadProducts(); }
+                }));
+            }
+        } catch (NumberFormatException e) { showAlert(AlertType.ERROR, "Lỗi", "Vui lòng nhập giá bán đúng định dạng số!"); }
+    }
+
+    @FXML void handleDeleteProduct(ActionEvent event) {
+        Medicine selected = tableProduct.getSelectionModel().getSelectedItem();
+        if (selected == null) { showAlert(AlertType.WARNING, "Thông báo", "Vui lòng chọn sản phẩm cần xóa!"); return; }
+        Alert alert = new Alert(AlertType.CONFIRMATION, "Bạn có chắc chắn muốn xóa thuốc " + selected.getName() + " không?", ButtonType.YES, ButtonType.NO);
+        if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
+            ApiService.postPublic("/api/warehouse/products/" + selected.getId() + "?_method=DELETE", "").thenAccept(res -> Platform.runLater(this::loadProducts));
+        }
+    }
+
+    // ==================== CRUD DANH MỤC ====================
+    @FXML void handleShowAddCategory(ActionEvent event) { 
+        currentEditingCategory = null;
+        lblCategoryModalTitle.setText("📂 Thêm Danh Mục Mới");
+        txtCatName.clear(); txtCatNote.clear();
+        modalCategory.setVisible(true);
+    }
+
+    @FXML void handleShowEditCategory(ActionEvent event) {
+        currentEditingCategory = tableCategory.getSelectionModel().getSelectedItem();
+        if (currentEditingCategory == null) { showAlert(AlertType.WARNING, "Cảnh báo", "Vui lòng chọn 1 danh mục để sửa!"); return; }
+        lblCategoryModalTitle.setText("✏ Sửa Danh Mục");
+        txtCatName.setText(currentEditingCategory.getCategoryName());
+        txtCatNote.setText(currentEditingCategory.getNote());
+        modalCategory.setVisible(true);
+    }
+
+    @FXML void handleSaveCategory(ActionEvent event) {
+        if (txtCatName.getText().trim().isEmpty()) { showAlert(AlertType.WARNING, "Thiếu thông tin", "Tên danh mục không được để trống!"); return; }
+        ObjectNode json = ApiService.mapper.createObjectNode();
+        json.put("tendm", txtCatName.getText().trim()); json.put("mota", txtCatNote.getText().trim());
+
+        if (currentEditingCategory == null) {
+            ApiService.post("/api/warehouse/categories", json.toString()).thenAccept(res -> Platform.runLater(() -> { handleCloseCategoryModal(null); loadCategories(); }));
+        } else {
+            ApiService.put("/api/admin/categories/" + currentEditingCategory.getCategoryId(), json.toString()).thenAccept(res -> Platform.runLater(() -> { handleCloseCategoryModal(null); loadCategories(); }));
+        }
+    }
+
+    @FXML void handleDeleteCategory(ActionEvent event) {
+        Category selected = tableCategory.getSelectionModel().getSelectedItem();
+        if (selected == null) { showAlert(AlertType.WARNING, "Thông báo", "Vui lòng chọn danh mục cần xóa!"); return; }
+        Alert alert = new Alert(AlertType.CONFIRMATION, "Bạn có chắc muốn xóa Danh Mục " + selected.getCategoryName() + " không?", ButtonType.YES, ButtonType.NO);
+        if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
+            ApiService.postPublic("/api/admin/categories/" + selected.getCategoryId() + "?_method=DELETE", "").thenAccept(res -> Platform.runLater(this::loadCategories));
+        }
+    }
+
+    @FXML void handleCloseProductModal(ActionEvent e) { 
+        modalProduct.setVisible(false); 
+        if (isAiPanelOpen) { toggleAiPanel(null); }
+    }
+    
+    @FXML void handleCloseCategoryModal(ActionEvent e) { modalCategory.setVisible(false); }
+    
+    private void showAlert(AlertType t, String title, String content) { 
+        Alert a = new Alert(t); 
+        a.setTitle(title); 
+        a.setHeaderText(null); 
+        a.setContentText(content); 
+        a.showAndWait(); 
     }
 }

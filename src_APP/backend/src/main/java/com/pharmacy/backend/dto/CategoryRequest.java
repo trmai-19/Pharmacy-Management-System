@@ -7,5 +7,4 @@ import lombok.*;
 public class CategoryRequest {
     private String tendm;
     private String mota;
-    private Double tyleloinhuan;
 }
