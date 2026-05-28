@@ -44,4 +44,11 @@ export const sanPhamService = {
   getDanhMuc: () => api.get('/sanpham/danhmuc'),
 }
 
+export const orderService = {
+  createOrder: (data) => api.post('/orders', data),
+  getMyOrders: () => api.get('/orders'),
+  getOrderDetails: (maHD) => api.get(`/orders/${maHD}`),
+  cancelOrder: (maHD) => api.put(`/orders/${maHD}/cancel`),
+}
+
 export default api
