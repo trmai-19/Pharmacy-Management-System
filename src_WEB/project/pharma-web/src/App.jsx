@@ -11,6 +11,9 @@ import BrowseProducts from './pages/BrowseProducts'
 import ReturnPolicy from './pages/ReturnPolicy'
 import Navbar from './components/Navbar'
 import Profile from './pages/Profile'
+import Cart from './pages/Cart'
+import Checkout from './pages/Checkout'
+import OrderHistory from './pages/OrderHistory'
 
 // Bảo vệ route cần đăng nhập
 const PrivateRoute = ({ children }) => {
@@ -40,6 +43,9 @@ function App() {
         <Route path="/san-pham" element={<BrowseProducts />} />
         <Route path="/tim-kiem" element={<SearchResult />} />
         <Route path="/san-pham/:maSP" element={<ProductDetail />} />
+        
+        {/* Giỏ hàng – public */}
+        <Route path="/cart" element={<Cart />} />
 
         {/* Route bắt buộc sau khi đăng nhập bằng pass tạm */}
         <Route path="/doi-mat-khau" element={
@@ -62,6 +68,16 @@ function App() {
         <Route path="/profile" element={
           <PrivateRoute>
             <WithNavbar><Profile /></WithNavbar>
+          </PrivateRoute>
+        } />
+        <Route path="/checkout" element={
+          <PrivateRoute>
+            <Checkout />
+          </PrivateRoute>
+        } />
+        <Route path="/orders" element={
+          <PrivateRoute>
+            <OrderHistory />
           </PrivateRoute>
         } />
 

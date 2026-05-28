@@ -39,6 +39,7 @@
                     <Button fx:id="btnSales" maxWidth="Infinity" onAction="#showSalesManager" styleClass="nav-btn, nav-btn-active" text="💰  BÁN HÀNG" />
                     <Button fx:id="btnCustomers" maxWidth="Infinity" onAction="#showCustomerManager" styleClass="nav-btn" text="👥  QUẢN LÝ KHÁCH HÀNG" />
                     <Button fx:id="btnReturns" maxWidth="Infinity" onAction="#showReturnManager" styleClass="nav-btn" text="↩  QUẢN LÝ ĐỔI TRẢ" />
+                    <Button fx:id="btnPreOrders" maxWidth="Infinity" onAction="#showPreOrderManager" styleClass="nav-btn" text="📦  ĐƠN ĐẶT TRƯỚC" />
                 </VBox>
 
                 <Region VBox.vgrow="ALWAYS" />
