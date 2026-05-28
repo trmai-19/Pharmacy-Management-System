@@ -74,6 +74,16 @@ public class AuthService {
                         .build();
                 khachHangRepo.save(khachHang);
         }
+
+        // Gửi email xác nhận đăng ký thành công
+        if (req.getEmail() != null && !req.getEmail().trim().isEmpty()) {
+            try {
+                emailService.sendRegistrationEmail(req.getEmail(), req.getSdt());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         return "Đăng ký thành công!";
     }
 
@@ -120,7 +130,7 @@ public class AuthService {
         taiKhoanRepo.save(taiKhoan);
 
         // Gui email khoi phuc
-        emailService.sendTempPassword(email, tempPassword);
+        emailService.sendTempPassword(email, tempPassword, sdt);
     }
 
     @Transactional
