@@ -55,7 +55,9 @@ export default function Navbar() {
           <Link to="/chinh-sach-doi-tra" className="hover:text-blue-200 transition whitespace-nowrap">
             Chính sách đổi trả
           </Link>
-          <span className="text-blue-200 whitespace-nowrap">👤 {tenKH}</span>
+          <Link to="/profile" className="text-blue-100 hover:text-white transition whitespace-nowrap font-medium flex items-center gap-1">
+            👤 {tenKH}
+          </Link>
           <button
             onClick={handleLogout}
             className="bg-white text-blue-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-50 transition"
@@ -80,6 +82,7 @@ export default function Navbar() {
           <Link to="/san-pham" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Sản phẩm</Link>
           <Link to="/diem" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Điểm tích lũy</Link>
           <Link to="/chinh-sach-doi-tra" className="block hover:text-blue-200" onClick={() => setMenuOpen(false)}>Chính sách đổi trả</Link>
+          <Link to="/profile" className="block hover:text-blue-200 font-medium" onClick={() => setMenuOpen(false)}>👤 Thông tin cá nhân ({tenKH})</Link>
           <button onClick={handleLogout} className="block text-left text-red-300 hover:text-red-200">Đăng xuất</button>
         </div>
       )}

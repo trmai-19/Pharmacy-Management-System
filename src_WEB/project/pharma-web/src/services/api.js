@@ -28,6 +28,8 @@ export const khachHangService = {
   getThongTin: () => api.get('/khachhang/me'),
   getDiem: () => api.get('/khachhang/diem'),
   getLichSu: () => api.get('/khachhang/lichsu'),
+  getChiTietHoaDon: (maHD) => api.get(`/khachhang/lichsu/${maHD}`),
+  updateThongTin: (data) => api.put('/khachhang/me', data),
 }
 
 export const sanPhamService = {

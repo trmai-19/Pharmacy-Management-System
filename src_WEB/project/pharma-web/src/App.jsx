@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail'
 import BrowseProducts from './pages/BrowseProducts'
 import ReturnPolicy from './pages/ReturnPolicy'
 import Navbar from './components/Navbar'
+import Profile from './pages/Profile'
 
 // Bảo vệ route cần đăng nhập
 const PrivateRoute = ({ children }) => {
@@ -56,6 +57,11 @@ function App() {
         <Route path="/diem" element={
           <PrivateRoute>
             <WithNavbar><DiemTichLuy /></WithNavbar>
+          </PrivateRoute>
+        } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <WithNavbar><Profile /></WithNavbar>
           </PrivateRoute>
         } />
 
