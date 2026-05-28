@@ -53,6 +53,12 @@ public class CustomerManagerController {
     @FXML private TableColumn<InvoiceItemRow, String> colDetailMasp, colDetailMalo, colDetailPrice, colDetailTotal;
     @FXML private TableColumn<InvoiceItemRow, Integer> colDetailSl;
 
+    // UI Modal Tạo Tài Khoản (Upgrade)
+    @FXML private StackPane modalUpgradeAccount;
+    @FXML private TextField txtUpgradeMaKH;
+    @FXML private TextField txtUpgradeEmail;
+    @FXML private Button btnConfirmUpgrade;
+
     private ObservableList<CustomerListRow> customerList = FXCollections.observableArrayList();
     private ObservableList<InvoiceHistoryRow> invoiceHistoryList = FXCollections.observableArrayList();
     private ObservableList<InvoiceItemRow> invoiceDetailsList = FXCollections.observableArrayList();
@@ -323,6 +329,97 @@ public class CustomerManagerController {
         txtNewPhone.clear();
         cbNewGender.getSelectionModel().clearSelection();
         dpNewDOB.setValue(null);
+    }
+    
+    // ==========================================
+    // TẠO TÀI KHOẢN (UPGRADE ACCOUNT)
+    // ==========================================
+
+    @FXML
+    void handleShowUpgradeForm(ActionEvent event) {
+        // Lấy khách hàng đang được chọn trong bảng
+        CustomerListRow selectedCustomer = tableCustomer.getSelectionModel().getSelectedItem();
+        
+        if (selectedCustomer == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn một khách hàng trong danh sách trước khi tạo tài khoản!");
+            return;
+        }
+
+        // Fill dữ liệu và reset form
+        txtUpgradeMaKH.setText(selectedCustomer.getMakh());
+        txtUpgradeEmail.clear();
+        
+        // Reset trạng thái nút
+        btnConfirmUpgrade.setText("XÁC NHẬN");
+        btnConfirmUpgrade.setDisable(false);
+        
+        modalUpgradeAccount.setVisible(true);
+    }
+
+    @FXML
+    void handleCloseUpgradeForm(ActionEvent event) {
+        modalUpgradeAccount.setVisible(false);
+    }
+
+    @FXML
+    void handleConfirmUpgrade(ActionEvent event) {
+        String makh = txtUpgradeMaKH.getText().trim();
+        String email = txtUpgradeEmail.getText().trim();
+
+        if (email.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập email để gửi thông tin tài khoản!");
+            return;
+        }
+
+        // Đổi text và khóa nút để tránh spam click
+        btnConfirmUpgrade.setText("Đang xử lý...");
+        btnConfirmUpgrade.setDisable(true);
+
+        try {
+            // Tạo body request chứa email
+            ObjectNode json = ApiService.mapper.createObjectNode();
+            json.put("email", email);
+
+            String url = "/api/sales/customers/" + makh + "/upgrade";
+
+            ApiService.post(url, json.toString()).thenAccept(res -> {
+                Platform.runLater(() -> {
+                    // Mở khóa lại nút sau khi có phản hồi
+                    btnConfirmUpgrade.setText("XÁC NHẬN");
+                    btnConfirmUpgrade.setDisable(false);
+
+                    try {
+                        if (res.statusCode() == 200 || res.statusCode() == 201) {
+                            showAlert(Alert.AlertType.INFORMATION, "Thành công", 
+                                    "Tài khoản và mật khẩu tạm thời đã được gửi vào mail của khách hàng.");
+                            modalUpgradeAccount.setVisible(false);
+                            
+                            // Load lại dữ liệu bảng (vì hạng khách hàng có thể đổi thành THÀNH VIÊN)
+                            handleSearchData(null); 
+                        } else {
+                            JsonNode errNode = ApiService.mapper.readTree(res.body());
+                            String errMsg = errNode.has("message") ? errNode.get("message").asText() : "Lỗi hệ thống";
+                            showAlert(Alert.AlertType.ERROR, "Thất bại", errMsg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showAlert(Alert.AlertType.ERROR, "Lỗi", "Đã xảy ra lỗi khi đọc dữ liệu trả về!");
+                    }
+                });
+            }).exceptionally(ex -> {
+                // Xử lý lỗi mất mạng / server chết
+                Platform.runLater(() -> {
+                    btnConfirmUpgrade.setText("XÁC NHẬN");
+                    btnConfirmUpgrade.setDisable(false);
+                    showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối tới máy chủ.");
+                });
+                return null;
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            btnConfirmUpgrade.setText("XÁC NHẬN");
+            btnConfirmUpgrade.setDisable(false);
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

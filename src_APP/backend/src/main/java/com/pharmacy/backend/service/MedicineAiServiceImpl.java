@@ -5,29 +5,44 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pharmacy.backend.dto.MedicineSuggestionDTO;
 import com.pharmacy.backend.model.MedicineCache;
 import com.pharmacy.backend.repository.MedicineCacheRepository;
-import com.pharmacy.backend.service.MedicineAiService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MedicineAiServiceImpl implements MedicineAiService {
-
-    @Value("${gemini.api.key}")
-    private String apiKey;
-
-    @Value("${gemini.api.url}")
-    private String apiUrl;
 
     private final MedicineCacheRepository cacheRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestClient restClient;
+    private final String apiUrlWithKey;
+
+    public MedicineAiServiceImpl(MedicineCacheRepository cacheRepository,
+                                 @Value("${gemini.api.key}") String apiKey,
+                                 @Value("${gemini.api.url}") String apiUrl) {
+        this.cacheRepository = cacheRepository;
+        this.apiUrlWithKey = apiUrl + "?key=" + apiKey;
+
+        // Cài đặt Timeout để server không bị treo nếu AI phản hồi chậm
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(30000);
+
+        this.restClient = RestClient.builder()
+                .requestFactory(requestFactory)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
 
     @Override
     public List<MedicineSuggestionDTO> getSuggestions(String keyword) {
@@ -37,26 +52,23 @@ public class MedicineAiServiceImpl implements MedicineAiService {
 
         String cleanKeyword = keyword.trim().toLowerCase();
 
-        // 1. Check Oracle Cache
         Optional<MedicineCache> cachedData = cacheRepository.findByKeyword(cleanKeyword);
         if (cachedData.isPresent()) {
             try {
                 log.info("Hit cache for keyword: {}", cleanKeyword);
-                return objectMapper.readValue(cachedData.get().getResponseData(), new TypeReference<List<MedicineSuggestionDTO>>() {});
+                return objectMapper.readValue(cachedData.get().getResponseData(), new TypeReference<>() {});
             } catch (Exception e) {
                 log.error("Lỗi parse JSON từ Cache DB: {}", e.getMessage());
             }
         }
 
-        // 2. Call AI API if Cache miss
         try {
-            log.info("Cache miss. Calling Gemini API for keyword: {}", cleanKeyword);
+            log.info("Cache miss. Calling Gemini via RestClient for: {}", cleanKeyword);
             String aiResponseRaw = callGeminiApi(cleanKeyword);
             String jsonArrayString = extractJsonArray(aiResponseRaw);
 
-            List<MedicineSuggestionDTO> suggestions = objectMapper.readValue(jsonArrayString, new TypeReference<List<MedicineSuggestionDTO>>() {});
+            List<MedicineSuggestionDTO> suggestions = objectMapper.readValue(jsonArrayString, new TypeReference<>() {});
 
-            // 3. Save to Cache
             MedicineCache newCache = MedicineCache.builder()
                     .keyword(cleanKeyword)
                     .responseData(jsonArrayString)
@@ -65,42 +77,28 @@ public class MedicineAiServiceImpl implements MedicineAiService {
 
             return suggestions;
         } catch (Exception e) {
-            log.error("Lỗi gọi API AI hoặc xử lý kết quả: {}", e.getMessage());
+            log.error("Lỗi gọi API AI hoặc xử lý kết quả: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
     }
 
     private String callGeminiApi(String keyword) {
-        RestTemplate restTemplate = new RestTemplate();
-        String urlWithKey = apiUrl + "?key=" + apiKey;
-
         String prompt = String.format(
-            "Bạn là một chuyên gia dược phẩm. Người dùng cung cấp từ khóa tên thuốc gần đúng: '%s'. " +
-            "Hãy tìm kiếm và đưa ra danh sách từ 5 đến 10 sản phẩm thuốc thương mại chính xác, phổ biến tại thị trường Việt Nam khớp hoặc gần giống nhất với từ khóa này. " +
-            "Yêu cầu trả về kết quả dưới dạng một JSON Array duy nhất. Các key bắt buộc: " +
-            "\"tenChuan\", \"donViTinh\", \"thanhPhan\", \"congDung\". " +
-            "Ví dụ: [{\"tenChuan\": \"Panadol Extra\", \"donViTinh\": \"Hộp\", \"thanhPhan\": \"Paracetamol 500mg, Caffeine 65mg\", \"congDung\": \"Hạ sốt, giảm đau\"}]. " +
-            "Chỉ trả về chuỗi JSON Array đúng cấu trúc, không kèm bất kỳ text giải thích nào.",
-            keyword
+            "Bạn là một chuyên gia dược phẩm. Từ khóa tên thuốc: '%s'. " +
+            "Trả về JSON Array 5-10 sản phẩm thực tế ở VN. Các key: tenChuan, donViTinh, thanhPhan, congDung. " +
+            "Không kèm text giải thích.", keyword
         );
-
-        Map<String, Object> textMap = Map.of("text", prompt);
-        Map<String, Object> partsMap = Map.of("parts", List.of(textMap));
-        Map<String, Object> contentsMap = Map.of("contents", List.of(partsMap));
-        Map<String, Object> generationConfig = Map.of("responseMimeType", "application/json");
 
         Map<String, Object> requestBody = Map.of(
-            "contents", List.of(partsMap),
-            "generationConfig", generationConfig
+            "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+            "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(urlWithKey, entity, String.class);
-
-        return response.getBody();
+        return restClient.post()
+                .uri(apiUrlWithKey)
+                .body(requestBody)
+                .retrieve()
+                .body(String.class);
     }
 
     private String extractJsonArray(String rawResponse) throws Exception {

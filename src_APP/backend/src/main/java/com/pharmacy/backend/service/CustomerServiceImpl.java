@@ -16,8 +16,8 @@ import com.pharmacy.backend.dto.CustomerReportResponse;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
-import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
+import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.mapper.CustomerMapper;
 import com.pharmacy.backend.mapper.InvoiceMapper;
 import com.pharmacy.backend.model.Account;
@@ -39,7 +39,6 @@ public class CustomerServiceImpl implements CustomerService {
     private final InvoiceRepository invoiceRepository;
     private final CustomerMapper customerMapper;
 
-    /* Tạo hồ sơ KH chỉ dùng sdt */
     @Override
     @Transactional
     public CustomerResponse quickCreate(QuickCreateCustomerRequest request) {
@@ -77,6 +76,7 @@ public class CustomerServiceImpl implements CustomerService {
         account.setVaitro("CUSTOMER");
         account.setEmail(request.getEmail());
         account.setTrangthai("ACTIVE");
+        account.setFirstLogin(true);
         account.setNgaytao(new Date());
         accountRepository.save(account);
 
