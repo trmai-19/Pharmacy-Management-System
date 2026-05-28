@@ -20,8 +20,8 @@
                     </children>
                 </HBox>
 
-                <VBox spacing="20.0" VBox.vgrow="ALWAYS">
-                    <children>
+                <SplitPane dividerPositions="0.6" orientation="VERTICAL" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                    <items>
                         <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
                             <children>
                                 <Label text="DANH SÁCH PHIẾU NHẬP (Chọn 1 phiếu để xem/trả hàng)" style="-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-font-size: 15px;">
@@ -64,8 +64,8 @@
                                 </TableView>
                             </children>
                         </VBox>
-                    </children>
-                </VBox>
+                    </items>
+                </SplitPane>
             </children>
         </VBox>
 
@@ -100,7 +100,7 @@
                                     <TableColumn fx:id="colRetMaLo" prefWidth="250.0" text="Mã Lô Hàng" />
                                     <TableColumn fx:id="colRetQty" prefWidth="150.0" style="-fx-alignment: CENTER;" text="Số Lượng Trả" />
                                     <TableColumn fx:id="colRetAction" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Hủy" />
-                                </columns>
+                                 </columns>
                                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                             </TableView>
                         </VBox>

@@ -18,35 +18,39 @@
             <Button onAction="#handleDeleteSupplier" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 9 25; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px;" text="Xóa"/>
         </HBox>
 
-        <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
-            <Label style="-fx-font-weight: bold; -fx-text-fill: #0b5d77; -fx-font-size: 15px;" text="DANH SÁCH NHÀ CUNG CẤP">
-                <VBox.margin><Insets bottom="10"/></VBox.margin>
-            </Label>
-            <TableView fx:id="tblSuppliers" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
-                <columns>
-                    <TableColumn fx:id="colMaNCC" prefWidth="120" text="Mã NCC" />
-                    <TableColumn fx:id="colTenNCC" prefWidth="250" text="Tên Nhà Cung Cấp" />
-                    <TableColumn fx:id="colSDT" prefWidth="150" text="Số Điện Thoại" />
-                    <TableColumn fx:id="colEmail" prefWidth="200" text="Email" />
-                    <TableColumn fx:id="colDiaChi" prefWidth="300" text="Địa Chỉ" />
-                </columns>
-            </TableView>
-        </VBox>
+        <SplitPane dividerPositions="0.6" orientation="VERTICAL" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+            <items>
+                <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #0b5d77; -fx-font-size: 15px;" text="DANH SÁCH NHÀ CUNG CẤP">
+                        <VBox.margin><Insets bottom="10"/></VBox.margin>
+                    </Label>
+                    <TableView fx:id="tblSuppliers" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
+                        <columns>
+                            <TableColumn fx:id="colMaNCC" prefWidth="120" text="Mã NCC" />
+                            <TableColumn fx:id="colTenNCC" prefWidth="250" text="Tên Nhà Cung Cấp" />
+                            <TableColumn fx:id="colSDT" prefWidth="150" text="Số Điện Thoại" />
+                            <TableColumn fx:id="colEmail" prefWidth="200" text="Email" />
+                            <TableColumn fx:id="colDiaChi" prefWidth="300" text="Địa Chỉ" />
+                        </columns>
+                    </TableView>
+                </VBox>
 
-        <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
-            <Label fx:id="lblReceiptHistory" style="-fx-font-weight: bold; -fx-text-fill: #d97706; -fx-font-size: 15px;" text="LỊCH SỬ PHIẾU NHẬP CỦA NHÀ CUNG CẤP: ...">
-                <VBox.margin><Insets bottom="10"/></VBox.margin>
-            </Label>
-            <TableView fx:id="tblReceipts" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
-                <columns>
-                    <TableColumn fx:id="colMaPhieu" prefWidth="150" text="Mã Phiếu Nhập" />
-                    <TableColumn fx:id="colNgayNhap" prefWidth="150" text="Ngày Nhập" />
-                    <TableColumn fx:id="colTongTien" prefWidth="150" text="Tổng Tiền (VNĐ)" />
-                    <TableColumn fx:id="colTrangThai" prefWidth="150" text="Trạng Thái" />
-                    <TableColumn fx:id="colChiTiet" prefWidth="100" text="Chi tiết" style="-fx-alignment: CENTER;" />
-                </columns>
-            </TableView>
-        </VBox>
+                <VBox style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-padding: 15;" VBox.vgrow="ALWAYS">
+                    <Label fx:id="lblReceiptHistory" style="-fx-font-weight: bold; -fx-text-fill: #d97706; -fx-font-size: 15px;" text="LỊCH SỬ PHIẾU NHẬP CỦA NHÀ CUNG CẤP: ...">
+                        <VBox.margin><Insets bottom="10"/></VBox.margin>
+                    </Label>
+                    <TableView fx:id="tblReceipts" VBox.vgrow="ALWAYS" style="-fx-font-size: 13px;">
+                        <columns>
+                            <TableColumn fx:id="colMaPhieu" prefWidth="150" text="Mã Phiếu Nhập" />
+                            <TableColumn fx:id="colNgayNhap" prefWidth="150" text="Ngày Nhập" />
+                            <TableColumn fx:id="colTongTien" prefWidth="150" text="Tổng Tiền (VNĐ)" />
+                            <TableColumn fx:id="colTrangThai" prefWidth="150" text="Trạng Thái" />
+                            <TableColumn fx:id="colChiTiet" prefWidth="100" text="Chi tiết" style="-fx-alignment: CENTER;" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </items>
+        </SplitPane>
     </VBox>
 
     <StackPane fx:id="modalSupplier" visible="false" style="-fx-background-color: rgba(0, 0, 0, 0.5);">

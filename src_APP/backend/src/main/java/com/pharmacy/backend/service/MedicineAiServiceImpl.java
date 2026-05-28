@@ -36,7 +36,7 @@ public class MedicineAiServiceImpl implements MedicineAiService {
         // Cài đặt Timeout để server không bị treo nếu AI phản hồi chậm
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10000);
-        requestFactory.setReadTimeout(30000);
+        requestFactory.setReadTimeout(40000);
 
         this.restClient = RestClient.builder()
                 .requestFactory(requestFactory)

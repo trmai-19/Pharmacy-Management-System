@@ -86,8 +86,6 @@ public class InventoryController {
         tableImportItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableAlertBatches.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Đã xóa hàm styleTableHeaders() ở đây để trả về style gốc của hệ thống
-
         setupTableColumns();
         setupTemporaryTableColumns();
         setupAlertTableColumns();
@@ -110,6 +108,11 @@ public class InventoryController {
                 tableBatch.setItems(FXCollections.observableArrayList());
             }
         });
+
+        // Bắt sự kiện phím Enter trên ô nhập tên sản phẩm
+        if (txtTenSpNew != null) {
+            txtTenSpNew.setOnAction(e -> handleAiSuggestWhAction(null));
+        }
     }
 
     private String getProductNameById(String masp) {
@@ -478,29 +481,38 @@ public class InventoryController {
         showAlertModal("⚠️ DANH SÁCH CẬN DATE / HẾT HẠN (CẦN XỬ LÝ)", "/api/warehouse/alerts/expiring-soon");
     }
 
+    // ==================== AI PANEL WAREHOUSE ====================
     @FXML
-    void toggleAiPanelWh(ActionEvent event) {
-        isAiPanelWhOpen = !isAiPanelWhOpen;
-        Timeline timeline = new Timeline();
+    void handleAiSuggestWhAction(ActionEvent event) {
+        String keyword = txtTenSpNew.getText().trim();
+        openAiPanelWh();
         
-        if (isAiPanelWhOpen) {
+        if (!keyword.isEmpty()) {
+            fetchAiSuggestionsWh(keyword);
+        } else {
+            vboxAiResultsWh.getChildren().clear();
+            vboxAiResultsWh.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+        }
+    }
+
+    private void openAiPanelWh() {
+        if (!isAiPanelWhOpen) {
+            isAiPanelWhOpen = true;
             aiPanelContentWh.setVisible(true);
-            btnAiSuggestWh.setText("Đóng Gợi ý");
+            Timeline timeline = new Timeline();
             KeyValue kvWidth = new KeyValue(aiPanelWh.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             KeyValue kvPref = new KeyValue(aiPanelWh.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             KeyValue kvOpacity = new KeyValue(aiPanelWh.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
             timeline.getKeyFrames().add(new KeyFrame(Duration.millis(350), kvWidth, kvPref, kvOpacity));
             timeline.play();
-            
-            String keyword = txtTenSpNew.getText().trim();
-            if (!keyword.isEmpty()) {
-                fetchAiSuggestionsWh(keyword);
-            } else {
-                vboxAiResultsWh.getChildren().clear();
-                vboxAiResultsWh.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
-            }
-        } else {
-            btnAiSuggestWh.setText("Gợi ý AI");
+        }
+    }
+
+    @FXML
+    void closeAiPanelWh(ActionEvent event) {
+        if (isAiPanelWhOpen) {
+            isAiPanelWhOpen = false;
+            Timeline timeline = new Timeline();
             KeyValue kvWidth = new KeyValue(aiPanelWh.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             KeyValue kvPref = new KeyValue(aiPanelWh.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             KeyValue kvOpacity = new KeyValue(aiPanelWh.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
@@ -580,7 +592,7 @@ public class InventoryController {
             txtDvtSpNew.setText(donViTinh);
             txtThanhPhanNew.setText(thanhPhan);
             txtCongDungNew.setText(congDung);
-            toggleAiPanelWh(null);
+            closeAiPanelWh(null); // Thay vì toggle, giờ gọi close
         });
         
         card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
@@ -776,7 +788,7 @@ public class InventoryController {
         if (modalNhapKho != null) modalNhapKho.setVisible(false);
         if (modalAddProduct != null) {
             modalAddProduct.setVisible(false);
-            if (isAiPanelWhOpen) { toggleAiPanelWh(null); }
+            closeAiPanelWh(null); // Đóng AI khi ẩn modal
         }
         if (modalAddSupplier != null) modalAddSupplier.setVisible(false);
     }
