@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pharmacy.util.ApiService;
 import com.pharmacy.model.Category;
-import com.pharmacy.model.Medicine; 
+import com.pharmacy.model.Medicine;
 import com.pharmacy.model.Batch;
 
 import javafx.application.Platform;
@@ -19,16 +19,19 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.control.TableRow;
 import javafx.util.StringConverter;
 
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ProductManagerController {
 
-    @FXML private Label lblTotalProducts, lblLowStock;
+    @FXML private Label lblTotalProducts, lblLowStock, lblExpiring;
+    @FXML private VBox cardLowStock, cardExpiring;
     
     // TAB SẢN PHẨM
     @FXML private TextField txtSearchProduct;
@@ -40,6 +43,7 @@ public class ProductManagerController {
     // BẢNG LÔ HÀNG
     @FXML private TableView<Batch> tableBatch;
     @FXML private TableColumn<Batch, String> colBatchId, colBatchMfg, colBatchExp, colBatchImport, colBatchStatus, colBatchQty, colBatchImportPrice;
+    @FXML private Label lblBatchDetailTitle;
     
     // TAB DANH MỤC
     @FXML private TextField txtSearchCategory;
@@ -59,7 +63,13 @@ public class ProductManagerController {
     @FXML private TextField txtCatName, txtCatNote;
     private Category currentEditingCategory = null;
 
-    // KHAI BÁO BỔ SUNG CHO TÍNH NĂNG AI SIDE-PANEL
+    // MODAL CẢNH BÁO LÔ
+    @FXML private StackPane modalAlertBatches;
+    @FXML private Label lblAlertTitle;
+    @FXML private TableView<Batch> tableAlertBatches;
+    @FXML private TableColumn<Batch, String> colAlertBatchId, colAlertProductId, colAlertMfgDate, colAlertExpDate, colAlertImportDate, colAlertQuantity, colAlertStatus, colAlertImportPrice;
+
+    // AI PANEL
     @FXML private Button btnAiSuggest;
     @FXML private VBox aiPanel;
     @FXML private VBox aiPanelContent;
@@ -80,10 +90,17 @@ public class ProductManagerController {
         setupTables();
         loadCategories(); 
         loadLowStockAlert();
+        loadExpiringAlert();
         setupSearchFilters();
 
         tableProduct.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
-            if (newVal != null) loadBatchesForProduct(newVal.getId()); else batchList.clear();
+            if (newVal != null) {
+                lblBatchDetailTitle.setText("LÔ SẢN PHẨM : " + newVal.getName().toUpperCase());
+                loadBatchesForProduct(newVal.getId());
+            } else {
+                lblBatchDetailTitle.setText("CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ");
+                batchList.clear();
+            }
         });
 
         cbProdCategory.setItems(categoryList);
@@ -91,6 +108,40 @@ public class ProductManagerController {
             @Override public String toString(Category c) { return c == null ? "" : c.getCategoryName(); }
             @Override public Category fromString(String s) { return null; }
         });
+
+        // Bắt sự kiện phím Enter trên ô nhập tên sản phẩm
+        if (txtProdName != null) {
+            txtProdName.setOnAction(e -> handleAiSuggestAction(null));
+        }
+    }
+
+    private void applyBatchRowStyle(TableRow<Batch> row, Batch item, boolean selected) {
+        if (item == null) {
+            row.setStyle("");
+            return;
+        }
+        try {
+            int qty = Integer.parseInt(item.currentQtyProperty().get());
+            LocalDate expDate = LocalDate.parse(item.expDateProperty().get());
+            LocalDate now = LocalDate.now();
+
+            String bgColor = "";
+            if (qty == 0 || expDate.isBefore(now)) {
+                bgColor = "#fee2e2";
+            } else if (qty <= 10 || expDate.isBefore(now.plusMonths(3))) {
+                bgColor = "#ffedd5";
+            }
+
+            if (selected) {
+                row.setStyle("-fx-background-color: #bae6fd; -fx-text-fill: #0f172a;");
+            } else if (!bgColor.isEmpty()) {
+                row.setStyle("-fx-background-color: " + bgColor + "; -fx-text-fill: #0f172a;");
+            } else {
+                row.setStyle("");
+            }
+        } catch (Exception e) {
+            row.setStyle("");
+        }
     }
 
     private void setupTables() {
@@ -118,10 +169,53 @@ public class ProductManagerController {
         colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         tableBatch.setItems(batchList);
 
+        tableBatch.setRowFactory(tv -> {
+            TableRow<Batch> row = new TableRow<>() {
+                @Override
+                protected void updateItem(Batch item, boolean empty) {
+                    super.updateItem(item, empty);
+                    applyBatchRowStyle(this, item, isSelected());
+                }
+            };
+            row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                Batch item = row.getItem();
+                if (item != null) {
+                    applyBatchRowStyle(row, item, isNowSelected);
+                }
+            });
+            return row;
+        });
+
         colCatId.setCellValueFactory(new PropertyValueFactory<>("categoryId"));
         colCatName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
         colCatNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         tableCategory.setItems(categoryList);
+
+        colAlertBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
+        colAlertProductId.setCellValueFactory(new PropertyValueFactory<>("productName"));
+        colAlertMfgDate.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
+        colAlertExpDate.setCellValueFactory(new PropertyValueFactory<>("expDate"));
+        colAlertImportDate.setCellValueFactory(new PropertyValueFactory<>("importDate"));
+        colAlertImportPrice.setCellValueFactory(new PropertyValueFactory<>("importPrice"));
+        colAlertQuantity.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
+        colAlertStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        tableAlertBatches.setRowFactory(tv -> {
+            TableRow<Batch> row = new TableRow<>() {
+                @Override
+                protected void updateItem(Batch item, boolean empty) {
+                    super.updateItem(item, empty);
+                    applyBatchRowStyle(this, item, isSelected());
+                }
+            };
+            row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                Batch item = row.getItem();
+                if (item != null) {
+                    applyBatchRowStyle(row, item, isNowSelected);
+                }
+            });
+            return row;
+        });
     }
 
     private void setupSearchFilters() {
@@ -159,7 +253,8 @@ public class ProductManagerController {
             boolean matchesCat = selectedCat == null || selectedCat.equals("Tất cả danh mục") || product.getCategory().contains(selectedCat);
             return matchesSearch && matchesCat;
         });
-        batchList.clear(); 
+        batchList.clear();
+        lblBatchDetailTitle.setText("CHI TIẾT LÔ HÀNG NHẬP THỰC TẾ");
     }
 
     private void loadCategories() {
@@ -236,26 +331,26 @@ public class ProductManagerController {
                     try {
                         JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
                         batchList.clear();
+                        String currentProductName = "";
+                        for (Medicine m : productList) {
+                            if (m.getId().equals(masp)) {
+                                currentProductName = m.getName();
+                                break;
+                            }
+                        }
                         for (JsonNode node : dataNode) {
                             String malo = node.path("malo").asText("");
                             String nsx = node.path("ngaysx").asText("");
-                            if (nsx.isEmpty()) nsx = node.path("nsx").asText("");
+                            if (nsx.contains("T")) nsx = nsx.split("T")[0];
                             String hsd = node.path("hsd").asText("");
+                            if (hsd.contains("T")) hsd = hsd.split("T")[0];
                             String nhap = node.path("ngaynhap").asText("");
+                            if (nhap.contains("T")) nhap = nhap.split("T")[0];
                             String qty = node.has("slsp") ? node.path("slsp").asText() : node.path("sl").asText("0");
                             String status = node.path("trangthai").asText("");
+                            String importPrice = node.has("gianhap") ? String.format("%,.0f", node.get("gianhap").asDouble()) : "0";
                             
-                            String importPrice = "0";
-                            if (node.has("gianhap")) {
-                                importPrice = String.format("%,.0f", node.get("gianhap").asDouble());
-                            }
-                            
-                            batchList.add(new Batch(
-                                malo, nsx.contains("T") ? nsx.split("T")[0] : nsx, 
-                                hsd.contains("T") ? hsd.split("T")[0] : hsd, 
-                                nhap.contains("T") ? nhap.split("T")[0] : nhap, 
-                                qty, status, importPrice
-                            ));
+                            batchList.add(new Batch(malo, currentProductName, nsx, hsd, nhap, qty, status, importPrice));
                         }
                     } catch (Exception e) { e.printStackTrace(); }
                 }
@@ -273,33 +368,106 @@ public class ProductManagerController {
         });
     }
 
-    // ==========================================
-    // LOGIC CHO PANEL GỢI Ý AI
-    // ==========================================
+    private void loadExpiringAlert() {
+        ApiService.get("/api/warehouse/alerts/expiring-soon").thenAccept(res -> {
+            Platform.runLater(() -> {
+                try {
+                    if (res.statusCode() == 200) lblExpiring.setText(String.valueOf(ApiService.mapper.readTree(res.body()).get("data").size()));
+                } catch (Exception e) {}
+            });
+        });
+    }
 
     @FXML
-    void toggleAiPanel(ActionEvent event) {
-        isAiPanelOpen = !isAiPanelOpen;
-        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+    void showLowStockBatches(MouseEvent event) {
+        showAlertModal("📦 DANH SÁCH SẮP HẾT HÀNG (CẦN NHẬP)", "/api/warehouse/alerts/low-stock");
+    }
+
+    @FXML
+    void showExpiringBatches(MouseEvent event) {
+        showAlertModal("⚠️ DANH SÁCH CẬN DATE / HẾT HẠN (CẦN XỬ LÝ)", "/api/warehouse/alerts/expiring-soon");
+    }
+
+    private void showAlertModal(String title, String apiUrl) {
+        ApiService.get(apiUrl).thenAccept(response -> {
+            Platform.runLater(() -> {
+                if (response.statusCode() == 200) {
+                    try {
+                        JsonNode dataNode = ApiService.mapper.readTree(response.body()).get("data");
+                        ObservableList<Batch> alertBatchList = FXCollections.observableArrayList();
+                        for (JsonNode node : dataNode) {
+                            String malo = node.path("malo").asText("");
+                            String masp = node.path("masp").asText("");
+                            String mfg = node.path("ngaysx").asText("");
+                            if (mfg.contains("T")) mfg = mfg.split("T")[0];
+                            String exp = node.path("hsd").asText("");
+                            if (exp.contains("T")) exp = exp.split("T")[0];
+                            String importDate = node.path("ngaynhap").asText("");
+                            if (importDate.contains("T")) importDate = importDate.split("T")[0];
+                            String qty = node.has("slsp") ? node.get("slsp").asText() : "0";
+                            String status = node.path("trangthai").asText("");
+                            String importPrice = node.has("gianhap") ? String.format("%,.0f", node.get("gianhap").asDouble()) : "0";
+                            String tensp = getProductNameById(masp);
+                            alertBatchList.add(new Batch(malo, tensp, mfg, exp, importDate, qty, status, importPrice));
+                        }
+                        tableAlertBatches.setItems(alertBatchList);
+                        lblAlertTitle.setText(title);
+                        modalAlertBatches.setVisible(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showAlert(AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu cảnh báo.");
+                    }
+                } else {
+                    showAlert(AlertType.ERROR, "Lỗi", "Không thể kết nối đến máy chủ.");
+                }
+            });
+        });
+    }
+
+    @FXML
+    void closeAlertModal() {
+        modalAlertBatches.setVisible(false);
+    }
+
+    private String getProductNameById(String masp) {
+        for (Medicine m : productList) {
+            if (m.getId() != null && m.getId().equals(masp)) return m.getName();
+        }
+        return masp;
+    }
+
+    // ==================== AI PANEL (ĐÃ CHỈNH SỬA LẠI LOGIC) ====================
+    @FXML
+    void handleAiSuggestAction(ActionEvent event) {
+        String keyword = txtProdName.getText().trim();
+        openAiPanel();
         
-        if (isAiPanelOpen) {
+        if (!keyword.isEmpty()) {
+            fetchAiSuggestions(keyword);
+        } else {
+            vboxAiResults.getChildren().clear();
+            vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+        }
+    }
+
+    private void openAiPanel() {
+        if (!isAiPanelOpen) {
+            isAiPanelOpen = true;
             aiPanelContent.setVisible(true);
-            btnAiSuggest.setText("Đóng Gợi ý");
+            javafx.animation.Timeline timeline = new javafx.animation.Timeline();
             javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
             timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
             timeline.play();
-            
-            String keyword = txtProdName.getText().trim();
-            if (!keyword.isEmpty()) {
-                fetchAiSuggestions(keyword);
-            } else {
-                vboxAiResults.getChildren().clear();
-                vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
-            }
-        } else {
-            btnAiSuggest.setText("Gợi ý AI");
+        }
+    }
+
+    @FXML
+    void closeAiPanel(ActionEvent event) {
+        if (isAiPanelOpen) {
+            isAiPanelOpen = false;
+            javafx.animation.Timeline timeline = new javafx.animation.Timeline();
             javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
@@ -379,7 +547,7 @@ public class ProductManagerController {
             txtProdUnit.setText(donViTinh);
             txtProdActive.setText(thanhPhan);
             txtProdUsage.setText(congDung);
-            toggleAiPanel(null); // Đóng panel
+            closeAiPanel(null); // Thay vì toggle, giờ gọi close luôn
         });
         
         card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
@@ -389,10 +557,7 @@ public class ProductManagerController {
         return card;
     }
 
-    // ==========================================
-    // CÁC SỰ KIỆN KHÁC 
-    // ==========================================
-
+    // ==================== CRUD SẢN PHẨM ====================
     @FXML void handleShowAddProduct(ActionEvent event) {
         currentEditingProduct = null;
         lblProductModalTitle.setText("💊 Thêm Sản Phẩm Thuốc Mới");
@@ -459,6 +624,7 @@ public class ProductManagerController {
         }
     }
 
+    // ==================== CRUD DANH MỤC ====================
     @FXML void handleShowAddCategory(ActionEvent event) { 
         currentEditingCategory = null;
         lblCategoryModalTitle.setText("📂 Thêm Danh Mục Mới");
@@ -490,7 +656,7 @@ public class ProductManagerController {
     @FXML void handleDeleteCategory(ActionEvent event) {
         Category selected = tableCategory.getSelectionModel().getSelectedItem();
         if (selected == null) { showAlert(AlertType.WARNING, "Thông báo", "Vui lòng chọn danh mục cần xóa!"); return; }
-        Alert alert = new Alert(AlertType.CONFIRMATION, "Bạn có chắc muốn xóa Danh Mục" + selected.getCategoryName() + "?", ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(AlertType.CONFIRMATION, "Bạn có chắc muốn xóa Danh Mục " + selected.getCategoryName() + " không?", ButtonType.YES, ButtonType.NO);
         if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
             ApiService.postPublic("/api/admin/categories/" + selected.getCategoryId() + "?_method=DELETE", "").thenAccept(res -> Platform.runLater(this::loadCategories));
         }
@@ -498,9 +664,16 @@ public class ProductManagerController {
 
     @FXML void handleCloseProductModal(ActionEvent e) { 
         modalProduct.setVisible(false); 
-        if (isAiPanelOpen) { toggleAiPanel(null); }
+        closeAiPanel(null); // Đóng AI khi ẩn modal
     }
     
     @FXML void handleCloseCategoryModal(ActionEvent e) { modalCategory.setVisible(false); }
-    private void showAlert(AlertType t, String title, String content) { Alert a = new Alert(t); a.setTitle(title); a.setHeaderText(null); a.setContentText(content); a.showAndWait(); }
+    
+    private void showAlert(AlertType t, String title, String content) { 
+        Alert a = new Alert(t); 
+        a.setTitle(title); 
+        a.setHeaderText(null); 
+        a.setContentText(content); 
+        a.showAndWait(); 
+    }
 }

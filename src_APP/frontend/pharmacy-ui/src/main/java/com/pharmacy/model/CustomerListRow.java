@@ -8,7 +8,6 @@ public class CustomerListRow {
     private final SimpleStringProperty makh, tenkh, sdt, ngaysinh, hangtv;
     private final SimpleDoubleProperty tongdoanhthu, diemtichluy;
 
-    // Đã thêm ngaysinh vào tham số
     public CustomerListRow(String makh, String tenkh, String sdt, String ngaysinh, String hangtv, double tongdoanhthu, double diemtichluy) {
         this.makh = new SimpleStringProperty(makh);
         this.tenkh = new SimpleStringProperty(tenkh);

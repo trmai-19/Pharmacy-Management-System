@@ -15,7 +15,6 @@ import javafx.scene.layout.StackPane;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -65,14 +64,14 @@ public class ReturnManagerController {
     @FXML private Pane warehouseModalViewImport;
     @FXML private Label warehouseLblViewImpId, warehouseLblViewImpDate, warehouseLblViewImpNcc, warehouseLblViewImpTotal;
     @FXML private TableView<ViewImportDetailRow> warehouseTableViewImportItems;
-    @FXML private TableColumn<ViewImportDetailRow, String> warehouseColViewImpMalo;
+    @FXML private TableColumn<ViewImportDetailRow, String> warehouseColViewImpProductName, warehouseColViewImpMalo;
     @FXML private TableColumn<ViewImportDetailRow, Integer> warehouseColViewImpQty;
     @FXML private TableColumn<ViewImportDetailRow, Double> warehouseColViewImpPrice, warehouseColViewImpTotal;
 
     @FXML private Pane warehouseModalViewReturn;
     @FXML private Label warehouseLblViewRetId, warehouseLblViewRetOriginalId, warehouseLblViewRetDate, warehouseLblViewRetReason, warehouseLblViewRetTotal;
     @FXML private TableView<ViewReturnDetailRow> warehouseTableViewReturnItems;
-    @FXML private TableColumn<ViewReturnDetailRow, String> warehouseColViewRetMalo;
+    @FXML private TableColumn<ViewReturnDetailRow, String> warehouseColViewRetProductName, warehouseColViewRetMalo;
     @FXML private TableColumn<ViewReturnDetailRow, Integer> warehouseColViewRetQty;
     @FXML private TableColumn<ViewReturnDetailRow, Double> warehouseColViewRetPrice, warehouseColViewRetTotal;
 
@@ -313,6 +312,7 @@ public class ReturnManagerController {
         warehouseTableReturns.setItems(warehouseDetailReturnList);
 
         // Modal xem import details
+        warehouseColViewImpProductName.setCellValueFactory(new PropertyValueFactory<>("tensanpham"));
         warehouseColViewImpMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
         warehouseColViewImpQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
         warehouseColViewImpPrice.setCellValueFactory(new PropertyValueFactory<>("gianhap"));
@@ -324,6 +324,8 @@ public class ReturnManagerController {
             @Override protected void updateItem(Double item, boolean empty) { setText(empty || item == null ? null : String.format("%,.0f VNĐ", item)); }
         });
 
+        // Modal xem return details
+        warehouseColViewRetProductName.setCellValueFactory(new PropertyValueFactory<>("tensanpham"));
         warehouseColViewRetMalo.setCellValueFactory(new PropertyValueFactory<>("malo"));
         warehouseColViewRetQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
         warehouseColViewRetPrice.setCellValueFactory(new PropertyValueFactory<>("dongiatra"));
@@ -390,10 +392,11 @@ public class ReturnManagerController {
                 if (res.statusCode() == 200) {
                     JsonNode dataNode = ApiService.mapper.readTree(res.body()).get("data");
                     for (JsonNode node : dataNode) {
+                        String tensanpham = node.has("tensanpham") && !node.get("tensanpham").isNull() ? node.get("tensanpham").asText() : "Chưa cập nhật";
                         String malo = node.path("malo").asText();
                         int sl = node.path("sl").asInt();
                         double gia = node.path("gianhap").asDouble();
-                        details.add(new ViewImportDetailRow(malo, sl, gia, sl * gia));
+                        details.add(new ViewImportDetailRow(tensanpham, malo, sl, gia, sl * gia));
                     }
                 }
             } catch (Exception e) { e.printStackTrace(); }
@@ -419,7 +422,9 @@ public class ReturnManagerController {
                             if (node.get("maptNcc").asText().equals(ticket.getMaptNcc())) {
                                 JsonNode items = node.get("items");
                                 for (JsonNode it : items) {
+                                    String tensanpham = it.has("tensanpham") && !it.get("tensanpham").isNull() ? it.get("tensanpham").asText() : "Chưa cập nhật";
                                     details.add(new ViewReturnDetailRow(
+                                        tensanpham,
                                         it.path("malo").asText(),
                                         it.path("sl").asInt(),
                                         it.path("dongiatra").asDouble(),

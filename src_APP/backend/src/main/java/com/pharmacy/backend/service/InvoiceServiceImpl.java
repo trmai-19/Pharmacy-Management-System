@@ -3,7 +3,6 @@ package com.pharmacy.backend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -174,14 +173,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         // Lấy tất cả hóa đơn
         List<Invoice> invoices = invoiceRepository.findAll();
 
-        // Lọc tìm kiếm theo mã HĐ hoặc mã KH
-        if (search != null && !search.trim().isEmpty()) {
-            String s = search.toLowerCase();
-            invoices = invoices.stream()
-                    .filter(i -> i.getMahd().toLowerCase().contains(s) || 
-                                (i.getMakh() != null && i.getMakh().toLowerCase().contains(s)))
-                    .collect(Collectors.toList());
-        }
+        // Loc theo ma hoa don, ma khach hang, ten khach hang hoac so dien thoai.
+        String searchTerm = search == null ? "" : search.trim().toLowerCase();
 
         List<InvoiceListResponse> result = new ArrayList<>();
 
@@ -195,6 +188,16 @@ public class InvoiceServiceImpl implements InvoiceService {
                 if (c != null) {
                     ten = c.getTenkh();
                     sdt = c.getSdt();
+                }
+            }
+
+            if (!searchTerm.isEmpty()) {
+                boolean matched = (i.getMahd() != null && i.getMahd().toLowerCase().contains(searchTerm))
+                        || (i.getMakh() != null && i.getMakh().toLowerCase().contains(searchTerm))
+                        || (ten != null && ten.toLowerCase().contains(searchTerm))
+                        || (sdt != null && sdt.toLowerCase().contains(searchTerm));
+                if (!matched) {
+                    continue;
                 }
             }
 
@@ -218,5 +221,44 @@ public class InvoiceServiceImpl implements InvoiceService {
         });
 
         return result;
+    }
+
+    @Override
+    @Transactional
+    public InvoiceResponse updateInvoiceStatus(String mahd, String status) {
+        Invoice invoice = invoiceRepository.findById(mahd)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với mã: " + mahd));
+
+        String newStatus = status == null ? "" : status.trim().toUpperCase();
+        String currentStatus = invoice.getTrangthai() == null ? "" : invoice.getTrangthai().trim().toUpperCase();
+
+        if (!List.of("DANG_XU_LY", "HOANTAT", "HUY").contains(newStatus)) {
+            throw new RuntimeException("Trang thai hoa don khong hop le: " + status);
+        }
+
+        if ("DANG_XU_LY".equals(newStatus) && !"DAT_TRUOC".equals(currentStatus)) {
+            throw new RuntimeException("Chi co the chuyen don dat truoc sang dang xu ly.");
+        }
+
+        if (("HOANTAT".equals(newStatus) || "HUY".equals(newStatus))
+                && !List.of("DAT_TRUOC", "DANG_XU_LY").contains(currentStatus)) {
+            throw new RuntimeException("Chi co the hoan tat hoac huy don dang dat truoc/dang xu ly.");
+        }
+
+        if ("HUY".equals(newStatus)) {
+            // Nếu hủy đơn đặt trước, thực hiện xóa các chi tiết hóa đơn để hoàn kho tự động qua trigger
+            List<InvoiceDetail> details = invoiceDetailRepository.findByMahd(mahd);
+            invoiceDetailRepository.deleteAll(details);
+            invoiceDetailRepository.flush();
+
+            invoice.setTongtien(0.0);
+            invoice.setTienthanhtoan(0.0);
+            invoice.setDiemsudung(0);
+        }
+
+        invoice.setTrangthai(newStatus);
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        
+        return getInvoiceById(savedInvoice.getMahd());
     }
 }

@@ -1,86 +1,71 @@
 package com.pharmacy.controller.admin;
 
 import javafx.fxml.FXML;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
-
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import com.pharmacy.util.Session;
 
 public class DashboardController {
 
     @FXML private Label lblGreeting;
-    @FXML private Label lblMonthlyRevenue;
-    @FXML private Label lblActiveAccounts;
-    @FXML private Label lblMonthlyOrders;
-
-    @FXML private LineChart<String, Number> revenueChart;
-    @FXML private BarChart<String, Number> topProductsChart;
+    @FXML private VBox cardProduct, cardEmployee, cardCustomer, cardAccount, cardReturn, cardReport, cardRole, cardSupport, cardSupplier;
 
     @FXML
     public void initialize() {
-        System.out.println("Dashboard chính đang được nạp...");
+        System.out.println("📊 Dashboard chính đang được nạp...");
 
-        String adminName = Session.getFullName() != null ? Session.getFullName() : "Admin User"; // Lấy tên admin từ session
+        String adminName = Session.getFullName() != null ? Session.getFullName() : "Quản trị viên";
         if (lblGreeting != null) {
             lblGreeting.setText("Chào mừng quay trở lại, " + adminName + "! 👋");
         }
 
-        if (lblMonthlyRevenue != null) {
-            lblMonthlyRevenue.setText("185.450.000đ");
-        }
-        if (lblActiveAccounts != null) {
-            lblActiveAccounts.setText("2,450");
-        }
-        if (lblMonthlyOrders != null) {
-            lblMonthlyOrders.setText("1,128");
-        }
-
-        if (revenueChart != null) {
-            setupRevenueChart();
-        } else {
-            System.out.println("⚠️ revenueChart không được tìm thấy trong FXML, bỏ qua phần biểu đồ doanh thu.");
-        }
-
-        if (topProductsChart != null) {
-            setupTopProductsChart();
-        } else {
-            System.out.println("⚠️ topProductsChart không được tìm thấy trong FXML, bỏ qua phần biểu đồ top sản phẩm.");
-        }
+        // Khởi tạo hiệu ứng Hover xịn xò cho TẤT CẢ các thẻ (Truyền màu viền tương ứng)
+        setupHoverEffect(cardProduct, "#14b8a6");   // Xanh ngọc
+        setupHoverEffect(cardEmployee, "#3b82f6");  // Xanh dương
+        setupHoverEffect(cardCustomer, "#f59e0b");  // Cam
+        setupHoverEffect(cardAccount, "#8b5cf6");   // Tím
+        setupHoverEffect(cardReturn, "#ec4899");    // Hồng
+        setupHoverEffect(cardReport, "#f43f5e");    // Đỏ hồng
+        setupHoverEffect(cardRole, "#64748b");      // Xám đen
+        setupHoverEffect(cardSupport, "#0ea5e9");   // Xanh dương nhạt
+        setupHoverEffect(cardSupplier, "#10b981");  // Xanh lá (Emerald)
     }
 
-    private void setupRevenueChart() {
-        revenueChart.getData().clear();
+    private void setupHoverEffect(VBox card, String borderColor) {
+        if (card == null) return;
         
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Doanh thu (Triệu VNĐ)");
-
-        // Thêm các điểm dữ liệu vào biểu đồ đường
-        series.getData().add(new XYChart.Data<>("12/04", 15.2));
-        series.getData().add(new XYChart.Data<>("13/04", 18.5));
-        series.getData().add(new XYChart.Data<>("14/04", 22.1));
-        series.getData().add(new XYChart.Data<>("15/04", 19.8));
-        series.getData().add(new XYChart.Data<>("16/04", 26.4));
-        series.getData().add(new XYChart.Data<>("17/04", 31.0));
-        series.getData().add(new XYChart.Data<>("Hôm nay", 28.5));
-
-        revenueChart.getData().add(series);
+        // Trạng thái tĩnh bình thường
+        String defaultStyle = "-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; " +
+                              "-fx-border-color: " + borderColor + "; -fx-border-width: 0 0 0 6; " +
+                              "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);";
+        
+        // Trạng thái Hover (Phóng to nhẹ bóng đổ và nhích lên trên 3px)
+        String hoverStyle = "-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 22; " +
+                            "-fx-border-color: " + borderColor + "; -fx-border-width: 0 0 0 6; " +
+                            "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 8); -fx-translate-y: -3px;";
+        
+        card.setStyle(defaultStyle);
+        card.setOnMouseEntered(e -> card.setStyle(hoverStyle));
+        card.setOnMouseExited(e -> card.setStyle(defaultStyle));
     }
 
-    private void setupTopProductsChart() {
-        topProductsChart.getData().clear();
+    // ====================== GỌI LỆNH CHUYỂN TRANG ======================
+    @FXML void goToProduct(MouseEvent event) { navigate("PRODUCT"); }
+    @FXML void goToEmployee(MouseEvent event) { navigate("EMPLOYEE"); }
+    @FXML void goToCustomer(MouseEvent event) { navigate("CUSTOMER"); }
+    @FXML void goToAccount(MouseEvent event) { navigate("ACCOUNT"); }
+    @FXML void goToReturn(MouseEvent event) { navigate("RETURN"); }
+    @FXML void goToReport(MouseEvent event) { navigate("REPORT"); }
+    @FXML void goToRole(MouseEvent event) { navigate("ROLE"); }
+    @FXML void goToSupplier(MouseEvent event) { navigate("SUPPLIER"); } // Lệnh chuyển qua tab Nhà cung cấp
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Số lượng bán ra (Hộp/Vỉ)");
-
-        // Thêm dữ liệu vào biểu đồ cột
-        series.getData().add(new XYChart.Data<>("Panadol", 420));
-        series.getData().add(new XYChart.Data<>("Vitamin C", 385));
-        series.getData().add(new XYChart.Data<>("Oresol", 310));
-        series.getData().add(new XYChart.Data<>("Berberin", 240));
-        series.getData().add(new XYChart.Data<>("Khẩu trang", 580));
-
-        topProductsChart.getData().add(series);
+    private void navigate(String moduleCode) {
+        AdminController admin = AdminController.getInstance();
+        if (admin != null) {
+            admin.navigateFromDashboard(moduleCode);
+        } else {
+            System.err.println("❌ Lỗi: Không kết nối được với AdminController!");
+        }
     }
 }

@@ -36,7 +36,7 @@ public class AuthService {
                 .ngayTao(LocalDate.now())
                 .isFirstLogin(false)
                 .email(req.getEmail())
-                .trangThai("HOAT DONG")
+                .trangThai("ACTIVE")
                 .build();
         taiKhoanRepo.saveAndFlush(taiKhoan);
 
@@ -45,16 +45,44 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Lỗi khi tạo tài khoản!"));
 
         // 2. Tao KHACHHANG
-        KhachHang khachHang = KhachHang.builder()
-                .maTK(savedTaiKhoan.getMaTK())
-                .tenKH(req.getTenKH())
-                .sdt(req.getSdt())
-                .gioiTinh(req.getGioiTinh())
-                .tongDoanhThu(java.math.BigDecimal.ZERO)
-                .diemTichLuy(0)
-                .hangTV("Thành Viên")
-                .build();
-        khachHangRepo.save(khachHang);
+        if(khachHangRepo.existsBySdt(req.getSdt())) {
+                KhachHang existingKhachHang = khachHangRepo.findBySdt(req.getSdt())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng!"));
+
+                // Nối mã tài khoản vừa tạo vào khách hàng
+                existingKhachHang.setMaTK(savedTaiKhoan.getMaTK());
+
+                // Cập nhật thêm các thông tin mới nhất từ form đăng ký (nếu có)
+                if (req.getTenKH() != null && !req.getTenKH().trim().isEmpty()) {
+                        existingKhachHang.setTenKH(req.getTenKH());
+                }
+                if (req.getGioiTinh() != null) {
+                        existingKhachHang.setGioiTinh(req.getGioiTinh());
+                }
+
+                // Lưu lại thay đổi
+                khachHangRepo.save(existingKhachHang);
+        } else {
+                KhachHang khachHang = KhachHang.builder()
+                        .maTK(savedTaiKhoan.getMaTK())
+                        .tenKH(req.getTenKH())
+                        .sdt(req.getSdt())
+                        .gioiTinh(req.getGioiTinh())
+                        .tongDoanhThu(java.math.BigDecimal.ZERO)
+                        .diemTichLuy(0)
+                        .hangTV("Thành Viên")
+                        .build();
+                khachHangRepo.save(khachHang);
+        }
+
+        // Gửi email xác nhận đăng ký thành công
+        if (req.getEmail() != null && !req.getEmail().trim().isEmpty()) {
+            try {
+                emailService.sendRegistrationEmail(req.getEmail(), req.getSdt());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         return "Đăng ký thành công!";
     }
@@ -102,7 +130,7 @@ public class AuthService {
         taiKhoanRepo.save(taiKhoan);
 
         // Gui email khoi phuc
-        emailService.sendTempPassword(email, tempPassword);
+        emailService.sendTempPassword(email, tempPassword, sdt);
     }
 
     @Transactional

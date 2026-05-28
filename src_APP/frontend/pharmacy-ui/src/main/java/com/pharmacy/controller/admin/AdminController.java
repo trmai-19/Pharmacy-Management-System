@@ -21,10 +21,18 @@ public class AdminController {
     @FXML private Button btnDashboard;
 
     private Button currentActiveButton;
+    
+    // Tạo cầu nối (Singleton) để DashboardController có thể gọi hàm điều hướng
+    private static AdminController instance;
+
+    public static AdminController getInstance() {
+        return instance;
+    }
 
     @FXML
     public void initialize() {
         System.out.println("✅ Khởi tạo giao diện Admin...");
+        instance = this; // Gán instance hiện tại
         
         // ==========================================
         // XỬ LÝ HIỂN THỊ TÊN ĐÚNG LOGIC USER
@@ -59,15 +67,49 @@ public class AdminController {
         }
     }
 
-    // ====================== CÁC HÀM CHUYỂN MENU ======================
+    // ====================== CÁC HÀM CHUYỂN MENU TỪ SIDEBAR ======================
     @FXML void showDashboard(ActionEvent event) { handleMenuClick((Button) event.getSource(), "dashboard.fxml", "BẢNG ĐIỀU KHIỂN TỔNG QUAN"); }
     @FXML void showProductManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "product-management.fxml", "QUẢN LÝ SẢN PHẨM"); }
+    @FXML void showSupplierManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "supplier-manager.fxml", "QUẢN LÝ NHÀ CUNG CẤP"); } // THÊM MỚI Ở ĐÂY
     @FXML void showEmployeeManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "employee-management.fxml", "QUẢN LÝ NHÂN SỰ"); }
     @FXML void showCustomerManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "customer-management.fxml", "QUẢN LÝ KHÁCH HÀNG"); }
     @FXML void showAccountManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "account-management.fxml", "QUẢN LÝ TÀI KHOẢN"); }
     @FXML void showReturnManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "return-management.fxml", "QUẢN LÝ ĐỔI TRẢ"); }
     @FXML void showReports(ActionEvent event) { handleMenuClick((Button) event.getSource(), "report.fxml", "BÁO CÁO & THỐNG KÊ"); }
     @FXML void showRoleManager(ActionEvent event) { handleMenuClick((Button) event.getSource(), "role-manager.fxml", "QUẢN LÝ QUYỀN"); }
+
+    // ====================== ĐIỀU HƯỚNG TỪ CARD DASHBOARD ======================
+    public void navigateFromDashboard(String moduleCode) {
+        String fxml = "";
+        String title = "";
+        String btnKeyword = "";
+
+        switch (moduleCode) {
+            case "PRODUCT": fxml = "product-management.fxml"; title = "QUẢN LÝ SẢN PHẨM"; btnKeyword = "SẢN PHẨM"; break;
+            case "SUPPLIER": fxml = "supplier-manager.fxml"; title = "QUẢN LÝ NHÀ CUNG CẤP"; btnKeyword = "NHÀ CUNG CẤP"; break; // THÊM MỚI Ở ĐÂY
+            case "EMPLOYEE": fxml = "employee-management.fxml"; title = "QUẢN LÝ NHÂN SỰ"; btnKeyword = "NHÂN SỰ"; break;
+            case "CUSTOMER": fxml = "customer-management.fxml"; title = "QUẢN LÝ KHÁCH HÀNG"; btnKeyword = "KHÁCH HÀNG"; break;
+            case "ACCOUNT": fxml = "account-management.fxml"; title = "QUẢN LÝ TÀI KHOẢN"; btnKeyword = "TÀI KHOẢN"; break;
+            case "RETURN": fxml = "return-management.fxml"; title = "QUẢN LÝ ĐỔI TRẢ"; btnKeyword = "ĐỔI TRẢ"; break;
+            case "REPORT": fxml = "report.fxml"; title = "BÁO CÁO & THỐNG KÊ"; btnKeyword = "BÁO CÁO"; break;
+            case "ROLE": fxml = "role-manager.fxml"; title = "QUẢN LÝ QUYỀN"; btnKeyword = "QUYỀN"; break;
+        }
+
+        // Tự động tìm kiếm nút tương ứng bên Sidebar để highlight
+        Button targetBtn = null;
+        if (sideMenu != null) {
+            for (Node node : sideMenu.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    if (btn.getText().toUpperCase().contains(btnKeyword)) {
+                        targetBtn = btn;
+                        break;
+                    }
+                }
+            }
+        }
+        handleMenuClick(targetBtn, fxml, title);
+    }
 
     // ====================== LOGIC ĐỔI TRANG ======================
     private void handleMenuClick(Button clickedButton, String fxmlName, String title) {
