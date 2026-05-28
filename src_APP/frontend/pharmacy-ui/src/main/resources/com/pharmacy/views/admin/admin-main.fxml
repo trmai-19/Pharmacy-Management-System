@@ -37,13 +37,14 @@
 
                 <VBox fx:id="sideMenu" spacing="12">
                     <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#showDashboard" styleClass="nav-btn, nav-btn-active" text="📊  TỔNG QUAN" />
-                    <Button maxWidth="Infinity" onAction="#showProductManager" styleClass="nav-btn" text="📦  QUẢN LÝ SẢN PHẨM" />
-                    <Button maxWidth="Infinity" onAction="#showEmployeeManager" styleClass="nav-btn" text="👥  QUẢN LÝ NHÂN SỰ" />
-                    <Button maxWidth="Infinity" onAction="#showCustomerManager" styleClass="nav-btn" text="🤝  QUẢN LÝ KHÁCH HÀNG" />
+                    <Button maxWidth="Infinity" onAction="#showProductManager" styleClass="nav-btn" text="💊  QUẢN LÝ SẢN PHẨM" />
+                    <Button maxWidth="Infinity" onAction="#showSupplierManager" styleClass="nav-btn" text="🏢  QUẢN LÝ NHÀ CUNG CẤP" />
+                    <Button maxWidth="Infinity" onAction="#showEmployeeManager" styleClass="nav-btn" text="👔  QUẢN LÝ NHÂN SỰ" />
+                    <Button maxWidth="Infinity" onAction="#showCustomerManager" styleClass="nav-btn" text="👥  QUẢN LÝ KHÁCH HÀNG" />
                     <Button maxWidth="Infinity" onAction="#showAccountManager" styleClass="nav-btn" text="🔐  QUẢN LÝ TÀI KHOẢN" />
                     <Button maxWidth="Infinity" onAction="#showReturnManager" styleClass="nav-btn" text="🔄  QUẢN LÝ ĐỔI TRẢ" />
                     <Button maxWidth="Infinity" onAction="#showReports" styleClass="nav-btn" text="📈  BÁO CÁO - THỐNG KÊ" />
-                    <Button maxWidth="Infinity" onAction="#showRoleManager" styleClass="nav-btn" text="📈  QUẢN LÝ QUYỀN" />
+                    <Button maxWidth="Infinity" onAction="#showRoleManager" styleClass="nav-btn" text="🛡️  QUẢN LÝ QUYỀN" />
                 </VBox>
 
                 <Region VBox.vgrow="ALWAYS" />
@@ -73,13 +74,13 @@
                     <Region prefWidth="20" /> 
                     
                     <HBox alignment="CENTER_RIGHT" spacing="25.0">
-                        </HBox>
+                    </HBox>
 
                     <AnchorPane>
                         <children>
                             <VBox layoutX="1.0" layoutY="15.0">
                                 <children>
-                                    <AnchorPane />
+                                     <AnchorPane />
                                 </children>
                             </VBox>
                         </children>
@@ -107,5 +108,4 @@
             </children>
         </VBox>
     </center>
-    
 </BorderPane>

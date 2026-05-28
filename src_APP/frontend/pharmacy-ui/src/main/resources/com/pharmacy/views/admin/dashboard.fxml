@@ -1,159 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.DashboardController">
+<ScrollPane fitToWidth="true" style="-fx-background-color: #f8fafc; -fx-background: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pharmacy.controller.admin.DashboardController">
     <content>
-        <VBox spacing="30.0">
-            <padding>
-                <Insets bottom="40.0" left="40.0" right="40.0" top="30.0" />
-            </padding>
-            <children>
+        <VBox spacing="35.0" style="-fx-padding: 35 45 45 45;">
+            
+            <VBox spacing="8.0">
+                <Label fx:id="lblGreeting" style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #0f766e;" text="Chào mừng quay trở lại, Admin! 👋" />
+                <Label style="-fx-font-size: 16px; -fx-text-fill: #64748b;" text="Bảng điều khiển truy cập nhanh các chức năng quản trị hệ thống." />
+            </VBox>
+
+            <GridPane hgap="25.0" vgap="25.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="33.33" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="33.33" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="33.33" />
+                </columnConstraints>
                 
-                <!-- Lời chào -->
-                <VBox spacing="5.0">
-                    <Label fx:id="lblGreeting" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #0b5d77;" text="Chào mừng quay trở lại, Admin! 👋" />
-                    <Label style="-fx-font-size: 15px; -fx-text-fill: #64748b;" text="Dưới đây là các tiện ích quản lý kinh doanh nhà thuốc." />
+                <VBox fx:id="cardProduct" onMouseClicked="#goToProduct" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #14b8a6; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #14b8a6;" text="💊" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="SẢN PHẨM" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Quản lý kho thuốc &amp; danh mục" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+                
+                <VBox fx:id="cardEmployee" onMouseClicked="#goToEmployee" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #3b82f6; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #3b82f6;" text="👔" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="NHÂN SỰ" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Dữ liệu nhân viên &amp; chấm công" />
+                        </VBox>
+                    </HBox>
                 </VBox>
 
-                <HBox spacing="25.0" VBox.vgrow="ALWAYS">
-                    <children>
-                        
-                        <!-- Cột trái: 4 thẻ Quick Access -->
-                        <VBox prefWidth="700.0" spacing="25.0" HBox.hgrow="ALWAYS">
-                            <children>
-                                <GridPane hgap="20.0" vgap="20.0">
-                                    <columnConstraints>
-                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
-                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0" />
-                                    </columnConstraints>
-                                    <children>
-                                        
-                                        <!-- Thẻ 1: Quản lý sản phẩm -->
-                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #14b8a6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
-                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #14b8a6;" text="📦" />
-                                                    <VBox>
-                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ SẢN PHẨM" />
-                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý thông tin thuốc" />
-                                                    </VBox>
-                                                </HBox>
-                                            </children>
-                                        </VBox>
-
-                                        <!-- Thẻ 2: Quản lý khách hàng -->
-                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #3b82f6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
-                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #3b82f6;" text="👥" />
-                                                    <VBox>
-                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ KHÁCH HÀNG" />
-                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Duyệt và quản lý khách hàng" />
-                                                    </VBox>
-                                                </HBox>
-                                            </children>
-                                        </VBox>
-
-                                        <!-- Thẻ 3: Đơn hàng -->
-                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #f59e0b; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
-                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #f59e0b;" text="🛒" />
-                                                    <VBox>
-                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="ĐƠN HÀNG" />
-                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý và xử lý đơn hàng" />
-                                                    </VBox>
-                                                </HBox>
-                                            </children>
-                                        </VBox>
-
-                                        <!-- Thẻ 4: Quản lý nhân sự -->
-                                        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); -fx-border-color: #8b5cf6; -fx-border-width: 0 0 0 6;" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="15.0">
-                                                    <Label style="-fx-font-size: 38px; -fx-text-fill: #8b5cf6;" text="👔" />
-                                                    <VBox>
-                                                        <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="QUẢN LÝ NHÂN SỰ" />
-                                                        <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Quản lý thông tin nhân sự" />
-                                                    </VBox>
-                                                </HBox>
-                                            </children>
-                                        </VBox>
-                                    </children>
-                                    <rowConstraints>
-                                        <RowConstraints />
-                                        <RowConstraints />
-                                    </rowConstraints>
-                                </GridPane>
-
-                                <!-- Thông báo & Ghi chú -->
-                                <HBox spacing="20.0">
-                                    <children>
-                                        <VBox prefWidth="340.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 22; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);" HBox.hgrow="ALWAYS">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                                    <Label style="-fx-font-size: 22px; -fx-text-fill: #14b8a6;" text="📢" />
-                                                    <Label style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="THÔNG BÁO HỆ THỐNG" />
-                                                </HBox>
-                                                <Region prefHeight="15.0" />
-                                                <VBox spacing="12.0">
-                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Cập nhật phần mềm quản lý mới hôm nay" />
-                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Kiểm tra định kỳ hệ thống tuần này" />
-                                                </VBox>
-                                            </children>
-                                        </VBox>
-
-                                        <VBox prefWidth="340.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 22; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);" HBox.hgrow="ALWAYS">
-                                            <children>
-                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                                    <Label style="-fx-font-size: 22px; -fx-text-fill: #8b5cf6;" text="📝" />
-                                                    <Label style="-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="GHI CHÚ CỦA BẠN" />
-                                                </HBox>
-                                                <Region prefHeight="15.0" />
-                                                <VBox spacing="12.0">
-                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Kiểm tra tồn kho cuối tuần" />
-                                                    <Label style="-fx-font-size: 14.5px; -fx-text-fill: #334155;" text="☑ Theo dõi tuyển dụng" />
-                                                </VBox>
-                                            </children>
-                                        </VBox>
-                                    </children>
-                                </HBox>
-                            </children>
+                <VBox fx:id="cardCustomer" onMouseClicked="#goToCustomer" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #f59e0b; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #f59e0b;" text="👥" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="KHÁCH HÀNG" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Danh sách khách hàng &amp; điểm" />
                         </VBox>
+                    </HBox>
+                </VBox>
 
-                        <!-- Cột phải: Hỗ trợ nhanh -->
-                        <VBox prefWidth="300.0" style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);">
-                            <children>
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <Label style="-fx-font-size: 26px;" text="🎧" />
-                                    <Label style="-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="Hỗ Trợ Nhanh" />
-                                </HBox>
-                                <Region prefHeight="30.0" />
-                                <VBox alignment="CENTER" spacing="15.0">
-                                    <Button maxWidth="1.7976931348623157E308" prefHeight="48.0" 
-                                            style="-fx-background-color: #14b8a6; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;" 
-                                            text="📞 Gọi hỗ trợ ngay" />
-                                    <Button maxWidth="1.7976931348623157E308" prefHeight="48.0" 
-                                            style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;" 
-                                            text="💬 Chat trực tuyến" />
-                                </VBox>
-                            </children>
+                <VBox fx:id="cardAccount" onMouseClicked="#goToAccount" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #8b5cf6; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #8b5cf6;" text="🔐" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="TÀI KHOẢN" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Quản lý cấp phát tài khoản" />
                         </VBox>
+                    </HBox>
+                </VBox>
 
-                    </children>
+                <VBox fx:id="cardReturn" onMouseClicked="#goToReturn" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #ec4899; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #ec4899;" text="🔄" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="ĐỔI TRẢ" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Lịch sử trả hàng &amp; biên lai" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="cardReport" onMouseClicked="#goToReport" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #f43f5e; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #f43f5e;" text="📊" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="BÁO CÁO" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Thống kê doanh thu &amp; lợi nhuận" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="cardRole" onMouseClicked="#goToRole" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #64748b; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #64748b;" text="👑" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="QUẢN LÝ QUYỀN" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Phân quyền bảo mật hệ thống" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="cardSupplier" onMouseClicked="#goToSupplier" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 22; -fx-border-color: #10b981; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #10b981;" text="🏢" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="NHÀ CUNG CẤP" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Đối tác &amp; Phiếu nhập kho" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="cardSupport" style="-fx-background-color: white; -background-radius: 12; -fx-padding: 22; -fx-border-color: #0ea5e9; -fx-border-width: 0 0 0 6; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 10, 0, 0, 5);" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label style="-fx-font-size: 42px; -fx-text-fill: #0ea5e9;" text="🎧" />
+                        <VBox alignment="CENTER_LEFT" spacing="3.0">
+                            <Label style="-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #0f172a;" text="HỖ TRỢ KỸ THUẬT" />
+                            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Báo lỗi app &amp; Hỗ trợ từ Dev" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+            </GridPane>
+            
+            <Region VBox.vgrow="ALWAYS" /> <VBox alignment="CENTER" spacing="6.0" style="-fx-padding: 30 0 10 0; -fx-border-color: #e2e8f0; -fx-border-width: 1 0 0 0; -fx-margin-top: 20px;">
+                <Label text="HỆ THỐNG QUẢN LÝ NHÀ THUỐC" style="-fx-text-fill: #0f766e; -fx-font-size: 15px; -fx-font-weight: bold;" />
+                <Label text="Bản quyền © 2026 phát triển bởi Nhóm HMPP. Tất cả các quyền được bảo lưu." style="-fx-text-fill: #64748b; -fx-font-size: 13px;" />
+                <HBox alignment="CENTER" spacing="15.0" style="-fx-padding: 5 0 0 0;">
+                    <Label text="Phiên bản: 2.0.1 Enterprise" style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;" />
+                    <Label text="|" style="-fx-text-fill: #cbd5e1;" />
+                    <Label text="Email: support@hmpp.vn" style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;" />
+                    <Label text="|" style="-fx-text-fill: #cbd5e1;" />
+                    <Label text="Hotline: 1900 8888" style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;" />
                 </HBox>
-
-            </children>
+            </VBox>
+            
         </VBox>
     </content>
 </ScrollPane>
