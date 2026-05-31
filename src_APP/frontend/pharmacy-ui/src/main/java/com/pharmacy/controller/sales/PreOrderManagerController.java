@@ -8,8 +8,10 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +32,19 @@ public class PreOrderManagerController {
 
     @FXML private Button btnApprove;
     @FXML private Button btnCancel;
+
+    // --- Các thành phần UI của Biên Lai Thanh Toán ---
+    @FXML private StackPane summaryModalOverlay;
+    @FXML private Label lblSumInvoiceId, lblSumStaffId, lblSumCustomerId, lblSumPhone;
+    @FXML private Label lblSumDate, lblSumTotalPoints, lblSumPointsUsed, lblSumSubtotal, lblSumFinalAmount;
+    @FXML private ListView<String> listSumProducts;
+
+    // --- Các thành phần UI của Custom Confirm Modal ---
+    @FXML private StackPane confirmModalOverlay;
+    @FXML private Label lblConfirmTitle;
+    @FXML private Label lblConfirmMessage;
+    @FXML private Button btnConfirmAction;
+    private Runnable pendingConfirmAction;
 
     private ObservableList<InvoiceListRow> orderList = FXCollections.observableArrayList();
     private ObservableList<ReturnDetailRow> detailList = FXCollections.observableArrayList();
@@ -66,7 +81,6 @@ public class PreOrderManagerController {
                 lblDetailTitle.setText("CHI TIẾT SẢN PHẨM CỦA ĐƠN HÀNG: " + newVal.getMahd());
                 fetchOrderDetails(newVal.getMahd());
                 
-                // Chỉ cho phép duyệt/hủy đối với đơn hàng đang ở trạng thái DAT_TRUOC hoặc DANG_XU_LY
                 boolean isPending = "DAT_TRUOC".equalsIgnoreCase(newVal.getTrangthai()) 
                         || "DANG_XU_LY".equalsIgnoreCase(newVal.getTrangthai());
                 btnApprove.setDisable(!isPending);
@@ -94,15 +108,18 @@ public class PreOrderManagerController {
             "Đã hủy",
             "Tất cả"
         ));
-        cbStatusFilter.getSelectionModel().selectFirst(); // Mặc định hiển thị các đơn chờ duyệt (DAT_TRUOC)
+        cbStatusFilter.getSelectionModel().selectFirst(); 
         cbStatusFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> fetchOrders());
 
-        // Tự động tìm kiếm khi xóa chữ ô tìm kiếm
         txtSearch.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == null || newVal.trim().isEmpty()) {
                 fetchOrders();
             }
         });
+
+        // Ẩn các modal khi khởi động
+        if (summaryModalOverlay != null) summaryModalOverlay.setVisible(false);
+        if (confirmModalOverlay != null) confirmModalOverlay.setVisible(false);
 
         fetchOrders();
     }
@@ -123,7 +140,6 @@ public class PreOrderManagerController {
                         for (JsonNode n : arr) {
                             String status = n.has("trangthai") ? n.get("trangthai").asText() : "HOANTAT";
                             
-                            // Lọc trạng thái hiển thị
                             boolean match = false;
                             if ("Tất cả".equals(filter)) {
                                 match = true;
@@ -141,7 +157,7 @@ public class PreOrderManagerController {
                                 String ngay = n.has("ngayban") && !n.get("ngayban").isNull() 
                                         ? n.get("ngayban").asText().replace("T", " ")
                                         : "";
-                                if (ngay.length() > 16) ngay = ngay.substring(0, 16);
+                                if (ngay.length() > 19) ngay = ngay.substring(0, 19);
 
                                 orderList.add(new InvoiceListRow(
                                     n.path("mahd").asText(),
@@ -188,31 +204,51 @@ public class PreOrderManagerController {
         });
     }
 
+    // --- HÀM XỬ LÝ MODAL XÁC NHẬN ---
+    private void showCustomConfirm(String title, String message, String btnColor, Runnable action) {
+        lblConfirmTitle.setText(title);
+        lblConfirmMessage.setText(message);
+        btnConfirmAction.setStyle("-fx-background-color: " + btnColor + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        this.pendingConfirmAction = action;
+        confirmModalOverlay.setVisible(true);
+    }
+
+    @FXML void handleCloseConfirmModal() {
+        confirmModalOverlay.setVisible(false);
+        pendingConfirmAction = null;
+    }
+
+    @FXML void executeConfirmAction() {
+        if (pendingConfirmAction != null) {
+            pendingConfirmAction.run();
+        }
+        confirmModalOverlay.setVisible(false);
+    }
+
+    // --- XỬ LÝ NÚT DUYỆT VÀ HỦY ---
     @FXML
     void handleApproveOrder() {
         InvoiceListRow selected = tableOrders.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Duyệt đơn đặt trước");
-        confirm.setHeaderText("Xác nhận hoàn tất thanh toán?");
-        confirm.setContentText("Bạn có chắc chắn muốn duyệt và hoàn tất hóa đơn " + selected.getMahd() + " không?\nHành động này xác nhận khách đã nhận thuốc và trả tiền.");
-        
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
+        showCustomConfirm(
+            "Duyệt đơn đặt trước",
+            "Bạn có chắc chắn muốn duyệt và hoàn tất hóa đơn " + selected.getMahd() + " không?\nHành động này xác nhận khách đã nhận thuốc và thanh toán.",
+            "#10b981", // Màu xanh lá
+            () -> { 
                 String url = "/api/sales/invoices/" + selected.getMahd() + "/status?status=HOANTAT";
                 ApiService.put(url, "").thenAccept(res -> {
                     Platform.runLater(() -> {
                         if (res.statusCode() == 200) {
-                            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã duyệt và hoàn tất đơn hàng " + selected.getMahd() + " thành công!");
+                            showReceiptModal(selected);
                             fetchOrders();
                         } else {
-                            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể cập nhật trạng thái đơn hàng!");
+                            showAlert("Lỗi", "Không thể cập nhật trạng thái đơn hàng!");
                         }
                     });
                 });
             }
-        });
+        );
     }
 
     @FXML
@@ -220,30 +256,99 @@ public class PreOrderManagerController {
         InvoiceListRow selected = tableOrders.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Hủy đơn đặt trước");
-        confirm.setHeaderText("Xác nhận hủy đơn hàng?");
-        confirm.setContentText("Bạn có chắc chắn muốn hủy đơn hàng " + selected.getMahd() + " không?\nHành động này sẽ giải phóng kho và hoàn trả thuốc về các lô sản phẩm tương ứng.");
-
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
+        showCustomConfirm(
+            "Hủy đơn đặt trước",
+            "Bạn có chắc chắn muốn hủy đơn hàng " + selected.getMahd() + " không?\nHành động này sẽ giải phóng kho và hoàn trả thuốc.",
+            "#ef4444", // Màu đỏ
+            () -> { 
                 String url = "/api/sales/invoices/" + selected.getMahd() + "/status?status=HUY";
                 ApiService.put(url, "").thenAccept(res -> {
                     Platform.runLater(() -> {
                         if (res.statusCode() == 200) {
-                            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã hủy đơn hàng và hoàn kho thành công!");
+                            showAlert("Thành công", "Đã hủy đơn hàng và hoàn kho thành công!");
                             fetchOrders();
                         } else {
-                            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể hủy đơn hàng!");
+                            showAlert("Lỗi", "Không thể hủy đơn hàng!");
                         }
                     });
                 });
             }
-        });
+        );
     }
 
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert a = new Alert(type);
+    // --- HÀM ĐỔ DỮ LIỆU BIÊN LAI ---
+    private void showReceiptModal(InvoiceListRow selected) {
+        lblSumInvoiceId.setText(selected.getMahd());
+        lblSumStaffId.setText("NV001"); 
+        
+        String phone = selected.getSdt();
+        lblSumPhone.setText(phone == null || phone.trim().isEmpty() ? "Không có" : phone);
+        lblSumDate.setText(selected.getNgayban());
+        
+        DecimalFormat formatter = new DecimalFormat("#,### đ");
+        int pointsUsed = selected.getDiemsudung();
+        double totalAmount = selected.getTongtien();
+        double payment = totalAmount - pointsUsed;
+
+        lblSumPointsUsed.setText("- " + formatter.format(pointsUsed));
+        lblSumSubtotal.setText(formatter.format(totalAmount));
+        lblSumFinalAmount.setText(formatter.format(payment));
+
+        listSumProducts.getItems().clear();
+        for (ReturnDetailRow item : detailList) {
+            String productDetail = String.format("%d x %s (%s) - %s", 
+                item.getSl(), item.getTensanpham(), item.getMalo(), item.getFormattedThanhtien());
+            listSumProducts.getItems().add(productDetail);
+        }
+
+        if (phone != null && !phone.trim().isEmpty()) {
+            ApiService.get("/api/sales/customers?sdt=" + phone).thenAccept(res -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (res.statusCode() == 200) {
+                            JsonNode root = ApiService.mapper.readTree(res.body());
+                            if (root.has("data") && !root.get("data").isNull()) {
+                                JsonNode data = root.get("data");
+                                String makh = data.has("makh") ? data.get("makh").asText() : "Khách lẻ";
+                                lblSumCustomerId.setText(makh);
+                                
+                                int totalPoints = data.has("diemtichluy") ? data.get("diemtichluy").asInt() : 0;
+                                lblSumTotalPoints.setText(formatter.format(totalPoints));
+                            } else {
+                                lblSumCustomerId.setText("Khách lẻ");
+                                lblSumTotalPoints.setText("0");
+                            }
+                        } else {
+                            lblSumCustomerId.setText("Khách lẻ");
+                            lblSumTotalPoints.setText("0");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        lblSumTotalPoints.setText("0");
+                    }
+                    summaryModalOverlay.setVisible(true);
+                });
+            });
+        } else {
+            lblSumCustomerId.setText("Khách lẻ");
+            lblSumTotalPoints.setText("0");
+            summaryModalOverlay.setVisible(true);
+        }
+    }
+
+    @FXML 
+    void handleCloseSummaryModal(ActionEvent event) { 
+        summaryModalOverlay.setVisible(false); 
+    }
+
+    @FXML
+    void handlePrintInvoice(ActionEvent event) {
+        showAlert("Đang in...", "Hệ thống đang kết nối máy in để in hóa đơn: " + lblSumInvoiceId.getText());
+        summaryModalOverlay.setVisible(false);
+    }
+
+    private void showAlert(String title, String content) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
         a.setTitle(title);
         a.setHeaderText(null);
         a.setContentText(content);

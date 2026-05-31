@@ -40,7 +40,6 @@
 
              <HBox spacing="15.0" alignment="BOTTOM_LEFT" prefHeight="250.0">
                  <children>
-                     <!-- Bảng chi tiết sản phẩm -->
                      <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                          <Label fx:id="lblDetailTitle" text="CHI TIẾT SẢN PHẨM CỦA ĐƠN HÀNG: (Chưa chọn)" style="-fx-font-weight: bold; -fx-text-fill: #0b5d77;"/>
                          <TableView fx:id="tableDetails" VBox.vgrow="ALWAYS" style="-fx-background-color: #f8fafc; -fx-selection-bar: #0ea5e9;">
@@ -55,23 +54,85 @@
                          </TableView>
                      </VBox>
 
-                     <!-- Panel nút hành động -->
                      <VBox spacing="15.0" alignment="CENTER" minWidth="250.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-padding: 20;">
                          <children>
                              <Label text="THAO TÁC ĐƠN HÀNG" style="-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-size: 14px;"/>
                              <Separator />
                              
-                             <Button fx:id="btnApprove" disable="true" text="✔️ Duyệt &amp; Hoàn Tất" onAction="#handleApproveOrder" maxWidth="Infinity" prefHeight="45.0" style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;"/>
+                             <Button fx:id="btnApprove" disable="true" text="Duyệt &amp; Hoàn Tất" onAction="#handleApproveOrder" maxWidth="Infinity" prefHeight="45.0" style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;"/>
                              
-                             <Button fx:id="btnCancel" disable="true" text="❌ Hủy Đơn &amp; Trả Kho" onAction="#handleCancelOrder" maxWidth="Infinity" prefHeight="45.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;"/>
+                             <Button fx:id="btnCancel" disable="true" text="Hủy Đơn &amp; Trả Kho" onAction="#handleCancelOrder" maxWidth="Infinity" prefHeight="45.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;"/>
                              
                              <Label text="(*) Hủy đơn sẽ tự động xóa giữ chỗ và hoàn trả thuốc về các lô gốc." style="-fx-font-size: 11px; -fx-text-fill: #94a3b8;" wrapText="true" textAlignment="CENTER"/>
                          </children>
                      </VBox>
                  </children>
              </HBox>
-             
          </VBox>
       </VBox>
+
+      <StackPane fx:id="confirmModalOverlay" alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" style="-fx-background-color: rgba(0,0,0,0.5);" visible="false">
+          <VBox StackPane.alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="420.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 30; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 15, 0, 0, 5);">
+              <HBox alignment="CENTER">
+                   <Label style="-fx-font-size: 45px; -fx-text-fill: #f59e0b;" text="❓"/>
+              </HBox>
+              <Label fx:id="lblConfirmTitle" alignment="CENTER" maxWidth="Infinity" style="-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #1e293b;" text="Xác nhận"/>
+              <Label fx:id="lblConfirmMessage" alignment="CENTER" maxWidth="Infinity" wrapText="true" textAlignment="CENTER" style="-fx-font-size: 15px; -fx-text-fill: #475569; -fx-padding: 0 0 10 0;" text="Bạn có chắc chắn muốn thực hiện hành động này không?"/>
+              <HBox alignment="CENTER" spacing="15.0">
+                  <Button onAction="#handleCloseConfirmModal" prefHeight="45.0" prefWidth="130.0" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand;" text="HỦY BỎ" />
+                  <Button fx:id="btnConfirmAction" onAction="#executeConfirmAction" prefHeight="45.0" prefWidth="130.0" style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="ĐỒNG Ý" />
+              </HBox>
+          </VBox>
+      </StackPane>
+
+      <StackPane fx:id="summaryModalOverlay" alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" style="-fx-background-color: rgba(0,0,0,0.6);" visible="false">
+          <VBox StackPane.alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="550.0" prefHeight="650.0" spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);">
+              
+              <Label style="-fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: #09736a;" text="BIÊN LAI THANH TOÁN" alignment="CENTER" maxWidth="Infinity"/>
+              <Separator />
+              
+              <GridPane vgap="12" hgap="10">
+                  <columnConstraints>
+                      <ColumnConstraints percentWidth="35"/>
+                      <ColumnConstraints percentWidth="65"/>
+                  </columnConstraints>
+                  
+                  <Label text="Mã hóa đơn:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumInvoiceId" GridPane.rowIndex="0" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Mã nhân viên:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumStaffId" text="NV001" GridPane.rowIndex="1" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Mã khách hàng:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumCustomerId" GridPane.rowIndex="2" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Số điện thoại:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumPhone" GridPane.rowIndex="3" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Ngày bán:" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumDate" GridPane.rowIndex="4" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Tổng điểm:" GridPane.rowIndex="5" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumTotalPoints" GridPane.rowIndex="5" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Điểm sử dụng:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumPointsUsed" GridPane.rowIndex="6" GridPane.columnIndex="1" style="-fx-text-fill: #eab308; -fx-font-weight: bold;"/>
+                  
+                  <Label text="Tiền hàng:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumSubtotal" GridPane.rowIndex="7" GridPane.columnIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                  
+                  <Label text="Thành tiền:" GridPane.rowIndex="8" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                  <Label fx:id="lblSumFinalAmount" GridPane.rowIndex="8" GridPane.columnIndex="1" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #dc2626;"/>
+              </GridPane>
+              
+              <Label text="Danh sách sản phẩm:" style="-fx-font-weight: bold; -fx-padding: 10 0 0 0; -fx-text-fill: #64748b;"/>
+              <ListView fx:id="listSumProducts" VBox.vgrow="ALWAYS" style="-fx-background-color: #f8fafc; -fx-border-color: #e2e8f0; -fx-border-radius: 5; -fx-background-radius: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"/>
+              
+              <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 15 0 0 0;">
+                  <Button onAction="#handleCloseSummaryModal" prefHeight="45.0" prefWidth="120.0" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand;" text="ĐÓNG" />
+                  <Button onAction="#handlePrintInvoice" prefHeight="45.0" prefWidth="160.0" style="-fx-background-color: #09736a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="IN HÓA ĐƠN" />
+              </HBox>
+          </VBox>
+      </StackPane>
    </children>
 </AnchorPane>

@@ -1,59 +1,79 @@
 # Pharmacy-Management-System
-Java-based Windows App for Pharmacy Management and Inventory Control
+# HƯỚNG DẪN CÀI ĐẶT VÀ VẬN HÀNH HỆ THỐNG
 
-Dựa vào mã nguồn bạn cung cấp, hệ thống được xây dựng bằng Spring Boot cung cấp rất nhiều API phục vụ cho Hệ thống Quản lý Nhà thuốc (Pharmacy Management System)[cite: 1]. Dưới đây là tổng hợp chi tiết tất cả các API được phân loại theo từng nhóm chức năng cụ thể:
+## 1. YÊU CẦU VÀ CÀI ĐẶT CHUNG
 
-### 1. Nhóm Xác thực & Quản lý Mật khẩu (Auth & Password)
-Nhóm này quản lý việc đăng nhập và các thao tác liên quan đến mật khẩu người dùng
-*   **`POST /api/login`**: Đăng nhập vào hệ thống bằng số điện thoại và mật khẩu, trả về thông tin user và token JWT.
-*   **`POST /api/password/first-login-change`**: Đổi mật khẩu bắt buộc cho lần đăng nhập đầu tiên.
-*   **`POST /api/password/setting-change`**: Đổi mật khẩu trong mục cài đặt tài khoản (yêu cầu mật khẩu cũ).
-*   **`POST /api/password/forgot`**: Quên mật khẩu, hệ thống sẽ tạo mật khẩu tạm thời và gửi về email người dùng.
+### 1.1. Yêu cầu môi trường và công cụ
 
-### 2. Nhóm Quản trị viên - Tài khoản & Nhân viên (Admin Account & Employee)
-Chỉ dành cho quyền ADMIN để quản lý nhân viên và cấp tài khoản.
-*   **`POST /api/admin/accounts/create`**: Tạo tài khoản mới cho nhân viên (với vai trò STAFF) và tự động gửi mật khẩu khởi tạo qua email.
-*   **`PUT /api/admin/accounts/{id}/status`**: Khóa/Mở khóa trạng thái hoạt động của một tài khoản.
-*   **`GET /api/admin/employees`**: Lấy danh sách toàn bộ hồ sơ nhân viên.
-*   **`PUT /api/admin/employees/{id}`**: Cập nhật hồ sơ thông tin của nhân viên.
-*   **`DELETE /api/admin/employees/{id}`**: Xóa nhân viên (đổi trạng thái nhân viên sang "RESIGNED" - đã nghỉ việc).
+Để triển khai toàn bộ hệ thống Quản lý Nhà thuốc bao gồm Ứng dụng dành cho nhân viên và Nền tảng Web dành cho khách hàng, máy tính cần được cài đặt sẵn các phần mềm sau:
 
-### 3. Nhóm Hồ sơ cá nhân (Profile)
-*   **`PUT /api/profile/update`**: Cập nhật thông tin hồ sơ cá nhân của người dùng đang đăng nhập (áp dụng cho cả nhân viên hoặc khách hàng).
+* Java Development Kit: Phiên bản 21.
+* Node.js: Phiên bản 16.x trở lên kèm theo npm.
+* Apache Maven: Công cụ quản lý dự án và thư viện Java.
+* Docker hoặc Docker Desktop: Môi trường ảo hóa để chạy cơ sở dữ liệu.
+* Công cụ lập trình: Visual Studio Code. Yêu cầu cài đặt thêm gói mở rộng Extension Pack for Java để hỗ trợ chạy mã nguồn Spring Boot và JavaFX.
+* Công cụ quản lý Cơ sở dữ liệu: DBeaver, DataGrip hoặc SQL Developer.
 
-### 4. Nhóm Sản phẩm & Danh mục (Product & Category)
-Bao gồm các API quản lý thông tin thuốc và phân loại dành cho Admin và Staff.
-*   **`GET /api/admin/categories`**: Lấy danh sách tất cả các danh mục thuốc (dành cho Admin).
-*   **`POST /api/admin/categories`**: Thêm mới một danh mục thuốc.
-*   **`PUT /api/admin/categories/{id}`**: Cập nhật thông tin danh mục thuốc.
-*   **`DELETE /api/admin/categories/{id}`**: Xóa một danh mục.
-*   **`GET /api/categories`**: Lấy danh sách danh mục (rút gọn thông tin) dành cho nhân viên (Staff).
-*   **`GET /api/products`**: Lấy danh sách hoặc tìm kiếm các loại thuốc/sản phẩm (có hỗ trợ tham số `?search=`).
-*   **`GET /api/products/{id}`**: Lấy thông tin chi tiết của một loại thuốc.
-*   **`POST /api/admin/products`**: Thêm mới một loại thuốc/sản phẩm.
-*   **`PUT /api/admin/products/{id}`**: Cập nhật thông tin thuốc/sản phẩm.
-*   **`DELETE /api/admin/products/{id}`**: Xóa thuốc/sản phẩm.
+### 1.2. Khởi tạo Cơ sở dữ liệu Oracle
 
-### 5. Nhóm Khách hàng & Bán hàng (Customer & Sales)
-Các API phục vụ bán hàng, quản lý hồ sơ khách hàng, hóa đơn và điểm tích lũy.
-*   **`GET /api/sales/customers?sdt=...`**: Tìm kiếm thông tin khách hàng dựa vào số điện thoại.
-*   **`POST /api/sales/customers`**: Tạo hồ sơ khách hàng mới một cách chi tiết.
-*   **`POST /api/sales/customers/quick-create`**: Tạo nhanh hồ sơ khách hàng (chỉ cần tên và số điện thoại) để phục vụ việc tích điểm ngay tại quầy.
-*   **`POST /api/sales/customers/{makh}/upgrade`**: Cấp tài khoản đăng nhập cho một khách hàng vãng lai (mật khẩu được gửi qua email).
-*   **`GET /api/sales/customers/{makh}/invoices`**: Lấy lịch sử mua hàng/hóa đơn trong 2 năm gần nhất của một khách hàng.
-*   **`GET /api/sales/loyalty/history/{customerId}`**: Lấy lịch sử giao dịch biến động điểm tích lũy của khách hàng.
+Cả hai nền tảng App và Web đều sử dụng chung một cơ sở dữ liệu Oracle được triển khai thông qua Docker.
 
-### 6. Nhóm Kho hàng & Phân tích (Warehouse & Inventory Analysis)
-Quản lý nhập kho, nhà cung cấp, lô hàng và các cảnh báo/gợi ý thông minh cho kho.
-*   **`GET /api/warehouse/suppliers`**: Lấy danh sách nhà cung cấp.
-*   **`POST /api/warehouse/suppliers`**: Thêm mới nhà cung cấp.
-*   **`PUT /api/warehouse/suppliers/{id}`**: Cập nhật thông tin nhà cung cấp.
-*   **`GET /api/warehouse/import-receipts`**: Lấy danh sách phiếu nhập kho.
-*   **`POST /api/warehouse/import-receipts`**: Tạo phiếu nhập kho, tự động tạo mới các lô sản phẩm và cập nhật số lượng tồn kho.
-*   **`GET /api/warehouse/batches`**: Lấy danh sách toàn bộ các lô sản phẩm hiện có.
-*   **`GET /api/warehouse/inventory`**: Lấy danh sách số lượng hàng tồn theo từng lô/kho.
-*   **`GET /api/warehouse/alerts/low-stock`**: Lấy danh sách các sản phẩm đang sắp hết hàng (tồn kho dưới 10).
-*   **`GET /api/warehouse/alerts/expiring-soon`**: Lấy danh sách các lô thuốc sắp hết hạn sử dụng (dưới 3 tháng).
+* Mở ứng dụng Terminal hoặc Command Prompt tại thư mục gốc của dự án.
+* Khởi chạy vùng chứa cơ sở dữ liệu bằng lệnh: `docker-compose up -d`
+* Sử dụng công cụ quản lý cơ sở dữ liệu để tạo kết nối mới với các thông số:
+* Host: `localhost`
+* Port: `1521`
+* Service Name: `XEPDB1`
+* Username: `nha_thuoc`
+* Password: `123456`
 
-### 8. API Kiểm thử hệ thống (Test/Utility)
-*   **`GET /api/test-mail?toEmail=...`**: API test gửi email HTML thử nghiệm nghiệm để kiểm tra cấu hình SMTP của hệ thống có hoạt động không.
+
+* Sau khi kết nối thành công, người dùng cần mở thư mục `oracle` trong mã nguồn và chạy lần lượt các kịch bản SQL theo thứ tự quy định để khởi tạo cấu trúc bảng, các ràng buộc và nạp dữ liệu mẫu ban đầu.
+
+---
+
+## 2. HƯỚNG DẪN CHẠY ỨNG DỤNG NHÂN VIÊN (APP)
+
+### 2.1. Khởi chạy Backend API
+
+* Mở thư mục chứa mã nguồn Backend của Ứng dụng Nhân viên bằng phần mềm Visual Studio Code.
+* Chờ hệ thống tự động đồng bộ Maven để tải về các thư viện cần thiết.
+* Mở tệp `application.properties` trong thư mục cấu hình để thiết lập các thông số bắt buộc:
+* Cấu hình Cơ sở dữ liệu: Đảm bảo thông tin kết nối trùng khớp với thiết lập ở phần 1.2.
+* Cấu hình Email: Bắt buộc thay thế tài khoản tại mục `spring.mail.username` và Mật khẩu ứng dụng tại mục `spring.mail.password` bằng thông tin cá nhân của bạn để hệ thống có thể gửi thư.
+* Cấu hình Gemini AI: Bắt buộc thay thế đoạn `{GEMINI_API_KEY}` tại mục `gemini.api.key` bằng API Key thật của bạn. Hệ thống sẽ báo lỗi không thể sử dụng trợ lý ảo nếu thiếu cấu hình này.
+
+
+* Mở lớp khởi tạo chứa phương thức `main` và nhấn Run. Hệ thống sẽ khởi động và lắng nghe các yêu cầu tại cổng `8080`.
+
+### 2.2. Khởi chạy Frontend JavaFX
+
+* Mở thư mục chứa mã nguồn Frontend App trên một cửa sổ Visual Studio Code mới.
+* Chờ quá trình tải các thành phần phụ thuộc của JavaFX hoàn tất.
+* Khởi chạy giao diện ứng dụng bằng một trong hai phương pháp:
+* Phương pháp 1: Mở Terminal tích hợp của VS Code tại thư mục hiện tại và chạy lệnh: `mvn javafx:run`
+* Phương pháp 2: Mở tệp chứa lớp khởi tạo giao diện của dự án và nhấn Run tại phương thức `main`.
+
+
+
+---
+
+## 3. HƯỚNG DẪN CHẠY NỀN TẢNG KHÁCH HÀNG (WEB)
+
+### 3.1. Khởi chạy Backend API (cusapi)
+
+* Mở thư mục chứa mã nguồn Backend của Web bằng Visual Studio Code.
+* Chờ hệ thống đồng bộ Maven.
+* Mở tệp `application.properties` để kiểm tra và cập nhật các cấu hình thiết yếu:
+* Thay thế thông tin máy chủ gửi thư điện tử bao gồm email và App Password cá nhân tương tự như hướng dẫn ở phần 2.1.
+* Cập nhật khóa bí mật JWT nếu triển khai thực tế.
+
+
+* Mở lớp khởi tạo chứa phương thức `main` và nhấn Run. Dịch vụ API dành riêng cho khách hàng sẽ khởi chạy độc lập và lắng nghe tại cổng `8081`.
+
+### 3.2. Khởi chạy Frontend ReactJS
+
+* Mở thư mục chứa mã nguồn Frontend Web bằng phần mềm Visual Studio Code.
+* Mở Terminal tích hợp trong VS Code và thực thi lệnh sau để tải các gói thư viện Node.js cần thiết: `npm install`
+* Sau khi quá trình cài đặt hoàn tất, khởi động máy chủ phát triển giao diện bằng lệnh: `npm run dev`
+* Truy cập vào nền tảng Web thông qua trình duyệt tại đường dẫn được hiển thị trên Terminal, mặc định là `http://localhost:5173`.

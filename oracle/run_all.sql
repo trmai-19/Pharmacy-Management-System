@@ -37,3 +37,17 @@ select * from PHIEUTRA_KH;
 select * from CTPT_KH;
 select * from DIEMTL;
 select * from MEDICINE_CACHE;
+
+SET SERVEROUTPUT ON;
+
+UPDATE SANPHAM SET GIABAN = 100000 WHERE MASP = 'SP00001';
+COMMIT;
+
+@session1.sql;
+COMMIT;
+
+@session1_fix.sql;
+COMMIT;
+
+@sesson2.sql;
+COMMIT;
