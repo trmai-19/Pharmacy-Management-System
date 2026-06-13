@@ -28,6 +28,8 @@ export const khachHangService = {
   getThongTin: () => api.get('/khachhang/me'),
   getDiem: () => api.get('/khachhang/diem'),
   getLichSu: () => api.get('/khachhang/lichsu'),
+  getChiTietHoaDon: (maHD) => api.get(`/khachhang/lichsu/${maHD}`),
+  updateThongTin: (data) => api.put('/khachhang/me', data),
 }
 
 export const sanPhamService = {
@@ -40,6 +42,13 @@ export const sanPhamService = {
     return api.get(`/sanpham/browse?${params.toString()}`)
   },
   getDanhMuc: () => api.get('/sanpham/danhmuc'),
+}
+
+export const orderService = {
+  createOrder: (data) => api.post('/orders', data),
+  getMyOrders: () => api.get('/orders'),
+  getOrderDetails: (maHD) => api.get(`/orders/${maHD}`),
+  cancelOrder: (maHD) => api.put(`/orders/${maHD}/cancel`),
 }
 
 export default api

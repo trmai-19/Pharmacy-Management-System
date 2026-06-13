@@ -22,34 +22,40 @@
                  <Button text="🔍" onAction="#fetchInvoices" style="-fx-background-color: #e2e8f0; -fx-cursor: hand;"/>
              </HBox>
 
-             <Label text="DANH SÁCH HÓA ĐƠN BÁN HÀNG (Chọn 1 hóa đơn để xem/trả hàng)" style="-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-padding: 10 0 0 0;"/>
-             
-             <TableView fx:id="tableInvoices" VBox.vgrow="ALWAYS" style="-fx-selection-bar: #0ea5e9; -fx-selection-bar-text: white;">
-                 <columns>
-                     <TableColumn fx:id="colInvId" prefWidth="120.0" style="-fx-font-weight: bold;" text="Mã HĐ"/>
-                     <TableColumn fx:id="colInvDate" prefWidth="140.0" style="-fx-alignment: CENTER;" text="Ngày Bán"/>
-                     <TableColumn fx:id="colInvCustomer" prefWidth="230.0" text="Khách Hàng"/>
-                     <TableColumn fx:id="colInvTotal" prefWidth="140.0" style="-fx-alignment: CENTER_RIGHT; -fx-font-weight: bold;" text="Tổng Tiền"/>
-                     <TableColumn fx:id="colInvPoints" prefWidth="90.0" style="-fx-alignment: CENTER;" text="Điểm SD"/>
-                     <TableColumn fx:id="colInvStatus" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Trạng Thái"/>
-                     <TableColumn fx:id="colInvAction" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Chi tiết"/>
-                 </columns>
-                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-             </TableView>
+             <SplitPane dividerPositions="0.6" orientation="VERTICAL" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                 <items>
+                     <VBox spacing="5.0">
+                         <Label text="DANH SÁCH HÓA ĐƠN BÁN HÀNG (Chọn 1 hóa đơn để xem/trả hàng)" style="-fx-font-weight: bold; -fx-text-fill: #0f766e; -fx-padding: 0 0 5 0;"/>
+                         <TableView fx:id="tableInvoices" VBox.vgrow="ALWAYS" style="-fx-selection-bar: #0ea5e9; -fx-selection-bar-text: white;">
+                             <columns>
+                                 <TableColumn fx:id="colInvId" prefWidth="120.0" style="-fx-font-weight: bold;" text="Mã HĐ"/>
+                                 <TableColumn fx:id="colInvDate" prefWidth="140.0" style="-fx-alignment: CENTER;" text="Ngày Bán"/>
+                                 <TableColumn fx:id="colInvCustomer" prefWidth="230.0" text="Khách Hàng"/>
+                                 <TableColumn fx:id="colInvTotal" prefWidth="140.0" style="-fx-alignment: CENTER_RIGHT; -fx-font-weight: bold;" text="Tổng Tiền"/>
+                                 <TableColumn fx:id="colInvPoints" prefWidth="90.0" style="-fx-alignment: CENTER;" text="Điểm SD"/>
+                                 <TableColumn fx:id="colInvStatus" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Trạng Thái"/>
+                                 <TableColumn fx:id="colInvAction" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Chi tiết"/>
+                             </columns>
+                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                         </TableView>
+                     </VBox>
 
-             <Label fx:id="lblReturnHistoryTitle" text="LỊCH SỬ TRẢ HÀNG CỦA HÓA ĐƠN: (Chưa chọn)" style="-fx-font-weight: bold; -fx-text-fill: #dc2626; -fx-padding: 10 0 0 0;"/>
-             
-             <TableView fx:id="tableReturns" prefHeight="220.0" style="-fx-background-color: #f8fafc; -fx-selection-bar: #0ea5e9; -fx-selection-bar-text: white;">
-                 <columns>
-                     <TableColumn fx:id="colRetId" prefWidth="120.0" style="-fx-font-weight: bold;" text="Mã Phiếu"/>
-                     <TableColumn fx:id="colRetDate" prefWidth="140.0" style="-fx-alignment: CENTER;" text="Ngày Trả"/>
-                     <TableColumn fx:id="colRetReason" prefWidth="250.0" text="Lý do trả"/>
-                     <TableColumn fx:id="colRetTotal" prefWidth="140.0" style="-fx-alignment: CENTER_RIGHT; -fx-font-weight: bold; -fx-text-fill: #dc2626;" text="Tổng Tiền Hoàn"/>
-                     <TableColumn fx:id="colRetPoints" prefWidth="100.0" style="-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #09736a;" text="Điểm Hoàn"/>
-                     <TableColumn fx:id="colRetAction" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Chi tiết"/>
-                 </columns>
-                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-             </TableView>
+                     <VBox spacing="5.0" style="-fx-padding: 5 0 0 0;">
+                         <Label fx:id="lblReturnHistoryTitle" text="LỊCH SỬ TRẢ HÀNG CỦA HÓA ĐƠN: (Chưa chọn)" style="-fx-font-weight: bold; -fx-text-fill: #dc2626; -fx-padding: 0 0 5 0;"/>
+                         <TableView fx:id="tableReturns" VBox.vgrow="ALWAYS" style="-fx-background-color: #f8fafc; -fx-selection-bar: #0ea5e9; -fx-selection-bar-text: white;">
+                             <columns>
+                                 <TableColumn fx:id="colRetId" prefWidth="120.0" style="-fx-font-weight: bold;" text="Mã Phiếu"/>
+                                 <TableColumn fx:id="colRetDate" prefWidth="140.0" style="-fx-alignment: CENTER;" text="Ngày Trả"/>
+                                 <TableColumn fx:id="colRetReason" prefWidth="250.0" text="Lý do trả"/>
+                                 <TableColumn fx:id="colRetTotal" prefWidth="140.0" style="-fx-alignment: CENTER_RIGHT; -fx-font-weight: bold; -fx-text-fill: #dc2626;" text="Tổng Tiền Hoàn"/>
+                                 <TableColumn fx:id="colRetPoints" prefWidth="100.0" style="-fx-alignment: CENTER; -fx-font-weight: bold; -fx-text-fill: #09736a;" text="Điểm Hoàn"/>
+                                 <TableColumn fx:id="colRetAction" prefWidth="80.0" style="-fx-alignment: CENTER;" text="Chi tiết"/>
+                             </columns>
+                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                         </TableView>
+                     </VBox>
+                 </items>
+             </SplitPane>
          </VBox>
       </VBox>
 

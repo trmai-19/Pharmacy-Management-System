@@ -108,9 +108,13 @@ public class ProductManagerController {
             @Override public String toString(Category c) { return c == null ? "" : c.getCategoryName(); }
             @Override public Category fromString(String s) { return null; }
         });
+
+        // Bắt sự kiện phím Enter trên ô nhập tên sản phẩm
+        if (txtProdName != null) {
+            txtProdName.setOnAction(e -> handleAiSuggestAction(null));
+        }
     }
 
-    // Helper để áp dụng style cho một row
     private void applyBatchRowStyle(TableRow<Batch> row, Batch item, boolean selected) {
         if (item == null) {
             row.setStyle("");
@@ -165,7 +169,6 @@ public class ProductManagerController {
         colBatchStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         tableBatch.setItems(batchList);
 
-        // Row factory cho bảng lô chính
         tableBatch.setRowFactory(tv -> {
             TableRow<Batch> row = new TableRow<>() {
                 @Override
@@ -174,7 +177,6 @@ public class ProductManagerController {
                     applyBatchRowStyle(this, item, isSelected());
                 }
             };
-            // Lắng nghe thay đổi selected để cập nhật style
             row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
                 Batch item = row.getItem();
                 if (item != null) {
@@ -189,7 +191,6 @@ public class ProductManagerController {
         colCatNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         tableCategory.setItems(categoryList);
 
-        // Setup modal alert table columns
         colAlertBatchId.setCellValueFactory(new PropertyValueFactory<>("batchId"));
         colAlertProductId.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colAlertMfgDate.setCellValueFactory(new PropertyValueFactory<>("mfgDate"));
@@ -199,7 +200,6 @@ public class ProductManagerController {
         colAlertQuantity.setCellValueFactory(new PropertyValueFactory<>("currentQty"));
         colAlertStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Row factory cho modal cảnh báo
         tableAlertBatches.setRowFactory(tv -> {
             TableRow<Batch> row = new TableRow<>() {
                 @Override
@@ -378,7 +378,6 @@ public class ProductManagerController {
         });
     }
 
-    // ==================== CLICK THẺ THỐNG KÊ ====================
     @FXML
     void showLowStockBatches(MouseEvent event) {
         showAlertModal("📦 DANH SÁCH SẮP HẾT HÀNG (CẦN NHẬP)", "/api/warehouse/alerts/low-stock");
@@ -437,30 +436,38 @@ public class ProductManagerController {
         return masp;
     }
 
-    // ==================== AI PANEL ====================
+    // ==================== AI PANEL (ĐÃ CHỈNH SỬA LẠI LOGIC) ====================
     @FXML
-    void toggleAiPanel(ActionEvent event) {
-        isAiPanelOpen = !isAiPanelOpen;
-        javafx.animation.Timeline timeline = new javafx.animation.Timeline();
+    void handleAiSuggestAction(ActionEvent event) {
+        String keyword = txtProdName.getText().trim();
+        openAiPanel();
         
-        if (isAiPanelOpen) {
+        if (!keyword.isEmpty()) {
+            fetchAiSuggestions(keyword);
+        } else {
+            vboxAiResults.getChildren().clear();
+            vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
+        }
+    }
+
+    private void openAiPanel() {
+        if (!isAiPanelOpen) {
+            isAiPanelOpen = true;
             aiPanelContent.setVisible(true);
-            btnAiSuggest.setText("Đóng Gợi ý");
+            javafx.animation.Timeline timeline = new javafx.animation.Timeline();
             javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 380.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 1.0, javafx.animation.Interpolator.EASE_BOTH);
             timeline.getKeyFrames().add(new javafx.animation.KeyFrame(javafx.util.Duration.millis(350), kvWidth, kvPref, kvOpacity));
             timeline.play();
-            
-            String keyword = txtProdName.getText().trim();
-            if (!keyword.isEmpty()) {
-                fetchAiSuggestions(keyword);
-            } else {
-                vboxAiResults.getChildren().clear();
-                vboxAiResults.getChildren().add(new Label("Nhập tên thuốc để AI tìm kiếm..."));
-            }
-        } else {
-            btnAiSuggest.setText("Gợi ý AI");
+        }
+    }
+
+    @FXML
+    void closeAiPanel(ActionEvent event) {
+        if (isAiPanelOpen) {
+            isAiPanelOpen = false;
+            javafx.animation.Timeline timeline = new javafx.animation.Timeline();
             javafx.animation.KeyValue kvWidth = new javafx.animation.KeyValue(aiPanel.maxWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvPref = new javafx.animation.KeyValue(aiPanel.prefWidthProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
             javafx.animation.KeyValue kvOpacity = new javafx.animation.KeyValue(aiPanel.opacityProperty(), 0.0, javafx.animation.Interpolator.EASE_BOTH);
@@ -540,7 +547,7 @@ public class ProductManagerController {
             txtProdUnit.setText(donViTinh);
             txtProdActive.setText(thanhPhan);
             txtProdUsage.setText(congDung);
-            toggleAiPanel(null);
+            closeAiPanel(null); // Thay vì toggle, giờ gọi close luôn
         });
         
         card.getChildren().addAll(lblName, lblUnit, lblActive, lblUsage, btnSelect);
@@ -657,7 +664,7 @@ public class ProductManagerController {
 
     @FXML void handleCloseProductModal(ActionEvent e) { 
         modalProduct.setVisible(false); 
-        if (isAiPanelOpen) { toggleAiPanel(null); }
+        closeAiPanel(null); // Đóng AI khi ẩn modal
     }
     
     @FXML void handleCloseCategoryModal(ActionEvent e) { modalCategory.setVisible(false); }

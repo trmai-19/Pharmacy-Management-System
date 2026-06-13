@@ -23,6 +23,7 @@ public class SalesController {
     @FXML private Button btnSales;
     @FXML private Button btnCustomers;
     @FXML private Button btnReturns; 
+    @FXML private Button btnPreOrders;
     @FXML private MenuButton avatarMenuButton; 
     
     @FXML private StackPane bellIcon;
@@ -78,10 +79,14 @@ public class SalesController {
         handleMenuClick((Button) event.getSource(), "customer-management.fxml", "QUẢN LÝ KHÁCH HÀNG");
     }
 
-    // Hàm mở giao diện Quản Lý Đổi Trả
     @FXML
     void showReturnManager(ActionEvent event) {
         handleMenuClick((Button) event.getSource(), "return-management.fxml", "QUẢN LÝ ĐỔI TRẢ");
+    }
+
+    @FXML
+    void showPreOrderManager(ActionEvent event) {
+        handleMenuClick((Button) event.getSource(), "pre-order-management.fxml", "QUẢN LÝ ĐƠN ĐẶT TRƯỚC");
     }
 
     // ====================== LOGIC ĐỔI TRANG ======================

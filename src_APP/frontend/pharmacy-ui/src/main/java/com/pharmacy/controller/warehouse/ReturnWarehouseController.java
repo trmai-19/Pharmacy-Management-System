@@ -22,6 +22,8 @@ import javafx.scene.layout.Pane;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ReturnWarehouseController {
 
@@ -66,6 +68,9 @@ public class ReturnWarehouseController {
     private ObservableList<ImportReceipt> importList = FXCollections.observableArrayList();
     private ObservableList<SupplierReturnTicket> detailReturnList = FXCollections.observableArrayList();
     private ObservableList<ReturnItemRow> temporaryReturnList = FXCollections.observableArrayList();
+    
+    // Map phụ trợ để lookup Tên Sản Phẩm dựa trên Mã lô
+    private Map<String, String> maloToNameMap = new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -76,8 +81,6 @@ public class ReturnWarehouseController {
         tableReturnItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableViewImportItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableViewReturnItems.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-        // Đã xóa hàm styleTableHeaders() ở đây để trả về style gốc của hệ thống
 
         setupTableColumns();
         hideAllModals();
@@ -157,8 +160,23 @@ public class ReturnWarehouseController {
             }
         });
 
+        // ------------------ SỬA LẠI CỘT BẢNG TRẢ HÀNG TẠM ------------------
         colRetMaLo.setCellValueFactory(new PropertyValueFactory<>("malo"));
+        colRetMaLo.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    // Lookup tên sản phẩm dựa vào mã lô
+                    String name = maloToNameMap.getOrDefault(item, "Chưa xác định");
+                    setText("[" + item + "] " + name);
+                }
+            }
+        });
+
         colRetQty.setCellValueFactory(new PropertyValueFactory<>("sl"));
+        
         colRetAction.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>("Xóa"));
         colRetAction.setCellFactory(param -> new TableCell<>() {
             private final Button deleteBtn = new Button("✕");
@@ -332,6 +350,7 @@ public class ReturnWarehouseController {
         if (selected == null) return;
         
         temporaryReturnList.clear();
+        maloToNameMap.clear(); // Xóa map cũ
         txtLyDoReturn.clear();
         txtSoLuongReturn.clear();
         txtMaPhieuNhapReturn.setText(selected.getMapn().trim());
@@ -345,8 +364,14 @@ public class ReturnWarehouseController {
                         ObservableList<String> list = FXCollections.observableArrayList();
                         for (JsonNode node : dataNode) {
                             String malo = node.has("malo") ? node.get("malo").asText() : "";
+                            String tensanpham = node.has("tensanpham") ? node.get("tensanpham").asText() : "Sản phẩm ẩn";
                             String sl = node.has("sl") ? node.get("sl").asText() : "0";
-                            list.add(malo + " (Đã nhập: " + sl + ")");
+                            
+                            // Lưu vào Map để lát Bảng lấy ra hiển thị
+                            maloToNameMap.put(malo, tensanpham);
+                            
+                            // Ghép chuỗi thân thiện với UX vào ComboBox
+                            list.add("[" + malo + "] " + tensanpham + " (Đã nhập: " + sl + ")");
                         }
                         cbMaLoReturn.setItems(list);
                     } catch (Exception e) { e.printStackTrace(); }
@@ -358,22 +383,38 @@ public class ReturnWarehouseController {
 
     @FXML
     void onBtnAddReturnItem(ActionEvent event) {
-        String rawMalo = cbMaLoReturn.getValue(); 
+        String rawValue = cbMaLoReturn.getValue(); 
         String slStr = txtSoLuongReturn.getText().trim();
 
-        if (rawMalo == null || rawMalo.isEmpty() || slStr.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng chọn Mã lô và nhập Số lượng trả!"); return;
+        if (rawValue == null || rawValue.isEmpty() || slStr.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng chọn Sản phẩm và nhập Số lượng trả!"); return;
         }
         try {
             int sl = Integer.parseInt(slStr);
             if (sl <= 0) {
                 showAlert(Alert.AlertType.WARNING, "Sai số lượng", "Số lượng hàng trả bắt buộc phải lớn hơn 0!"); return;
             }
-            String malo = rawMalo.split(" ")[0].trim();
-            temporaryReturnList.add(new ReturnItemRow(malo, sl));
+            
+            // Cắt lấy mã lô nằm trong dấu ngoặc vuông (VD: "[LO0001] Panadol..." -> "LO0001")
+            String malo = rawValue.substring(1, rawValue.indexOf("]")).trim();
+            
+            // Chống trùng lặp 
+            boolean exists = false;
+            for (ReturnItemRow row : temporaryReturnList) {
+                if (row.getMalo().equals(malo)) {
+                    showAlert(Alert.AlertType.WARNING, "Đã tồn tại", "Sản phẩm này đã có trong danh sách trả bên dưới. Vui lòng xóa dòng cũ nếu muốn sửa số lượng!");
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                temporaryReturnList.add(new ReturnItemRow(malo, sl));
+            }
+            
             cbMaLoReturn.getSelectionModel().clearSelection(); 
             txtSoLuongReturn.clear();
-        } catch (NumberFormatException e) {
+            
+        } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Sai định dạng", "Trường số lượng trả chỉ được nhập số nguyên!");
         }
     }
@@ -387,7 +428,7 @@ public class ReturnWarehouseController {
             showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng điền Lý do xuất trả hàng!"); return;
         }
         if (temporaryReturnList.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Danh sách trống", "Vui lòng thêm ít nhất một Mã lô vào bảng danh sách cần trả!"); return;
+            showAlert(Alert.AlertType.WARNING, "Danh sách trống", "Vui lòng thêm ít nhất một sản phẩm vào bảng danh sách cần trả!"); return;
         }
 
         try {

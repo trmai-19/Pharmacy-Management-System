@@ -14,9 +14,9 @@ import com.pharmacy.backend.dto.CreateCustomerRequest;
 import com.pharmacy.backend.dto.CustomerResponse;
 import com.pharmacy.backend.dto.CustomerStatsResponse;
 import com.pharmacy.backend.dto.InvoiceResponse;
-import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 import com.pharmacy.backend.dto.UpgradeAccountRequest;
 import com.pharmacy.backend.service.CustomerService;
+import com.pharmacy.backend.dto.QuickCreateCustomerRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,6 @@ public class CustomerController {
         
         return ResponseEntity.ok(new ApiResponse<>(200, "Tạo hồ sơ khách hàng thành công", data));
     }
-
 
     @PostMapping("/quick-create")
     public ResponseEntity<ApiResponse<CustomerResponse>> quickCreate(@Valid @RequestBody QuickCreateCustomerRequest request) {

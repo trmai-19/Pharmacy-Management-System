@@ -9,4 +9,5 @@ public interface InvoiceService {
     InvoiceResponse createInvoice(InvoiceRequest request);
     InvoiceResponse getInvoiceById(String mahd);
     List<InvoiceListResponse> getAllInvoices(String search);
+    InvoiceResponse updateInvoiceStatus(String mahd, String status);
 } 

@@ -10,6 +10,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [qty, setQty] = useState(1)
 
   useEffect(() => {
     sanPhamService.getDetail(maSP)
@@ -17,6 +18,29 @@ export default function ProductDetail() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [maSP])
+
+  const handleAddToCart = () => {
+    if (!product) return
+    const cartStr = localStorage.getItem('cart')
+    let cart = cartStr ? JSON.parse(cartStr) : []
+
+    const existingIndex = cart.findIndex(item => item.maSP === product.maSP)
+    if (existingIndex > -1) {
+      cart[existingIndex].sl += qty
+    } else {
+      cart.push({
+        maSP: product.maSP,
+        tenSanPham: product.tenSanPham,
+        giaBan: product.giaBan,
+        dvt: product.dvt,
+        sl: qty
+      })
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('cartUpdated'))
+    alert(`Đã thêm ${qty} ${product.dvt || 'sản phẩm'} vào giỏ hàng thành công!`)
+  }
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -59,18 +83,47 @@ export default function ProductDetail() {
             <div className="w-28 h-28 bg-blue-50 rounded-2xl flex items-center justify-center text-5xl flex-shrink-0">
               💊
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">{product.tenSanPham}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-gray-800 break-words leading-tight">{product.tenSanPham}</h1>
               <p className="text-gray-400 text-sm mt-1">Mã SP: {product.maSP}</p>
               {product.dvt && (
                 <span className="inline-block mt-2 bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full font-medium">
                   Đơn vị: {product.dvt}
                 </span>
               )}
-              {product.giaBan && (
-                <p className="text-blue-700 font-bold text-xl mt-2">
+              {product.giaBan ? (
+                <p className="text-blue-700 font-bold text-2xl mt-3">
                   {product.giaBan.toLocaleString('vi-VN')}đ
                 </p>
+              ) : (
+                <p className="text-gray-400 font-medium text-sm mt-3">Liên hệ giá</p>
+              )}
+
+              {/* Nút đặt hàng / Giỏ hàng */}
+              {product.giaBan && (
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden bg-gray-50">
+                    <button 
+                      onClick={() => setQty(Math.max(1, qty - 1))} 
+                      className="px-3.5 py-2 hover:bg-gray-200 transition font-bold text-gray-600"
+                    >
+                      -
+                    </button>
+                    <span className="px-4 py-2 font-semibold text-sm text-gray-800">{qty}</span>
+                    <button 
+                      onClick={() => setQty(qty + 1)} 
+                      className="px-3.5 py-2 hover:bg-gray-200 transition font-bold text-gray-600"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button 
+                    onClick={handleAddToCart}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-md shadow-blue-100 text-sm flex items-center gap-2"
+                  >
+                    <span>🛒</span> Thêm vào giỏ hàng
+                  </button>
+                </div>
               )}
             </div>
           </div>
